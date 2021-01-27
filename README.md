@@ -6,6 +6,8 @@
 
 `pip install moffragmentor`
 
+You need to have `openbabel` installed which you can install with `conda install openbabel -c conda-forge`.
+
 ## How to use
 
 ```python
