@@ -2,18 +2,20 @@
 __all__ = ["get_subgraphs_as_molecules", "MOF"]
 
 
+import os
 from copy import deepcopy
+from typing import List, Tuple, Union
 
 import matplotlib.pylab as plt
 import networkx as nx
+import numpy as np
 from pymatgen import Molecule, Structure
 from pymatgen.analysis.graphs import StructureGraph
-from pymatgen.analysis.local_env import JmolNN
-import numpy as np
-from .sbu import Linker, Node
-from typing import Union, List, Tuple
-import os
+from pymatgen.analysis.local_env import JmolNN, CrystalNN, CutOffDictNN, VoronoiNN
 
+from .sbu import Linker, Node
+
+VestaCutoffDictNN = CutOffDictNN.from_preset("vesta_2019")
 
 def get_subgraphs_as_molecules(structure_graph: StructureGraph, use_weights=False):
     """Copied from
@@ -115,7 +117,7 @@ class MOF:
     @classmethod
     def from_cif(cls, cif: Union[str, os.PathLike]):
         s = Structure.from_file(cif)
-        sg = StructureGraph.with_local_env_strategy(s, JmolNN())
+        sg = StructureGraph.with_local_env_strategy(s, VestaCutoffDictNN)
         return cls(s, sg)
 
     @property
@@ -135,6 +137,12 @@ class MOF:
     def metal_indices(self) -> List[int]:
         return [
             i for i, species in enumerate(self.structure.species) if species.is_metal
+        ]
+
+    @property
+    def h_indices(self) -> List[int]:
+        return [
+            i for i, species in enumerate(self.structure.species) if str(species) == 'H'
         ]
 
     def get_neighbor_indices(self, site: int) -> List[int]:
@@ -190,6 +198,7 @@ class MOF:
 
     def _get_node_indices(self):
         # make a set of all metals and atoms connected to them:
+        h_indices = set(self.h_indices)
         metals_and_neighbor_indices = set()
         node_atom_set = set(self.metal_indices)
 
@@ -198,23 +207,17 @@ class MOF:
             bonded_to_metal = self.get_neighbor_indices(metal_index)
             metals_and_neighbor_indices.update(bonded_to_metal)
 
-        # add atoms that are only connected to metal or hydrogen to the node list
-        # + hydrogen atoms connected to them
+        # in a node there might be some briding O/OH 
+        # this is an approximation there might be other bridging modes
         for index in metals_and_neighbor_indices:
             neighboring_indices = self.get_neighbor_indices(index)
-            only_bonded_metal_hydrogen = True
-            for index in neighboring_indices:
-                if not (self.get_symbol_of_site(index) == "H") or (
-                    index in node_atom_set
-                ):
-                    only_bonded_metal_hydrogen = False
-            if only_bonded_metal_hydrogen:
+            if len(set(neighboring_indices) - h_indices - node_atom_set) == 0: 
                 node_atom_set.update(set([index]))
+                for neighbor_of_neighbor in neighboring_indices:
+                    if self.get_symbol_of_site(neighbor_of_neighbor) == "H":
+                        node_atom_set.update(set([neighbor_of_neighbor]))
+                        
 
-        for index in node_atom_set:
-            for neighbor_index in self.get_neighbor_indices(index):
-                if self.get_symbol_of_site(neighbor_index) == "H":
-                    node_atom_set.update(set(neighbor_index))
 
         self._node_indices = node_atom_set
         return node_atom_set
