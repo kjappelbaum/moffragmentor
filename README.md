@@ -1,6 +1,6 @@
 # moffragmentor
-> Split a MOF into linkers and nodes (and generator input files for a MOF assembly tool)
 
+> Split a MOF into linkers and nodes (and generator input files for a MOF assembly tool)
 
 ## Install
 
@@ -12,13 +12,13 @@
 mof = MOF.from_cif('test_files/hkust1.cif')
 ```
 
+Fragment the MOF
+
 ```python
 linkers, nodes = mof.fragment()
 ```
 
-    /Users/kevinmaikjablonka/opt/miniconda3/envs/pymoffragmentor/lib/python3.8/site-packages/pymatgen/core/structure.py:759: UserWarning: Not all sites have property binding. Missing values are set to None.
-      warnings.warn(
-
+If you are in a Jupyter notebook you can visualize the components.
 
 ```python
 linkers[0].show_molecule()
