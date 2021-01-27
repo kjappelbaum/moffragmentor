@@ -40,6 +40,12 @@ class SBU:
         mol = self.openbabel_mol
         return mol.write("can").strip()
 
+    def write_tobacco_file(self, filename):
+        """Can be based on https://github.com/peteboyd/lammps_interface/blob/71953f5f6706b75f059197aa7f152695e54ded85/lammps_interface/structure_data.py#L1636"
+        We need to only place the X for sites with property binding=True
+        """
+        ...
+
 # Cell
 class Node(SBU):
     pass

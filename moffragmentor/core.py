@@ -179,8 +179,8 @@ class MOF:
         self._label_structure()
         sg0 = deepcopy(self.structure_graph)
         sg1 = deepcopy(self.structure_graph)
-        sg0.remove_nodes(list(mof.linker_indices))
-        sg1.remove_nodes(list(mof.node_indices))
+        sg0.remove_nodes(list(self.linker_indices))
+        sg1.remove_nodes(list(self.node_indices))
         nodes_ = get_subgraphs_as_molecules(sg0)
         linkers_ = get_subgraphs_as_molecules(sg1)
         linkers = [Linker.from_labled_molecule(l) for l in linkers_]
