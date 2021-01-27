@@ -1,13 +1,18 @@
+# -*- coding: utf-8 -*-
 __all__ = ["get_subgraphs_as_molecules", "MOF"]
 
 
-from pymatgen import Structure, Molecule
+from copy import deepcopy
+
+import matplotlib.pylab as plt
+import networkx as nx
+from pymatgen import Molecule, Structure
 from pymatgen.analysis.graphs import StructureGraph
 from pymatgen.analysis.local_env import JmolNN
-import networkx as nx
-import matplotlib.pylab as plt
-from copy import deepcopy
+import numpy as np
 from .sbu import Linker, Node
+from typing import Union, List, Tuple
+import os
 
 
 def get_subgraphs_as_molecules(structure_graph: StructureGraph, use_weights=False):
@@ -108,7 +113,7 @@ class MOF:
         self.linker = []
 
     @classmethod
-    def from_cif(cls, cif):
+    def from_cif(cls, cif: Union[str, os.PathLike]):
         s = Structure.from_file(cif)
         sg = StructureGraph.with_local_env_strategy(s, JmolNN())
         return cls(s, sg)
@@ -127,19 +132,19 @@ class MOF:
         plt.imshow(self.adjaceny_matrix.todense(), cmap="Greys_r")
 
     @property
-    def metal_indices(self):
+    def metal_indices(self) -> List[int]:
         return [
             i for i, species in enumerate(self.structure.species) if species.is_metal
         ]
 
-    def get_neighbor_indices(self, site: int):
+    def get_neighbor_indices(self, site: int) -> List[int]:
         return [site.index for site in self.structure_graph.get_connected_sites(site)]
 
-    def get_symbol_of_site(self, site: int):
+    def get_symbol_of_site(self, site: int) -> str:
         return str(self.structure[site].specie)
 
     @property
-    def node_indices(self):
+    def node_indices(self) -> set:
         if self._node_indices is None:
             node_indices = self._get_node_indices()
         else:
@@ -148,7 +153,7 @@ class MOF:
         return node_indices
 
     @property
-    def linker_indices(self):
+    def linker_indices(self) -> set:
         node_indices = self.node_indices
 
         return set(range(len(self.structure))) - node_indices
@@ -165,7 +170,7 @@ class MOF:
                     self._label_site(metal_idx)
                     self._label_site(neighbor_idx)
 
-    def _fragment(self):
+    def _fragment(self) -> Tuple[List[Linker], List[Node]]:
         self._label_structure()
         sg0 = deepcopy(self.structure_graph)
         sg1 = deepcopy(self.structure_graph)

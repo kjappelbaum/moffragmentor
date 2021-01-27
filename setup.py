@@ -44,8 +44,15 @@ setup(
             "sphinx-autodoc-typehints==1.*",
             "sphinx-copybutton==0.*",
         ],
-        "pre-commit": ["pre-commit==2.*", "pylint==2.*", "isort==5.*",],
-        "dev": ["versioneer==0.*", "black==20.*",],
+        "pre-commit": [
+            "pre-commit==2.*",
+            "pylint==2.*",
+            "isort==5.*",
+        ],
+        "dev": [
+            "versioneer==0.*",
+            "black==20.*",
+        ],
     },
     author="Kevin Jablonka",
     author_email="kevin.jablonka@epfl.ch",
