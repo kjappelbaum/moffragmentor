@@ -10,7 +10,7 @@ import matplotlib.pylab as plt
 import networkx as nx
 import numpy as np
 from pymatgen import Molecule, Structure
-from pymatgen.analysis.graphs import StructureGraph
+from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 from pymatgen.analysis.local_env import CrystalNN, CutOffDictNN, JmolNN, VoronoiNN
 
 from .sbu import Linker, Node
@@ -103,7 +103,16 @@ def get_subgraphs_as_molecules(structure_graph: StructureGraph, use_weights=Fals
     #     molecules, indices = make_mols(molecule_subgraphs)
     molecules_unique, _ = make_mols(unique_subgraphs, center=True)
 
-    return molecules_unique, unique_subgraphs
+    def relabel_graph(multigraph):
+        mapping = dict(zip(multigraph, range(0, len(multigraph.nodes()))))
+        return nx.readwrite.json_graph.adjacency_data(
+            nx.relabel_nodes(multigraph, mapping)
+        )
+
+    return molecules_unique, [
+        MoleculeGraph(mol, relabel_graph(graph))
+        for mol, graph in zip(molecules_unique, unique_subgraphs)
+    ]
 
 
 class MOF:
@@ -185,13 +194,16 @@ class MOF:
         sg1 = deepcopy(self.structure_graph)
         sg0.remove_nodes(list(self.linker_indices))
         sg1.remove_nodes(list(self.node_indices))
-        nodes_ = get_subgraphs_as_molecules(sg0)
-        linkers_ = get_subgraphs_as_molecules(sg1)
+        node_molecules, node_graphs = get_subgraphs_as_molecules(sg0)
+        linker_molecules, linker_graphs = get_subgraphs_as_molecules(sg1)
         linkers = [
-            Linker.from_labled_molecule(molecule, graph) for molecule, graph in linkers_
+            Linker.from_labled_molecule(molecule, graph)
+            for molecule, graph in zip(linker_molecules, linker_graphs)
         ]
+
         nodes = [
-            Node.from_labled_molecule(molecule, graph) for molecule, graph in nodes_
+            Node.from_labled_molecule(molecule, graph)
+            for molecule, graph in zip(node_molecules, node_graphs)
         ]
 
         self.nodes = nodes

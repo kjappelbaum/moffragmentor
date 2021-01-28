@@ -48,9 +48,9 @@ class SBU:
             return self.openbabel_mol()
 
     @classmethod
-    def from_labled_molecule(cls, mol):
+    def from_labled_molecule(cls, mol, mg):
         connection_indices = get_binding_indices(mol)
-        return cls(mol, connection_indices)
+        return cls(mol, mg, connection_indices)
 
     def get_openbabel_mol(self):
         a = BabelMolAdaptor(self.molecule)
@@ -84,7 +84,8 @@ class SBU:
             "_symmetry_space_group_name_H-M    'P1'",
             "_symmetry_Int_Tables_number       1",
             "_symmetry_cell_setting            triclinic",
-            "loop_" "_symmetry_equiv_pos_as_xyz",
+            "loop_",
+            "_symmetry_equiv_pos_as_xyz",
             "  x,y,z",
         ]
 
