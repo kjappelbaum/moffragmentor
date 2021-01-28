@@ -11,11 +11,12 @@ import networkx as nx
 import numpy as np
 from pymatgen import Molecule, Structure
 from pymatgen.analysis.graphs import StructureGraph
-from pymatgen.analysis.local_env import JmolNN, CrystalNN, CutOffDictNN, VoronoiNN
+from pymatgen.analysis.local_env import CrystalNN, CutOffDictNN, JmolNN, VoronoiNN
 
 from .sbu import Linker, Node
 
 VestaCutoffDictNN = CutOffDictNN.from_preset("vesta_2019")
+
 
 def get_subgraphs_as_molecules(structure_graph: StructureGraph, use_weights=False):
     """Copied from
@@ -102,7 +103,7 @@ def get_subgraphs_as_molecules(structure_graph: StructureGraph, use_weights=Fals
     #     molecules, indices = make_mols(molecule_subgraphs)
     molecules_unique, _ = make_mols(unique_subgraphs, center=True)
 
-    return molecules_unique
+    return molecules_unique, unique_subgraphs
 
 
 class MOF:
@@ -142,7 +143,7 @@ class MOF:
     @property
     def h_indices(self) -> List[int]:
         return [
-            i for i, species in enumerate(self.structure.species) if str(species) == 'H'
+            i for i, species in enumerate(self.structure.species) if str(species) == "H"
         ]
 
     def get_neighbor_indices(self, site: int) -> List[int]:
@@ -186,8 +187,12 @@ class MOF:
         sg1.remove_nodes(list(self.node_indices))
         nodes_ = get_subgraphs_as_molecules(sg0)
         linkers_ = get_subgraphs_as_molecules(sg1)
-        linkers = [Linker.from_labled_molecule(l) for l in linkers_]
-        nodes = [Node.from_labled_molecule(n) for n in nodes_]
+        linkers = [
+            Linker.from_labled_molecule(molecule, graph) for molecule, graph in linkers_
+        ]
+        nodes = [
+            Node.from_labled_molecule(molecule, graph) for molecule, graph in nodes_
+        ]
 
         self.nodes = nodes
         self.linkers = linkers
@@ -207,17 +212,15 @@ class MOF:
             bonded_to_metal = self.get_neighbor_indices(metal_index)
             metals_and_neighbor_indices.update(bonded_to_metal)
 
-        # in a node there might be some briding O/OH 
+        # in a node there might be some briding O/OH
         # this is an approximation there might be other bridging modes
         for index in metals_and_neighbor_indices:
             neighboring_indices = self.get_neighbor_indices(index)
-            if len(set(neighboring_indices) - h_indices - node_atom_set) == 0: 
+            if len(set(neighboring_indices) - h_indices - node_atom_set) == 0:
                 node_atom_set.update(set([index]))
                 for neighbor_of_neighbor in neighboring_indices:
                     if self.get_symbol_of_site(neighbor_of_neighbor) == "H":
                         node_atom_set.update(set([neighbor_of_neighbor]))
-                        
-
 
         self._node_indices = node_atom_set
         return node_atom_set

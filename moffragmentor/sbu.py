@@ -8,11 +8,26 @@ import nglview
 import numpy as np
 from openbabel import pybel as pb
 from pymatgen import Molecule
+from pymatgen.analysis.graphs import MoleculeGraph
 from pymatgen.io.babel import BabelMolAdaptor
 from rdkit import Chem
+from scipy.spatial.distance import pdist
 
 
-def write_tobacco_cif(m: Molecule, connection_indices):
+def get_max_sep(coordinates):
+    distances = pdist(coordinates)
+    return np.max(distances)
+
+
+def write_tobacco_cif(sbu: SBU):
+
+    max_size = get_max_sep(sbu.molecule.cart_coords)
+    s = sbu.molecule.get_boxed_structure(
+        max_size + 0.1 * max_size,
+        max_size + 0.1 * max_size,
+        max_size + 0.1 * max_size,
+        reorder=False,
+    )
 
     header_lines = [
         "data_",
@@ -27,12 +42,12 @@ def write_tobacco_cif(m: Molecule, connection_indices):
     ]
 
     cell_lines = [
-        "_cell_length_a                    " + str(a),
-        "_cell_length_b                    " + str(b),
-        "_cell_length_c                    " + str(c),
-        "_cell_angle_alpha                 " + str(alpha),
-        "_cell_angle_beta                  " + str(beta),
-        "_cell_angle_gamma                 " + str(gamma),
+        "_cell_length_a                    " + str(s.lattice.a),
+        "_cell_length_b                    " + str(s.lattice.b),
+        "_cell_length_c                    " + str(s.lattice.c),
+        "_cell_angle_alpha                 " + str(s.lattice.alpha),
+        "_cell_angle_beta                  " + str(s.lattice.beta),
+        "_cell_angle_gamma                 " + str(s.lattice.gamma),
     ]
 
     loop_header = [
@@ -41,49 +56,83 @@ def write_tobacco_cif(m: Molecule, connection_indices):
         "_atom_site_type_symbol",
         "_atom_site_fract_x",
         "_atom_site_fract_y",
-        "_atom_site_fract_z" "_atom_site_charge",
+        "_atom_site_fract_z",
+        "_atom_site_charge",
     ]
 
-    index_dict = {}
-    for i, site in enumerate(m):
-        vec = data["fractional_position"]
-        es = data["element_symbol"]
-        ind = es + str(data["index"])
-        index_dict[n] = ind
-        chg = data["charge"]
-        out.write(
-            "{:7} {:>4} {:>15.6f} {:>15.6f} {:>15.6f} {:>15.6f}".format(
-                ind, es, vec[0], vec[1], vec[2], chg
+    loop_content = []
+    site_index = {}
+    for i, site in enumerate(s):
+        vec = site.frac_coords
+        es = str(site.specie)
+
+        if i in sbu.connection_indices:
+            ind = "X" + str(i)
+            loop_content.append(
+                "{:7} {:>4} {:>15.6f} {:>15.6f} {:>15.6f} {:>15.6f}".format(
+                    ind, es, vec[0], vec[1], vec[2], 0
+                )
             )
-        )
-        out.write("\n")
-        if i in connection_indices:
-            # Add dummy for the connection
-            ...
+        else:
+            ind = es + str(i)
+            loop_content.append(
+                "{:7} {:>4} {:>15.6f} {:>15.6f} {:>15.6f} {:>15.6f}".format(
+                    ind, es, vec[0], vec[1], vec[2], 0
+                )
+            )
+        site_index[i] = ind
 
-    out.write("loop_" + "\n")
-    out.write("_geom_bond_atom_site_label_1" + "\n")
-    out.write("_geom_bond_atom_site_label_2" + "\n")
-    out.write("_geom_bond_distance" + "\n")
-    # out.write('_geom_bond_site_symmetry_1' + '\n')
-    out.write("_ccdc_geom_bond_type" + "\n")
+    connection_loop_header = [
+        "loop_",
+        "_geom_bond_atom_site_label_1",
+        "_geom_bond_atom_site_label_2",
+        "_geom_bond_distance",
+        "_geom_bond_site_symmetry_1",
+        "_ccdc_geom_bond_type",
+    ]
 
-    for n0, n1, data in G.edges(data=True):
+    connection_loop_content = []
+    set_bond = set()
+    for i, site in enumerate(sbu.molecule):
+        neighbors = sbu.molecule_graph.get_connected_sites(0)
+        for j, neighbor_site in enumerate(neighbors):
+            ind0 = site_index[i]
+            ind1 = site_index[j]
 
-        ind0 = index_dict[n0]
-        ind1 = index_dict[n1]
-        dist = np.round(data["length"], 3)
-        bond_type = data["bond_type"]
+            tuple_a = (ind0, ind1)
+            tuple_b = (ind1, ind0)
 
-        out.write("{:7} {:>7} {:>7} {:>3}".format(ind0, ind1, dist, bond_type))
-        out.write("\n")
+            if not (tuple_a in set_bond) and not (tuple_b in set_bond):
+                set_bond.add(tuple_a)
+
+                dist = np.round(sbu.molecule.get_distance(i, j), 3)
+                # bond_type = data["bond_type"]
+
+                connection_loop_content.append(
+                    "{:7} {:>7} {:>7} {:>3}".format(ind0, ind1, dist, "S")
+                )
+
+    return "\n".join(
+        header_lines
+        + cell_lines
+        + loop_header
+        + loop_content
+        + connection_loop_header
+        + connection_loop_content
+    )
 
 
 class SBU:
-    def __init__(self, molecule: Molecule, connection_indices: List[int]):
+    def __init__(
+        self,
+        molecule: Molecule,
+        molecule_graph: MoleculeGraph,
+        connection_indices: List[int],
+    ):
         self.molecule = molecule
         self._ob_mol = None
         self._smiles = None
+        self.molecule_graph = molecule_graph
         self.connection_indices = connection_indices
 
     @property
@@ -121,12 +170,15 @@ class SBU:
         self._smiles = mol.write("can").strip()
         return self._smiles
 
-    def write_tobacco_file(self, filename):
+    def write_tobacco_file(self, filename=None):
         """To create a database of building blocks it is practical to be able to
         write Tobacco input file.
         We need to only place the X for sites with property binding=True
         """
-        ...
+
+        cif_string = write_tobacco_cif(self)
+        if filename is None:
+            return cif_string
 
 
 class Node(SBU):
