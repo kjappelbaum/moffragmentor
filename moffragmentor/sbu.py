@@ -2,6 +2,7 @@
 __all__ = ["SBU", "Node", "Linker"]
 
 import datetime
+from copy import deepcopy
 from typing import List
 
 import nglview
@@ -11,6 +12,7 @@ from pymatgen import Molecule
 from pymatgen.analysis.graphs import MoleculeGraph
 from pymatgen.io.babel import BabelMolAdaptor
 from rdkit import Chem
+from rdkit.Chem import AllChem
 from scipy.spatial.distance import pdist
 
 
@@ -45,7 +47,7 @@ class SBU:
         if self._ob_mol is not None:
             return self._ob_mol
         else:
-            return self.openbabel_mol()
+            return self.get_openbabel_mol()
 
     @classmethod
     def from_labled_molecule(cls, mol, mg):
@@ -184,8 +186,38 @@ class Node(SBU):
     pass
 
 
+def _get_edge_dict_from_rdkit_mol(mol):
+    edges = {}
+    for bond in mol.GetBonds():
+        edges[(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx())] = None
+    return edges
+
+
+def _make_mol_from_rdkit_mol(mol):
+    """Takes the first conformer"""
+    m = deepcopy(mol)
+    AllChem.EmbedMolecule(m)
+    conf = m.GetConformers()
+    positions = conf[0].GetPositions()
+    symbols = [atom.GetSymbol() for atom in mol.GetAtoms()]
+    return Molecule(symbols, positions)
+
+
 class Linker(SBU):
-    pass
+    @classmethod
+    def from_carboxy_mol(cls, mol):
+        carboxy = Chem.MolFromSmarts("[O]C(=O)")
+        matches = mol.GetSubstructMatches(carboxy)
+        connection_sites = []
+        for tpl in matches:
+            connection_sites.append(tpl[0])
+            connection_sites.append(tpl[2])
+
+        edges = _get_edge_dict_from_rdkit_mol(mol)
+        pmg_mol = _make_mol_from_rdkit_mol(mol)
+        mg = MoleculeGraph.with_edges(pmg_mol, edges)
+
+        return cls(pmg_mol, mg, connection_sites)
 
 
 def get_binding_indices(mol):
