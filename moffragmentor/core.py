@@ -5,17 +5,50 @@ __all__ = ["get_subgraphs_as_molecules", "MOF"]
 import os
 from copy import deepcopy
 from typing import List, Tuple, Union
-
+import warnings
 import matplotlib.pylab as plt
 import networkx as nx
 import numpy as np
 from pymatgen import Molecule, Structure
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 from pymatgen.analysis.local_env import CrystalNN, CutOffDictNN, JmolNN, VoronoiNN
-
+import tempfile
 from .sbu import Linker, Node
-
+import timeout_decorator
 VestaCutoffDictNN = CutOffDictNN.from_preset("vesta_2019")
+
+
+JULIA_AVAILABLE = False
+try:
+    from julia.api import Julia
+
+    jl = Julia(compiled_modules=False)
+    from julia import CrystalNets
+
+    JULIA_AVAILABLE = True
+except ImportError:
+    warnings.warn(
+        "Could not load the julia package for topology determination.", UserWarning
+    )
+
+
+@timeout_decorator.timeout(60)
+def call_crystalnet(f):
+    c, n = CrystalNets.do_clustering(
+        CrystalNets.parse_chemfile(f), CrystalNets.MOFClustering
+    )
+    code = CrystalNets.reckognize_topology(CrystalNets.topological_genome(n))
+    return code
+
+def get_topology_code(structure: Structure) -> str:
+    code = ""
+    if JULIA_AVAILABLE:
+        with tempfile.NamedTemporaryFile(suffix='.cif') as temp:
+            try:
+               structure.to("cif", temp.name)
+            except Exception as e:
+                warnings.warn("Could not determine topology", UserWarning)
+    return code
 
 
 def get_subgraphs_as_molecules(structure_graph: StructureGraph, use_weights=False):
@@ -123,6 +156,7 @@ class MOF:
         self._linker_indices = None
         self.nodes = []
         self.linker = []
+        self._topology = None
 
     @classmethod
     def from_cif(cls, cif: Union[str, os.PathLike]):
@@ -130,6 +164,13 @@ class MOF:
         sg = StructureGraph.with_local_env_strategy(s, VestaCutoffDictNN)
         return cls(s, sg)
 
+    @property
+    def topology(self):
+        if not self._topology:
+            self._topology = get_topology_code(self.structure)
+            return self.topology
+        return self._topology
+        
     @property
     def adjaceny_matrix(self):
         return nx.adjacency_matrix(self.structure_graph.graph)

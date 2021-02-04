@@ -53,6 +53,7 @@ setup(
             "versioneer==0.*",
             "black==20.*",
         ],
+        "julia": ["julia"],
     },
     author="Kevin Jablonka",
     author_email="kevin.jablonka@epfl.ch",
