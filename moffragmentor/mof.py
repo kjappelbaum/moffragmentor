@@ -3,18 +3,22 @@ __all__ = ["get_subgraphs_as_molecules", "MOF"]
 
 
 import os
+import tempfile
+import warnings
 from copy import deepcopy
 from typing import List, Tuple, Union
-import warnings
+
 import matplotlib.pylab as plt
 import networkx as nx
 import numpy as np
+import timeout_decorator
 from pymatgen import Molecule, Structure
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 from pymatgen.analysis.local_env import CrystalNN, CutOffDictNN, JmolNN, VoronoiNN
-import tempfile
+
 from .sbu import Linker, Node
-import timeout_decorator
+from .utils import pickle_dump, write_cif
+
 VestaCutoffDictNN = CutOffDictNN.from_preset("vesta_2019")
 
 
@@ -37,17 +41,20 @@ def call_crystalnet(f):
     c, n = CrystalNets.do_clustering(
         CrystalNets.parse_chemfile(f), CrystalNets.MOFClustering
     )
+    print(n)
     code = CrystalNets.reckognize_topology(CrystalNets.topological_genome(n))
     return code
+
 
 def get_topology_code(structure: Structure) -> str:
     code = ""
     if JULIA_AVAILABLE:
-        with tempfile.NamedTemporaryFile(suffix='.cif') as temp:
+        with tempfile.NamedTemporaryFile(suffix=".cif") as temp:
             try:
-               structure.to("cif", temp.name)
+                structure.to(fmt="cif", filename=temp.name)
+                code = call_crystalnet(temp.name)
             except Exception as e:
-                warnings.warn("Could not determine topology", UserWarning)
+                warnings.warn(f"Could not determine topology {e}", UserWarning)
     return code
 
 
@@ -157,6 +164,13 @@ class MOF:
         self.nodes = []
         self.linker = []
         self._topology = None
+        self.meta = {}
+
+    def dump(self, path):
+        pickle_dump(self, path)
+
+    def set_meta(self, key, value):
+        self.meta[key] = value
 
     @classmethod
     def from_cif(cls, cif: Union[str, os.PathLike]):
@@ -166,11 +180,11 @@ class MOF:
 
     @property
     def topology(self):
-        if not self._topology:
+        if not isinstance(self._topology, str):
             self._topology = get_topology_code(self.structure)
             return self.topology
         return self._topology
-        
+
     @property
     def adjaceny_matrix(self):
         return nx.adjacency_matrix(self.structure_graph.graph)
@@ -238,12 +252,12 @@ class MOF:
         node_molecules, node_graphs = get_subgraphs_as_molecules(sg0)
         linker_molecules, linker_graphs = get_subgraphs_as_molecules(sg1)
         linkers = [
-            Linker.from_labled_molecule(molecule, graph)
+            Linker.from_labled_molecule(molecule, graph, self.meta)
             for molecule, graph in zip(linker_molecules, linker_graphs)
         ]
 
         nodes = [
-            Node.from_labled_molecule(molecule, graph)
+            Node.from_labled_molecule(molecule, graph, self.meta)
             for molecule, graph in zip(node_molecules, node_graphs)
         ]
 
@@ -253,6 +267,13 @@ class MOF:
 
     def fragment(self):
         return self._fragment()
+
+    def _get_cif_text(self):
+        return write_cif(self.structure, self.structure_graph, [])
+
+    def write_cif(self, filename):
+        with open(filename, "w") as f:
+            f.write(self._get_cif_text())
 
     def _get_node_indices(self):
         # make a set of all metals and atoms connected to them:

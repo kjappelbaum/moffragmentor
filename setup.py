@@ -32,6 +32,9 @@ setup(
     description="Splits MOFs into metal nodes and linkers",
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
+    entry_points={
+        "console_scripts": ["run_harvest=moffragmentor.cli:run_harvest"],
+    },
     packages=find_packages(include=["moffragmentor", "moffragmentor.*"]),
     url="https://github.com/kjappelbaum/pymoffragmentor",
     license="Apache 2.0",

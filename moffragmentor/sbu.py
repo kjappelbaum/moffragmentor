@@ -8,17 +8,28 @@ from typing import List
 import nglview
 import numpy as np
 from openbabel import pybel as pb
-from pymatgen import Molecule
+from pymatgen import Molecule, Structure
 from pymatgen.analysis.graphs import MoleculeGraph
 from pymatgen.io.babel import BabelMolAdaptor
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from scipy.spatial.distance import pdist
 
+from .descriptors import (
+    chemistry_descriptors,
+    distance_descriptors,
+    get_lsop,
+    rdkit_descriptors,
+)
+from .utils import pickle_dump, write_cif
+
 
 def get_max_sep(coordinates):
-    distances = pdist(coordinates)
-    return np.max(distances)
+    if len(coordinates) > 1:
+        distances = pdist(coordinates)
+        return np.max(distances)
+    else:
+        return 5
 
 
 class SBU:
@@ -31,15 +42,24 @@ class SBU:
         self.molecule = molecule
         self._ob_mol = None
         self._smiles = None
+        self._rdkit_mol = None
         self.molecule_graph = molecule_graph
         self.connection_indices = connection_indices
+        self._descriptors = None
+        self.meta = {}
+
+    def set_meta(self, key, value):
+        self.meta[key] = value
+
+    def dump(self, path):
+        pickle_dump(self, path)
 
     @property
     def rdkit_mol(self):
-        if self._rdkti_mol is not None:
-            return self._rdkti_mol
+        if self._rdkit_mol is not None:
+            return self._rdkit_mol
         else:
-            self._rdkti_mol = Chem.MolFromSmiles(self.smiles)
+            self._rdkit_mol = Chem.MolFromSmiles(self.smiles)
             return self.rdkit_mol
 
     @property
@@ -50,9 +70,11 @@ class SBU:
             return self.get_openbabel_mol()
 
     @classmethod
-    def from_labled_molecule(cls, mol, mg):
+    def from_labled_molecule(cls, mol, mg, meta={}):
         connection_indices = get_binding_indices(mol)
-        return cls(mol, mg, connection_indices)
+        sbu = cls(mol, mg, connection_indices)
+        sbu.meta = meta
+        return sbu
 
     def get_openbabel_mol(self):
         a = BabelMolAdaptor(self.molecule)
@@ -69,7 +91,7 @@ class SBU:
         self._smiles = mol.write("can").strip()
         return self._smiles
 
-    def _get_tobacco_string(self):
+    def _get_boxed_structure(self):
         max_size = get_max_sep(self.molecule.cart_coords)
         s = self.molecule.get_boxed_structure(
             max_size + 0.1 * max_size,
@@ -77,98 +99,39 @@ class SBU:
             max_size + 0.1 * max_size,
             reorder=False,
         )
+        return s
 
-        header_lines = [
-            "data_",
-            "_audit_creation_date              "
-            + datetime.datetime.today().strftime("%Y-%m-%d"),
-            "_audit_creation_method            'moffragmentor'",
-            "_symmetry_space_group_name_H-M    'P1'",
-            "_symmetry_Int_Tables_number       1",
-            "_symmetry_cell_setting            triclinic",
-            "loop_",
-            "_symmetry_equiv_pos_as_xyz",
-            "  x,y,z",
-        ]
+    def _get_descriptors(self):
+        s = self._get_connected_sites_structure()
 
-        cell_lines = [
-            "_cell_length_a                    " + str(s.lattice.a),
-            "_cell_length_b                    " + str(s.lattice.b),
-            "_cell_length_c                    " + str(s.lattice.c),
-            "_cell_angle_alpha                 " + str(s.lattice.alpha),
-            "_cell_angle_beta                  " + str(s.lattice.beta),
-            "_cell_angle_gamma                 " + str(s.lattice.gamma),
-        ]
+        descriptors_lsop = get_lsop(s)
+        descriptors_rdkit = rdkit_descriptors(self.rdkit_mol)
+        descriptors_chemistry = chemistry_descriptors(s)
+        descriptors_distance = distance_descriptors(s)
 
-        loop_header = [
-            "loop_",
-            "_atom_site_label",
-            "_atom_site_type_symbol",
-            "_atom_site_fract_x",
-            "_atom_site_fract_y",
-            "_atom_site_fract_z",
-            "_atom_site_charge",
-        ]
+        return {
+            **descriptors_lsop,
+            **descriptors_rdkit,
+            **descriptors_chemistry,
+            **descriptors_distance,
+        }
 
-        loop_content = []
-        site_index = {}
-        for i, site in enumerate(s):
-            vec = site.frac_coords
-            es = str(site.specie)
+    def get_descriptors(self):
+        if not self._descriptors:
+            self._descriptors = self._get_descriptors()
+        return self._descriptors
 
-            if i in self.connection_indices:
-                ind = "X" + str(i)
-                loop_content.append(
-                    "{:7} {:>4} {:>15.6f} {:>15.6f} {:>15.6f} {:>15.6f}".format(
-                        ind, es, vec[0], vec[1], vec[2], 0
-                    )
-                )
-            else:
-                ind = es + str(i)
-                loop_content.append(
-                    "{:7} {:>4} {:>15.6f} {:>15.6f} {:>15.6f} {:>15.6f}".format(
-                        ind, es, vec[0], vec[1], vec[2], 0
-                    )
-                )
-            site_index[i] = ind
+    def _get_connected_sites_structure(self):
+        sites = []
+        s = self._get_boxed_structure()
+        for i in self.connection_indices:
+            sites.append(s[i])
+        return Structure.from_sites(sites)
 
-        connection_loop_header = [
-            "loop_",
-            "_geom_bond_atom_site_label_1",
-            "_geom_bond_atom_site_label_2",
-            "_geom_bond_distance",
-            "_geom_bond_site_symmetry_1",
-            "_ccdc_geom_bond_type",
-        ]
-
-        connection_loop_content = []
-        set_bond = set()
-        for i, site in enumerate(self.molecule):
-            neighbors = self.molecule_graph.get_connected_sites(0)
-            for j, _ in enumerate(neighbors):
-                ind0 = site_index[i]
-                ind1 = site_index[j]
-
-                tuple_a = (ind0, ind1)
-                tuple_b = (ind1, ind0)
-
-                if not (tuple_a in set_bond) and not (tuple_b in set_bond):
-                    set_bond.add(tuple_a)
-
-                    dist = np.round(self.molecule.get_distance(i, j), 3)
-                    # bond_type = data["bond_type"]
-
-                    connection_loop_content.append(
-                        "{:7} {:>7} {:>7} {:>3}".format(ind0, ind1, dist, "S")
-                    )
-
-        return "\n".join(
-            header_lines
-            + cell_lines
-            + loop_header
-            + loop_content
-            + connection_loop_header
-            + connection_loop_content
+    def _get_tobacco_string(self):
+        s = self._get_boxed_structure()
+        return write_cif(
+            s, self.molecule_graph, self.connection_indices, molecule=self.molecule
         )
 
     def write_tobacco_file(self, filename=None):
