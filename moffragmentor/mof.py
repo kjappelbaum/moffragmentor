@@ -14,10 +14,16 @@ import numpy as np
 import timeout_decorator
 from pymatgen import Molecule, Structure
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
-from pymatgen.analysis.local_env import CrystalNN, CutOffDictNN, JmolNN, VoronoiNN
+from pymatgen.analysis.local_env import (
+    CrystalNN,
+    CutOffDictNN,
+    JmolNN,
+    MinimumDistanceNN,
+    VoronoiNN,
+)
 
 from .sbu import Linker, Node
-from .utils import pickle_dump, write_cif
+from .utils import get_smiles_from_pmg_mol, pickle_dump, write_cif
 
 VestaCutoffDictNN = CutOffDictNN.from_preset("vesta_2019")
 
@@ -67,9 +73,6 @@ def get_subgraphs_as_molecules(structure_graph: StructureGraph, use_weights=Fals
     Returns:
         List: list of molecules
     """
-    # ideally, we flag those atoms that are connected to the metals in some special way and make sure
-    # this gets propagated
-
     # creating a supercell is an easy way to extract
     # molecules (and not, e.g., layers of a 2D crystal)
     # without adding extra logic
@@ -87,13 +90,13 @@ def get_subgraphs_as_molecules(structure_graph: StructureGraph, use_weights=Fals
     # discount subgraphs that lie across *supercell* boundaries
     # these will subgraphs representing crystals
     molecule_subgraphs = []
+
     for subgraph in all_subgraphs:
         intersects_boundary = any(
             [d["to_jimage"] != (0, 0, 0) for u, v, d in subgraph.edges(data=True)]
         )
         if not intersects_boundary:
             molecule_subgraphs.append(nx.MultiDiGraph(subgraph))
-
     # add specie names to graph to be able to test for isomorphism
     for subgraph in molecule_subgraphs:
         for node in subgraph:
@@ -111,7 +114,6 @@ def get_subgraphs_as_molecules(structure_graph: StructureGraph, use_weights=Fals
             return True
 
     for subgraph in molecule_subgraphs:
-
         already_present = [
             nx.is_isomorphic(subgraph, g, node_match=node_match, edge_match=edge_match)
             for g in unique_subgraphs
@@ -245,9 +247,13 @@ class MOF:
 
     def _fragment(self) -> Tuple[List[Linker], List[Node]]:
         self._label_structure()
-        sg0 = deepcopy(self.structure_graph)
         sg1 = deepcopy(self.structure_graph)
-        sg0.remove_nodes(list(self.linker_indices))
+        node_structure = Structure.from_sites(
+            [self.structure[i] for i in self.node_indices]
+        )
+        sg0 = StructureGraph.with_local_env_strategy(
+            node_structure, MinimumDistanceNN(0.5)
+        )
         sg1.remove_nodes(list(self.node_indices))
         node_molecules, node_graphs = get_subgraphs_as_molecules(sg0)
         linker_molecules, linker_graphs = get_subgraphs_as_molecules(sg1)

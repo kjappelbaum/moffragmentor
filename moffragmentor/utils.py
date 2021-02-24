@@ -4,6 +4,89 @@ import os
 import pickle
 
 import numpy as np
+from openbabel import pybel as pb
+from pymatgen import Molecule
+from pymatgen.analysis.graphs import MoleculeGraph
+from pymatgen.io.babel import BabelMolAdaptor
+
+
+def get_smiles_from_pmg_mol(pmg_mol):
+    a = BabelMolAdaptor(pmg_mol)
+    pm = pb.Molecule(a.openbabel_mol)
+    smiles = pm.write("can").strip()
+    return smiles
+
+
+def build_mols_from_structure_graph(structure, structure_graph):
+    site_pool = list(np.arange(len(structure_graph)))
+    all_sites, all_edges = [], []
+
+    new_pool, _, _ = explore_neighbors(0, site_pool, structure_graph)
+
+    while len(new_pool) > 0:
+        new_pool, sites, edges = explore_neighbors(
+            new_pool[0], new_pool, structure_graph
+        )
+        all_sites.append(sites)
+        all_edges.append(edges)
+
+    molecules = []
+    graphs = []
+    for all_site, all_edge in zip(all_sites, all_edges):
+        molecule, graph = build_molecule_and_graph(structure, all_site, all_edge)
+        molecules.append(molecule)
+        graphs.append(graph)
+
+    return molecules, graphs
+
+
+def explore_neighbors(index, site_pool, structure_graph):
+    sites = set()
+    edges = []
+
+    def find_neigh(index):
+        sites.add(index)
+        connected_sites = structure_graph.get_connected_sites(index)
+        indices = [s.index for s in connected_sites]
+        new_sites = set(indices) - sites
+        for new_site in new_sites:
+            edges.append((index, new_site))
+            sites.add(new_site)
+        return new_sites
+
+    new_sites = find_neigh(index)
+
+    while len(new_sites) > 0:
+        for site in new_sites:
+            new_sites = find_neigh(site)
+
+    for site in sites:
+        site_pool.remove(site)
+
+    return site_pool, sites, edges
+
+
+def mol_from_sites(sites):
+    coords = [n.coords for n in sites]
+    species = [n.specie for n in sites]
+    binding = [n.properties["binding"] for n in sites]
+
+    molecule = Molecule(species, coords, site_properties={"binding": binding})
+    return molecule.get_centered_molecule()
+
+
+def build_molecule_and_graph(s, sites, edges):
+    selected_sites = [s[i] for i in sites]
+
+    remapper = dict(zip(sites, np.arange(len(sites))))
+    new_edges = {}
+
+    for a, b in edges:
+        new_edges[(remapper[a], remapper[b])] = None
+
+    mol = mol_from_sites(selected_sites)
+    mg = MoleculeGraph.with_edges(mol, new_edges)
+    return mol, mg
 
 
 def write_cif(s, graph, connection_indices, molecule=None, write_bonding_mode=False):

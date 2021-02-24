@@ -19,17 +19,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+      - uses: conda-incubator/setup-miniconda@v2
         with:
+          auto-update-conda: true
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[testing,pre-commit]
+          pip install -e .[testing,pre-commit,julia]
+          conda install openbabel -c conda-forge
+          conda install -c conda-forge rdkit
       - name: Test with pytest (numba activated)
         run: |
-          pytest --cov=./ --cov-report=xml
+          pytest --cov=./ --cov-report=xml --no-julia
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
