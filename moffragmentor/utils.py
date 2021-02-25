@@ -173,7 +173,9 @@ def write_cif(s, graph, connection_indices, molecule=None, write_bonding_mode=Fa
                 dist = np.round(s.get_distance(i, j), 3)
                 if write_bonding_mode:
                     connection_loop_content.append(
-                        "{:7} {:>7} {:>7} {:>3}".format(ind0, ind1, dist, "S")
+                        "{:7} {:>7} {:>7} {:>3} {:>3}".format(
+                            ind0, ind1, dist, ".", "S"
+                        )
                     )
                 else:
                     connection_loop_content.append(

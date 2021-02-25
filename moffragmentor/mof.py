@@ -174,6 +174,21 @@ class MOF:
     def set_meta(self, key, value):
         self.meta[key] = value
 
+    def _is_branch_point(self, index):
+        valid_connections = 0
+        connected_sites = self.get_neighbor_indices(index)
+        if len(connected_sites) < 3:
+            return False
+
+        for connected_site in connected_sites:
+            if len(self.get_neighbor_indices(connected_site)) > 1:
+                valid_connections += 1
+
+        return valid_connections >= 3
+
+    def _is_terminal(self, index):
+        return len(self.get_neighbor_indices(index)) == 1
+
     @classmethod
     def from_cif(cls, cif: Union[str, os.PathLike]):
         s = Structure.from_file(cif)
@@ -186,6 +201,10 @@ class MOF:
             self._topology = get_topology_code(self.structure)
             return self.topology
         return self._topology
+
+    @property
+    def _undirected_graph(self):
+        return self.structure_graph.graph.to_undirected()
 
     @property
     def adjaceny_matrix(self):
@@ -245,7 +264,7 @@ class MOF:
                     self._label_site(metal_idx)
                     self._label_site(neighbor_idx)
 
-    def _fragment(self) -> Tuple[List[Linker], List[Node]]:
+    def _fragment_oxo(self) -> Tuple[List[Linker], List[Node]]:
         self._label_structure()
         sg1 = deepcopy(self.structure_graph)
         node_structure = Structure.from_sites(
@@ -271,8 +290,31 @@ class MOF:
         self.linkers = linkers
         return linkers, nodes
 
-    def fragment(self):
-        return self._fragment()
+    def _fragment_all_node(self):
+        ...
+
+    def _is_valid_node(self, node_indices):
+        """The idea is to distinguish things like porphyrins from true nodes
+        The idea is that when i remove the metal_atoms from a porphyrin
+        I won't break the graph but I'll break the graph if i remove the
+        metal atoms from a real metal node
+        """
+        filtred_indices = [i for i in node_indices if i in self._metal_atoms]
+        g = deepcopy(self._undirected_graph)
+
+        for index in filtred_indices:
+            g.remove_node(index)
+
+        if nx.number_connected_components(g) > 1:
+            return filtred_indices
+        else:
+            return []
+
+    def fragment(self, method="all_node"):
+        if method == "all_node":
+            return self._fragment_all_node()
+        elif method == "oxo":
+            return self._fragment_oxo()
 
     def _get_cif_text(self):
         return write_cif(self.structure, self.structure_graph, [])

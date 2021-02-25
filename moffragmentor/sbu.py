@@ -131,7 +131,11 @@ class SBU:
     def _get_tobacco_string(self):
         s = self._get_boxed_structure()
         return write_cif(
-            s, self.molecule_graph, self.connection_indices, molecule=self.molecule
+            s,
+            self.molecule_graph,
+            self.connection_indices,
+            molecule=self.molecule,
+            write_bonding_mode=True,
         )
 
     def write_tobacco_file(self, filename=None):
