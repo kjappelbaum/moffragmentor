@@ -12,7 +12,7 @@ import matplotlib.pylab as plt
 import networkx as nx
 import numpy as np
 import timeout_decorator
-from pymatgen import Molecule, Structure
+from pymatgen import Structure
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 from pymatgen.analysis.local_env import (
     CrystalNN,
@@ -23,7 +23,8 @@ from pymatgen.analysis.local_env import (
 )
 
 from .sbu import Linker, Node
-from .utils import get_smiles_from_pmg_mol, pickle_dump, write_cif
+from .utils import  pickle_dump, write_cif
+from .fragmentor import fragment_all_node, fragment_oxo_node, get_subgraphs_as_molecules, is_valid_node, is_valid_linker
 
 VestaCutoffDictNN = CutOffDictNN.from_preset("vesta_2019")
 
@@ -47,7 +48,6 @@ def call_crystalnet(f):
     c, n = CrystalNets.do_clustering(
         CrystalNets.parse_chemfile(f), CrystalNets.MOFClustering
     )
-    print(n)
     code = CrystalNets.reckognize_topology(CrystalNets.topological_genome(n))
     return code
 
@@ -64,100 +64,9 @@ def get_topology_code(structure: Structure) -> str:
     return code
 
 
-def get_subgraphs_as_molecules(structure_graph: StructureGraph, use_weights=False):
-    """Copied from
-    http://pymatgen.org/_modules/pymatgen/analysis/graphs.html#StructureGraph.get_subgraphs_as_molecules
-    and removed the duplicate check
-    Args:
-        structure_graph ( pymatgen.analysis.graphs.StructureGraph): Structuregraph
-    Returns:
-        List: list of molecules
-    """
-    # creating a supercell is an easy way to extract
-    # molecules (and not, e.g., layers of a 2D crystal)
-    # without adding extra logic
-    supercell_sg = structure_graph * (3, 3, 3)
-
-    # make undirected to find connected subgraphs
-    supercell_sg.graph = nx.Graph(supercell_sg.graph)
-
-    # find subgraphs
-    all_subgraphs = [
-        supercell_sg.graph.subgraph(c)
-        for c in nx.connected_components(supercell_sg.graph)
-    ]
-
-    # discount subgraphs that lie across *supercell* boundaries
-    # these will subgraphs representing crystals
-    molecule_subgraphs = []
-
-    for subgraph in all_subgraphs:
-        intersects_boundary = any(
-            [d["to_jimage"] != (0, 0, 0) for u, v, d in subgraph.edges(data=True)]
-        )
-        if not intersects_boundary:
-            molecule_subgraphs.append(nx.MultiDiGraph(subgraph))
-    # add specie names to graph to be able to test for isomorphism
-    for subgraph in molecule_subgraphs:
-        for node in subgraph:
-            subgraph.add_node(node, specie=str(supercell_sg.structure[node].specie))
-
-    unique_subgraphs = []
-
-    def node_match(n1, n2):
-        return n1["specie"] == n2["specie"]
-
-    def edge_match(e1, e2):
-        if use_weights:
-            return e1["weight"] == e2["weight"]
-        else:
-            return True
-
-    for subgraph in molecule_subgraphs:
-        already_present = [
-            nx.is_isomorphic(subgraph, g, node_match=node_match, edge_match=edge_match)
-            for g in unique_subgraphs
-        ]
-
-        if not any(already_present):
-            unique_subgraphs.append(subgraph)
-
-    def make_mols(molecule_subgraphs=molecule_subgraphs, center=False):
-        molecules = []
-        indices = []
-        for subgraph in molecule_subgraphs:
-            coords = [supercell_sg.structure[n].coords for n in subgraph.nodes()]
-            species = [supercell_sg.structure[n].specie for n in subgraph.nodes()]
-            binding = [
-                supercell_sg.structure[n].properties["binding"]
-                for n in subgraph.nodes()
-            ]
-            idx = [n for n in subgraph.nodes()]
-            molecule = Molecule(species, coords, site_properties={"binding": binding})
-
-            # shift so origin is at center of mass
-            if center:
-                molecule = molecule.get_centered_molecule()
-            indices.append(idx)
-            molecules.append(molecule)
-        return molecules, indices
-
-    #     molecules, indices = make_mols(molecule_subgraphs)
-    molecules_unique, _ = make_mols(unique_subgraphs, center=True)
-
-    def relabel_graph(multigraph):
-        mapping = dict(zip(multigraph, range(0, len(multigraph.nodes()))))
-        return nx.readwrite.json_graph.adjacency_data(
-            nx.relabel_nodes(multigraph, mapping)
-        )
-
-    return molecules_unique, [
-        MoleculeGraph(mol, relabel_graph(graph))
-        for mol, graph in zip(molecules_unique, unique_subgraphs)
-    ]
-
 
 class MOF:
+    
     def __init__(self, structure: Structure, structure_graph: StructureGraph):
         self.structure = structure
         self.structure_graph = structure_graph
@@ -166,20 +75,60 @@ class MOF:
         self.nodes = []
         self.linker = []
         self._topology = None
+        self._connecting_node_indices  = None
         self.meta = {}
+        self._filter_solvent = True
+        self.fragmentation_method =  'all_node'
+        self._solvent_indices = None
+
+    def _reset(self):
+        self._node_indices = None
+        self._linker_indices = None
+        self.nodes = []
+        self.linker = []
+        self._topology = None
+        self._connecting_node_indices  = None
+        self._solvent_indices = None
+        for site in range(len(self.structure)):
+            self.structure[site].properties = {}
 
     def dump(self, path):
+        """Dump this object as pickle file"""
         pickle_dump(self, path)
 
+    # Todo: use properties and property setters 
     def set_meta(self, key, value):
+        """Set metadata"""
         self.meta[key] = value
+
+    @property
+    def fragmentation_method(self):
+        return self._fragmentation_method
+
+    @fragmentation_method.setter
+    def fragmentation_method(self, value):
+        assert value in ["all_node", "oxo"]
+        self._fragmentation_method  = value
+        self._reset()
+
+    def set_use_solvent_filter(self, use_solvent_filter):
+        assert isinstance(use_solvent_filter, bool)
+        self._filter_solvent = use_solvent_filter
+
+
+    @classmethod
+    def from_cif(cls, cif: Union[str, os.PathLike]):
+        s = Structure.from_file(cif)
+        sg = StructureGraph.with_local_env_strategy(s, VestaCutoffDictNN)
+        return cls(s, sg)
 
     def _is_branch_point(self, index):
         valid_connections = 0
         connected_sites = self.get_neighbor_indices(index)
         if len(connected_sites) < 3:
             return False
-
+        
+        # ToDo: generalize to consider if this is yields to a terminal thing branch or not
         for connected_site in connected_sites:
             if len(self.get_neighbor_indices(connected_site)) > 1:
                 valid_connections += 1
@@ -188,12 +137,6 @@ class MOF:
 
     def _is_terminal(self, index):
         return len(self.get_neighbor_indices(index)) == 1
-
-    @classmethod
-    def from_cif(cls, cif: Union[str, os.PathLike]):
-        s = Structure.from_file(cif)
-        sg = StructureGraph.with_local_env_strategy(s, VestaCutoffDictNN)
-        return cls(s, sg)
 
     @property
     def topology(self):
@@ -239,82 +182,76 @@ class MOF:
 
     @property
     def node_indices(self) -> set:
+        """Returns node indices from cache if they already have been determined, otherwise calculates them"""
         if self._node_indices is None:
-            node_indices = self._get_node_indices()
-        else:
-            node_indices = self._node_indices
+            self._get_node_indices()
 
-        return node_indices
+        return self._node_indices
 
     @property
     def linker_indices(self) -> set:
-        node_indices = self.node_indices
-
-        return set(range(len(self.structure))) - node_indices
+        if self._linker_indices is None:
+            node_indices = self.node_indices
+            self._linker_indices =  set(range(len(self.structure))) 
+            self._linker_indices -= node_indices 
+            self._linker_indices -= set(sum(self._solvent_indices, []))
+        return self._linker_indices
 
     def _label_site(self, site: int):
+        """adds the binding property to a structure"""
         self.structure[site].properties = {"binding": True}
 
     def _label_structure(self):
         """Label node and linker atoms that are connected"""
-        for metal_idx in self.metal_indices:
-            neighbor_indices = self.get_neighbor_indices(metal_idx)
+        for branching_atom in self._connecting_node_indices:
+            neighbor_indices = self.get_neighbor_indices(branching_atom)
             for neighbor_idx in neighbor_indices:
                 if neighbor_idx in self.linker_indices:
-                    self._label_site(metal_idx)
+                    self._label_site(branching_atom)
                     self._label_site(neighbor_idx)
 
-    def _fragment_oxo(self) -> Tuple[List[Linker], List[Node]]:
+    def _fragment(self) -> Tuple[List[Linker], List[Node]]:
+        node_indices  = self.node_indices
         self._label_structure()
         sg1 = deepcopy(self.structure_graph)
+        linkers = []
+        nodes = []
         node_structure = Structure.from_sites(
-            [self.structure[i] for i in self.node_indices]
+            [self.structure[i] for i in node_indices]
         )
         sg0 = StructureGraph.with_local_env_strategy(
             node_structure, MinimumDistanceNN(0.5)
         )
+        
+        node_molecules, node_graphs, node_indices = get_subgraphs_as_molecules(sg0)
+        for node_molecule, node_graph, node_idx in zip(node_molecules, node_graphs, node_indices):
+            valid_node, to_add = is_valid_node(self, node_idx)
+            if valid_node:
+                nodes.append(Node.from_labled_molecule(node_molecule, node_graph, self.meta))
+            if to_add: 
+                self._linker_indices.update(to_add)
+                for idx in to_add:
+                    self._node_indices.remove(idx)
+    
         sg1.remove_nodes(list(self.node_indices))
-        node_molecules, node_graphs = get_subgraphs_as_molecules(sg0)
-        linker_molecules, linker_graphs = get_subgraphs_as_molecules(sg1)
-        linkers = [
-            Linker.from_labled_molecule(molecule, graph, self.meta)
-            for molecule, graph in zip(linker_molecules, linker_graphs)
-        ]
-
-        nodes = [
-            Node.from_labled_molecule(molecule, graph, self.meta)
-            for molecule, graph in zip(node_molecules, node_graphs)
-        ]
+        linker_molecules, linker_graphs, linker_indices = get_subgraphs_as_molecules(sg1)
+        for linker_molecule, linker_graph, linker_idx in zip(linker_molecules, linker_graphs, linker_indices):
+            if is_valid_linker(linker_molecule):
+                linkers.append(Linker.from_labled_molecule(linker_molecule, linker_graph, self.meta))
+            else: 
+                # Something went wrong, we should raise a warning 
+                ...
 
         self.nodes = nodes
         self.linkers = linkers
         return linkers, nodes
 
-    def _fragment_all_node(self):
-        ...
 
-    def _is_valid_node(self, node_indices):
-        """The idea is to distinguish things like porphyrins from true nodes
-        The idea is that when i remove the metal_atoms from a porphyrin
-        I won't break the graph but I'll break the graph if i remove the
-        metal atoms from a real metal node
-        """
-        filtred_indices = [i for i in node_indices if i in self._metal_atoms]
-        g = deepcopy(self._undirected_graph)
+    def fragment(self, fragmentation_method="all_node", filter_out_solvent: bool=True):
+        self.fragmentation_method = fragmentation_method
+        self.set_use_solvent_filter(filter_out_solvent)
 
-        for index in filtred_indices:
-            g.remove_node(index)
-
-        if nx.number_connected_components(g) > 1:
-            return filtred_indices
-        else:
-            return []
-
-    def fragment(self, method="all_node"):
-        if method == "all_node":
-            return self._fragment_all_node()
-        elif method == "oxo":
-            return self._fragment_oxo()
+        return self._fragment()
 
     def _get_cif_text(self):
         return write_cif(self.structure, self.structure_graph, [])
@@ -324,25 +261,12 @@ class MOF:
             f.write(self._get_cif_text())
 
     def _get_node_indices(self):
-        # make a set of all metals and atoms connected to them:
-        h_indices = set(self.h_indices)
-        metals_and_neighbor_indices = set()
-        node_atom_set = set(self.metal_indices)
+        if self.fragmentation_method == 'all_node':
+            result = fragment_all_node(self, self._filter_solvent)
+        elif self.fragmentation_method == 'oxo':
+            result = fragment_oxo_node(self, self._filter_solvent)
 
-        for metal_index in self.metal_indices:
-            metals_and_neighbor_indices.add(metal_index)
-            bonded_to_metal = self.get_neighbor_indices(metal_index)
-            metals_and_neighbor_indices.update(bonded_to_metal)
-
-        # in a node there might be some briding O/OH
-        # this is an approximation there might be other bridging modes
-        for index in metals_and_neighbor_indices:
-            neighboring_indices = self.get_neighbor_indices(index)
-            if len(set(neighboring_indices) - h_indices - node_atom_set) == 0:
-                node_atom_set.update(set([index]))
-                for neighbor_of_neighbor in neighboring_indices:
-                    if self.get_symbol_of_site(neighbor_of_neighbor) == "H":
-                        node_atom_set.update(set([neighbor_of_neighbor]))
-
-        self._node_indices = node_atom_set
-        return node_atom_set
+        self._node_indices = result['node_indices']
+        self._solvent_connections = result['solvent_connections']
+        self._solvent_indices = result['solvent_indices']
+        self._connecting_node_indices = result['connecting_node_indices']

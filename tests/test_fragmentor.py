@@ -4,9 +4,11 @@ import os
 from moffragmentor.fragmentor import (
     classify_neighbors,
     find_solvent_molecule_indices,
-    fragment_all_nodes,
-    get_oxo_node_indices,
+    fragment_all_node,
+    fragment_oxo_node,
     has_path_to_any_other_metal,
+    is_valid_node,
+    has_two_metals_as_neighbor
 )
 from moffragmentor.mof import MOF
 
@@ -48,16 +50,16 @@ def test_classify_neighbors():
     )
 
 
-def test_fragment_all_nodes():
+def test_fragment_all_node():
     mof = MOF.from_cif(os.path.join(THIS_DIR, "test_files", "KAJZIH_freeONLY.cif"))
 
-    fragmentation_all_nodes = fragment_all_nodes(mof)
+    fragmentation_all_nodes = fragment_all_node(mof)
 
-    assert len(fragmentation_all_nodes) == 3
+    assert len(fragmentation_all_nodes) == 4
     assert len(fragmentation_all_nodes["solvent_connections"]) == 8
     assert len(fragmentation_all_nodes["solvent_indices"]) == 8
 
-    assert fragmentation_all_nodes["node_atoms"] == set(
+    assert fragmentation_all_nodes["node_indices"] == set(
         [
             0,
             1,
@@ -150,21 +152,39 @@ def test_fragment_all_nodes():
         ]
     )
 
+    assert len(fragmentation_all_nodes["connecting_node_indices"]) < len(fragmentation_all_nodes["node_indices"])
 
-def test_get_oxo_node_indices():
+    for index in fragmentation_all_nodes["connecting_node_indices"]:
+        assert str(mof.structure[index].specie) == 'C'
+        assert index in fragmentation_all_nodes["node_indices"]
+
+def test_fragment_oxo_node():
     """Test the clustering using the oxo convention"""
     mof = MOF.from_cif(os.path.join(THIS_DIR, "test_files", "KAJZIH_freeONLY.cif"))
-    oxo_node_index_result = get_oxo_node_indices(mof)
-    assert len(oxo_node_index_result) == 3
+    oxo_node_index_result = fragment_oxo_node(mof)
+    assert len(oxo_node_index_result) == 4
     assert len(oxo_node_index_result["solvent_connections"]) == 8
     assert len(oxo_node_index_result["solvent_indices"]) == 8
 
-    assert len(oxo_node_index_result["node_atoms"]) == len(mof.metal_indices)
-
+    assert len(oxo_node_index_result["node_indices"]) == len(mof.metal_indices)
+    assert len(oxo_node_index_result["connecting_node_indices"]) == len(mof.metal_indices)
     # check turning off the solvent filtering
-    oxo_node_index_result = get_oxo_node_indices(mof, filter_out_solvent=False)
-    assert len(oxo_node_index_result) == 3
+    oxo_node_index_result = fragment_oxo_node(mof, filter_out_solvent=False)
+    assert len(oxo_node_index_result) == 4
     assert len(oxo_node_index_result["solvent_connections"]) == 8
     assert len(oxo_node_index_result["solvent_indices"]) == 8
 
-    assert len(oxo_node_index_result["node_atoms"]) == len(mof.metal_indices) + 8 * 3
+    assert len(oxo_node_index_result["node_indices"]) == len(mof.metal_indices) + 8 * 3
+    assert len(oxo_node_index_result["connecting_node_indices"]) == len(mof.metal_indices)
+
+
+def test_is_valid_node(get_cuiiibtc_mof):
+    mof = get_cuiiibtc_mof
+    assert is_valid_node(mof, mof.metal_indices)
+    assert not is_valid_node(mof, [2])
+
+
+def test_has_two_metals_as_neighbor(get_cuiiibtc_mof):
+    mof = get_cuiiibtc_mof
+    assert not has_two_metals_as_neighbor(mof, 0)
+    assert has_two_metals_as_neighbor(mof, 2)
