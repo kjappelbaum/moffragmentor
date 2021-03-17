@@ -8,6 +8,7 @@ from openbabel import pybel as pb
 from pymatgen import Molecule
 from pymatgen.analysis.graphs import MoleculeGraph
 from pymatgen.io.babel import BabelMolAdaptor
+from pymatgen.util.coord import pbc_shortest_vectors
 
 
 def get_smiles_from_pmg_mol(pmg_mol):
@@ -200,3 +201,12 @@ def pickle_dump(object, path):
 def make_if_not_exists(dir):
     if not os.path.exists(dir):
         os.makedirs(dir)
+
+
+def unwrap(cell, xyzs):
+    celldiag = np.diagonal(cell)
+
+    dxyz = xyzs - xyzs[0]
+    dxyz -= celldiag * np.around(dxyz / celldiag)
+    dxyz += xyzs[0]
+    return dxyz

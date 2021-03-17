@@ -23,20 +23,21 @@ def test_topology_computation(get_hkust_mof):
 
 def test_is_terminal(get_cuiiibtc_mof):
     """An atom is terminal when it only has one neighbor"""
-    mof =get_cuiiibtc_mof
+    mof = get_cuiiibtc_mof
     assert mof._is_terminal(32)
     assert not mof._is_terminal(129)
     assert not mof._is_terminal(176)
 
+
 def test_node_indices(get_cuiiibtc_mof):
     mof = get_cuiiibtc_mof
-    mof.fragmentation_method = 'oxo'
-    assert mof.fragmentation_method == 'oxo'
+    mof.fragmentation_method = "oxo"
+    assert mof.fragmentation_method == "oxo"
     assert mof._node_indices is None
 
     assert mof.node_indices == set(mof.metal_indices)
-   
-    mof.fragmentation_method = 'all_node'
+
+    mof.fragmentation_method = "all_node"
     assert mof.node_indices == set(
         [
             0,
@@ -130,21 +131,22 @@ def test_node_indices(get_cuiiibtc_mof):
         ]
     )
 
+
 def test_linker_indices(get_cuiiibtc_mof):
     mof = get_cuiiibtc_mof
-    mof.fragmentation_method = 'oxo'
+    mof.fragmentation_method = "oxo"
     linker_indices = mof.linker_indices
     for linker_index in linker_indices:
-        assert str(mof.structure[linker_index].specie) != 'Cu'
+        assert str(mof.structure[linker_index].specie) != "Cu"
         assert linker_index not in mof.node_indices
         assert linker_index not in mof._solvent_indices
 
     mof = get_cuiiibtc_mof
-    mof.fragmentation_method = 'all_node'
+    mof.fragmentation_method = "all_node"
     linker_indices = mof.linker_indices
     for linker_index in linker_indices:
-        assert str(mof.structure[linker_index].specie) != 'Cu'
-        assert str(mof.structure[linker_index].specie) != 'O'
+        assert str(mof.structure[linker_index].specie) != "Cu"
+        assert str(mof.structure[linker_index].specie) != "O"
         assert linker_index not in mof.node_indices
         assert linker_index not in mof._solvent_indices
 
@@ -161,24 +163,26 @@ def test_label_structure(get_cuiiibtc_mof):
             sites.append(i)
     assert label_site_counter == 2 * len(mof._connecting_node_indices)
     for index in sites:
-        assert str(mof.structure[index].specie) == 'C'
+        assert str(mof.structure[index].specie) == "C"
 
     mof = get_cuiiibtc_mof
-    mof.fragmentation_method = 'oxo'
-    assert  mof.fragmentation_method == 'oxo'
+    mof.fragmentation_method = "oxo"
+    assert mof.fragmentation_method == "oxo"
     mof._get_node_indices()
     mof._label_structure()
     assert len(mof._connecting_node_indices) == len(mof.metal_indices)
-    assert len(mof.node_indices) +  len(mof.linker_indices) + len(sum(mof._solvent_indices, [])) == len(mof.structure)
+    assert len(mof.node_indices) + len(mof.linker_indices) + len(
+        sum(mof._solvent_indices, [])
+    ) == len(mof.structure)
 
     sites = []
-    # one important factor for labeling is that we get also the neighbors of the connecting 
+    # one important factor for labeling is that we get also the neighbors of the connecting
     # atoms right
     for index in mof._connecting_node_indices:
         for neighbor in mof.get_neighbor_indices(index):
-            assert str(mof.structure[neighbor].specie) == 'O' 
+            assert str(mof.structure[neighbor].specie) == "O"
 
-    # i think i currently have the issue due to the Os in the Cu(I) ring 
+    # i think i currently have the issue due to the Os in the Cu(I) ring
     for i in range(len(mof.structure)):
         if mof.structure[i].properties == {"binding": True}:
             sites.append(i)
@@ -186,7 +190,7 @@ def test_label_structure(get_cuiiibtc_mof):
 
     for index in sites:
         element = str(mof.structure[index].specie)
-        assert element == 'O' or element == 'Cu'
+        assert element == "O" or element == "Cu"
         assert index not in set(sum(mof._solvent_indices, []))
 
 

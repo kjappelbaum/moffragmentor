@@ -10,6 +10,7 @@ from typing import List, Tuple, Union
 
 import matplotlib.pylab as plt
 import networkx as nx
+import nglview
 import numpy as np
 import timeout_decorator
 from pymatgen import Structure
@@ -22,9 +23,16 @@ from pymatgen.analysis.local_env import (
     VoronoiNN,
 )
 
+from .fragmentor import (
+    find_node_clusters,
+    fragment_all_node,
+    fragment_oxo_node,
+    get_subgraphs_as_molecules,
+    is_valid_linker,
+    is_valid_node,
+)
 from .sbu import Linker, Node
-from .utils import  pickle_dump, write_cif
-from .fragmentor import fragment_all_node, fragment_oxo_node, get_subgraphs_as_molecules, is_valid_node, is_valid_linker
+from .utils import pickle_dump, write_cif
 
 VestaCutoffDictNN = CutOffDictNN.from_preset("vesta_2019")
 
@@ -64,9 +72,7 @@ def get_topology_code(structure: Structure) -> str:
     return code
 
 
-
 class MOF:
-    
     def __init__(self, structure: Structure, structure_graph: StructureGraph):
         self.structure = structure
         self.structure_graph = structure_graph
@@ -75,11 +81,17 @@ class MOF:
         self.nodes = []
         self.linker = []
         self._topology = None
-        self._connecting_node_indices  = None
+        self._connecting_node_indices = None
         self.meta = {}
         self._filter_solvent = True
-        self.fragmentation_method =  'all_node'
+        self.fragmentation_method = "all_node"
         self._solvent_indices = None
+        self._branching_indices = None
+        self._clear_properties()
+
+    def _clear_properties(self):
+        for site in range(len(self.structure)):
+            self.structure[site].properties = {"binding": False, "branching": False}
 
     def _reset(self):
         self._node_indices = None
@@ -87,19 +99,32 @@ class MOF:
         self.nodes = []
         self.linker = []
         self._topology = None
-        self._connecting_node_indices  = None
+        self._connecting_node_indices = None
         self._solvent_indices = None
-        for site in range(len(self.structure)):
-            self.structure[site].properties = {}
+        self._clear_properties()
 
     def dump(self, path):
         """Dump this object as pickle file"""
         pickle_dump(self, path)
 
-    # Todo: use properties and property setters 
     def set_meta(self, key, value):
         """Set metadata"""
         self.meta[key] = value
+
+    def __len__(self):
+        return len(self.structure)
+
+    @property
+    def lattice(self):
+        return self.structure.lattice
+
+    @property
+    def cart_coords(self):
+        return self.structure.cart_coords
+
+    @property
+    def frac_coords(self):
+        return self.structure.frac_coords
 
     @property
     def fragmentation_method(self):
@@ -108,13 +133,12 @@ class MOF:
     @fragmentation_method.setter
     def fragmentation_method(self, value):
         assert value in ["all_node", "oxo"]
-        self._fragmentation_method  = value
+        self._fragmentation_method = value
         self._reset()
 
     def set_use_solvent_filter(self, use_solvent_filter):
         assert isinstance(use_solvent_filter, bool)
         self._filter_solvent = use_solvent_filter
-
 
     @classmethod
     def from_cif(cls, cif: Union[str, os.PathLike]):
@@ -122,12 +146,16 @@ class MOF:
         sg = StructureGraph.with_local_env_strategy(s, VestaCutoffDictNN)
         return cls(s, sg)
 
-    def _is_branch_point(self, index):
+    def _is_branch_point(self, index, allow_metal: bool = False):
         valid_connections = 0
         connected_sites = self.get_neighbor_indices(index)
         if len(connected_sites) < 3:
             return False
-        
+
+        if not allow_metal:
+            if index in self.metal_indices:
+                return False
+
         # ToDo: generalize to consider if this is yields to a terminal thing branch or not
         for connected_site in connected_sites:
             if len(self.get_neighbor_indices(connected_site)) > 1:
@@ -138,12 +166,12 @@ class MOF:
     def _is_terminal(self, index):
         return len(self.get_neighbor_indices(index)) == 1
 
-    @property
-    def topology(self):
-        if not isinstance(self._topology, str):
-            self._topology = get_topology_code(self.structure)
-            return self.topology
-        return self._topology
+    # @property
+    # def topology(self):
+    #     if not isinstance(self._topology, str):
+    #         self._topology = get_topology_code(self.structure)
+    #         return self.topology
+    #     return self._topology
 
     @property
     def _undirected_graph(self):
@@ -188,66 +216,95 @@ class MOF:
 
         return self._node_indices
 
+    def show_structure(self):
+        return nglview.show_pymatgen(self.structure)
+
     @property
     def linker_indices(self) -> set:
         if self._linker_indices is None:
             node_indices = self.node_indices
-            self._linker_indices =  set(range(len(self.structure))) 
-            self._linker_indices -= node_indices 
+            self._linker_indices = set(range(len(self.structure)))
+            self._linker_indices -= node_indices
             self._linker_indices -= set(sum(self._solvent_indices, []))
         return self._linker_indices
 
-    def _label_site(self, site: int):
-        """adds the binding property to a structure"""
-        self.structure[site].properties = {"binding": True}
+    def _label_site(self, site: int, label: str = "branching", key: bool = True):
+        """adds property site to a structure"""
+        self.structure[site].properties[label] = key
+
+    # def _label_structure(self):
+    #     """Label node and linker atoms that are connected"""
+    #     for branching_atom in self._connecting_node_indices:
+    #         neighbor_indices = self.get_neighbor_indices(branching_atom)
+    #         for neighbor_idx in neighbor_indices:
+    #             if neighbor_idx in self.linker_indices:
+    #                 self._label_site(branching_atom)
+    #                 self._label_site(neighbor_idx)
+
+    def _label_branching_sites(self):
+        for branching_index in self._branching_indices:
+            self._label_site(branching_index, "branching", True)
+
+    def _label_binding_sites(self):
+        for binding_index in self._binding_indices:
+            self._label_site(binding_index, "binding", True)
 
     def _label_structure(self):
-        """Label node and linker atoms that are connected"""
-        for branching_atom in self._connecting_node_indices:
-            neighbor_indices = self.get_neighbor_indices(branching_atom)
-            for neighbor_idx in neighbor_indices:
-                if neighbor_idx in self.linker_indices:
-                    self._label_site(branching_atom)
-                    self._label_site(neighbor_idx)
+        if self._binding_indices is None or self._branching_indices is None:
+            self._get_node_indices()
+
+        self._label_branching_sites()
+        self._label_binding_sites()
 
     def _fragment(self) -> Tuple[List[Linker], List[Node]]:
-        node_indices  = self.node_indices
+        node_indices = self.node_indices
         self._label_structure()
         sg1 = deepcopy(self.structure_graph)
         linkers = []
         nodes = []
-        node_structure = Structure.from_sites(
-            [self.structure[i] for i in node_indices]
-        )
+        node_structure = Structure.from_sites([self.structure[i] for i in node_indices])
         sg0 = StructureGraph.with_local_env_strategy(
             node_structure, MinimumDistanceNN(0.5)
         )
-        
+
         node_molecules, node_graphs, node_indices = get_subgraphs_as_molecules(sg0)
-        for node_molecule, node_graph, node_idx in zip(node_molecules, node_graphs, node_indices):
+        for node_molecule, node_graph, node_idx in zip(
+            node_molecules, node_graphs, node_indices
+        ):
             valid_node, to_add = is_valid_node(self, node_idx)
             if valid_node:
-                nodes.append(Node.from_labled_molecule(node_molecule, node_graph, self.meta))
-            if to_add: 
+                nodes.append(
+                    Node.from_labled_molecule(node_molecule, node_graph, self.meta)
+                )
+            if to_add:
                 self._linker_indices.update(to_add)
                 for idx in to_add:
                     self._node_indices.remove(idx)
-    
+
         sg1.remove_nodes(list(self.node_indices))
-        linker_molecules, linker_graphs, linker_indices = get_subgraphs_as_molecules(sg1)
-        for linker_molecule, linker_graph, linker_idx in zip(linker_molecules, linker_graphs, linker_indices):
+        linker_molecules, linker_graphs, linker_indices = get_subgraphs_as_molecules(
+            sg1
+        )
+        for linker_molecule, linker_graph, linker_idx in zip(
+            linker_molecules, linker_graphs, linker_indices
+        ):
             if is_valid_linker(linker_molecule):
-                linkers.append(Linker.from_labled_molecule(linker_molecule, linker_graph, self.meta))
-            else: 
-                # Something went wrong, we should raise a warning 
+                linkers.append(
+                    Linker.from_labled_molecule(
+                        linker_molecule, linker_graph, self.meta
+                    )
+                )
+            else:
+                # Something went wrong, we should raise a warning
                 ...
 
         self.nodes = nodes
         self.linkers = linkers
         return linkers, nodes
 
-
-    def fragment(self, fragmentation_method="all_node", filter_out_solvent: bool=True):
+    def fragment(
+        self, fragmentation_method="all_node", filter_out_solvent: bool = True
+    ):
         self.fragmentation_method = fragmentation_method
         self.set_use_solvent_filter(filter_out_solvent)
 
@@ -261,12 +318,16 @@ class MOF:
             f.write(self._get_cif_text())
 
     def _get_node_indices(self):
-        if self.fragmentation_method == 'all_node':
-            result = fragment_all_node(self, self._filter_solvent)
-        elif self.fragmentation_method == 'oxo':
-            result = fragment_oxo_node(self, self._filter_solvent)
+        # if self.fragmentation_method == "all_node":
+        #     result = fragment_all_node(self, self._filter_solvent)
+        # elif self.fragmentation_method == "oxo":
+        #     result = fragment_oxo_node(self, self._filter_solvent)
 
-        self._node_indices = result['node_indices']
-        self._solvent_connections = result['solvent_connections']
-        self._solvent_indices = result['solvent_indices']
-        self._connecting_node_indices = result['connecting_node_indices']
+        # self._node_indices = result["node_indices"]
+        # self._solvent_connections = result["solvent_connections"]
+        # self._solvent_indices = result["solvent_indices"]
+        # self._connecting_node_indices = result["connecting_node_indices"]
+        nodes, bs, connecting_paths = find_node_clusters(self)
+        self._node_indices = nodes
+        self._branching_indices = bs
+        self._binding_indices = connecting_paths

@@ -7,8 +7,8 @@ from moffragmentor.fragmentor import (
     fragment_all_node,
     fragment_oxo_node,
     has_path_to_any_other_metal,
+    has_two_metals_as_neighbor,
     is_valid_node,
-    has_two_metals_as_neighbor
 )
 from moffragmentor.mof import MOF
 
@@ -152,11 +152,14 @@ def test_fragment_all_node():
         ]
     )
 
-    assert len(fragmentation_all_nodes["connecting_node_indices"]) < len(fragmentation_all_nodes["node_indices"])
+    assert len(fragmentation_all_nodes["connecting_node_indices"]) < len(
+        fragmentation_all_nodes["node_indices"]
+    )
 
     for index in fragmentation_all_nodes["connecting_node_indices"]:
-        assert str(mof.structure[index].specie) == 'C'
+        assert str(mof.structure[index].specie) == "C"
         assert index in fragmentation_all_nodes["node_indices"]
+
 
 def test_fragment_oxo_node():
     """Test the clustering using the oxo convention"""
@@ -167,7 +170,9 @@ def test_fragment_oxo_node():
     assert len(oxo_node_index_result["solvent_indices"]) == 8
 
     assert len(oxo_node_index_result["node_indices"]) == len(mof.metal_indices)
-    assert len(oxo_node_index_result["connecting_node_indices"]) == len(mof.metal_indices)
+    assert len(oxo_node_index_result["connecting_node_indices"]) == len(
+        mof.metal_indices
+    )
     # check turning off the solvent filtering
     oxo_node_index_result = fragment_oxo_node(mof, filter_out_solvent=False)
     assert len(oxo_node_index_result) == 4
@@ -175,7 +180,9 @@ def test_fragment_oxo_node():
     assert len(oxo_node_index_result["solvent_indices"]) == 8
 
     assert len(oxo_node_index_result["node_indices"]) == len(mof.metal_indices) + 8 * 3
-    assert len(oxo_node_index_result["connecting_node_indices"]) == len(mof.metal_indices)
+    assert len(oxo_node_index_result["connecting_node_indices"]) == len(
+        mof.metal_indices
+    )
 
 
 def test_is_valid_node(get_cuiiibtc_mof):

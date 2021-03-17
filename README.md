@@ -2,9 +2,7 @@
 
 > Split a MOF into linkers and nodes (and generator input files for a MOF assembly tool)
 
-The difference between existing tools like [mofid](https://github.com/snurr-group/mofid) and the [code written for MOF racs](https://molsimplify.readthedocs.io/) is that this tool tries to preserve some information (like the connections) that make it easier to reuse the fragments in MOF-assembly tools.
 
-For the topology determination, we use some Julia code. To install it, follow the instructions on the [README of the CrystalNets code](https://github.com/coudertlab/CrystalNets.jl).
 
 ## Install
 
