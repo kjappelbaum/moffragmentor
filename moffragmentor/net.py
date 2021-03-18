@@ -2,6 +2,8 @@
 import numpy as np
 from pymatgen.core import Lattice, Structure
 
+from .utils import unwrap
+
 
 class NetEmbedding:
     """In all composition/coordinates arrays we have linkers first"""
@@ -34,6 +36,7 @@ class NetEmbedding:
 
     def _find_edges(self):
         edges = set()
+        frac_coords = self.frac_coords
         for i, node in enumerate(self.node_collection):
             for j, linker in enumerate(self.linker_collection):
                 if (
@@ -44,10 +47,7 @@ class NetEmbedding:
                     > 0
                 ):
                     edge_tuple = (j, i + len(self.linker_collection))
-                    if (
-                        self.get_frac_distance(edge_tuple[0], edge_tuple[1]) < 0.3
-                    ):  # dirty hack
-                        edges.add(edge_tuple)
+                    edges.add(edge_tuple)
         self._edges = edges
 
     def get_distance(self, i, j):
@@ -162,12 +162,29 @@ class NetEmbedding:
             counter += 1
 
         edge_lines = []
+        missing_nodes = []
+        missing_node_indices = []
         for edge in self.edges:
             frac_coords_a = self.frac_coords[edge[0]]
             frac_coords_b = self.frac_coords[edge[1]]
+
+            _, image = self.lattice.get_distance_and_image(frac_coords_a, frac_coords_b)
+            frac_coords_b += image
+            if sum(image) != 0:
+                missing_nodes.append(frac_coords_b)
+                missing_node_indices.append(edge[1])
+
             edge_lines.append(
-                f"   EDGE {frac_coords_a[0]:.4f} {frac_coords_a[1]:.4f} {frac_coords_a[2]:.4f} {frac_coords_b[0]:.4f} {frac_coords_b[1]:.4f} {frac_coords_b[2]:.4f}"
+                f"   EDGE   {frac_coords_a[0]:.4f} {frac_coords_a[1]:.4f} {frac_coords_a[2]:.4f} {frac_coords_b[0]:.4f} {frac_coords_b[1]:.4f} {frac_coords_b[2]:.4f}"
             )
+
+        # for index, coordinate in zip(
+        #     missing_node_indices, missing_nodes
+        # ):
+        #     atom_lines.append(
+        #         f"   NODE {counter} {self.coordination_numbers[index]} {coordinate[0]:.4f} {coordinate[1]:.4f} {coordinate[2]:.4f}"
+        #     )
+        #     counter += 1
 
         file_lines = (
             ["CRYSTAL", "   NAME", symmetry_group, cell_line]
