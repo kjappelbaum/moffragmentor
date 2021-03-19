@@ -25,7 +25,6 @@ def ClosedNamedTempfile(contents, mode="w", suffix=".cdg"):
         os.unlink(file.name)
 
 
-
 def run_systre(systre_string: str) -> dict:
     with ClosedNamedTempfile(systre_string, suffix=".cgd", mode="w") as filename:
         cmd_list = [

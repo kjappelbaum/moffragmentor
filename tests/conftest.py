@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
 import os
 
+import networkx as nx
 import pytest
+from pymatgen import Structure
+from pymatgen.analysis.graphs import StructureGraph
+from pymatgen.analysis.local_env import JmolNN
 
 from moffragmentor import MOF
 
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 
-HKUST_cdg="""CRYSTAL
+HKUST_cdg = """CRYSTAL
    NAME
    GROUP P1
    CELL 26.343 26.343 26.343 90.0 90.0 90.0
@@ -166,7 +170,7 @@ HKUST_cdg="""CRYSTAL
 END"""
 
 
-SYSTRE_OUT="""Structure #1 - .
+SYSTRE_OUT = """Structure #1 - .
 
    Input structure described as 3-periodic.
    Given space group is P1.
@@ -264,6 +268,8 @@ SYSTRE_OUT="""Structure #1 - .
    Degrees of freedom: 2
 
 Finished structure #1 - ."""
+
+
 @pytest.fixture(scope="module")
 def get_cuiiibtc_mof():
     mof = MOF.from_cif(os.path.join(THIS_DIR, "test_files", "KAJZIH_freeONLY.cif"))
@@ -280,6 +286,34 @@ def get_hkust_mof():
 def get_cgd_file():
     return HKUST_cdg
 
+
 @pytest.fixture(scope="module")
 def get_systre_output():
     return SYSTRE_OUT
+
+
+@pytest.fixture(scope="module")
+def get_dicarboxy_biphenyl_graph():
+    graph = nx.read_graphml(
+        os.path.join(THIS_DIR, "test_files", "test_graph_biphenyl_dicarboxy.graphml")
+    ).to_undirected()
+    metal_indices = []
+    for node_l in graph.nodes:
+        node = graph.nodes[node_l]
+        if "m" in node["label"]:
+            metal_indices.append(node_l)
+
+    branching_indices = []
+    for node_l in graph.nodes:
+        node = graph.nodes[node_l]
+        if "b" in node["label"]:
+            branching_indices.append(node_l)
+
+    return graph, metal_indices, branching_indices
+
+
+@pytest.fixture()
+def porphyrin_mof_structure_and_graph():
+    s = Structure.from_file(os.path.join(THIS_DIR, "test_files", "porphyrin_mof.cif"))
+    sg = StructureGraph.with_local_env_strategy(s, JmolNN())
+    return s, sg

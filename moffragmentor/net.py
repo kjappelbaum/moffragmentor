@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 from pymatgen.core import Lattice, Structure
+from utils import is_tool
+from utils.errors import JavaNotFoundError
+from utils.systre import run_systre
 
-from .utils import unwrap
+__all__ = ["NetEmbedding"]
 
 
 class NetEmbedding:
@@ -24,6 +27,8 @@ class NetEmbedding:
         self._lattice = lattice
         self._cart_coords = None
         self._composition = None
+        self._rscr_code = None
+        self._space_group = None
 
     def __len__(self):
         return len(self.node_collection) + len(self.linker_collection)
@@ -36,7 +41,6 @@ class NetEmbedding:
 
     def _find_edges(self):
         edges = set()
-        frac_coords = self.frac_coords
         for i, node in enumerate(self.node_collection):
             for j, linker in enumerate(self.linker_collection):
                 if (
@@ -84,7 +88,7 @@ class NetEmbedding:
 
         self._cart_coords = np.array(coordinates).reshape(-1, 3)
 
-    def _dummy_structure(self):
+    def _get_dummy_structure(self):
         linker_symbols = ["O" for _ in self.linker_collection]
         node_symbols = ["Si" for _ in self.node_collection]
         return Structure(self.lattice, linker_symbols + node_symbols, self.frac_coords)
@@ -178,14 +182,6 @@ class NetEmbedding:
                 f"   EDGE   {frac_coords_a[0]:.4f} {frac_coords_a[1]:.4f} {frac_coords_a[2]:.4f} {frac_coords_b[0]:.4f} {frac_coords_b[1]:.4f} {frac_coords_b[2]:.4f}"
             )
 
-        # for index, coordinate in zip(
-        #     missing_node_indices, missing_nodes
-        # ):
-        #     atom_lines.append(
-        #         f"   NODE {counter} {self.coordination_numbers[index]} {coordinate[0]:.4f} {coordinate[1]:.4f} {coordinate[2]:.4f}"
-        #     )
-        #     counter += 1
-
         file_lines = (
             ["CRYSTAL", "   NAME", symmetry_group, cell_line]
             + atom_lines
@@ -197,5 +193,26 @@ class NetEmbedding:
 
         return filestring
 
+    @property
+    def rscr_code(self):
+        if self._rscr_code is None:
+            self._run_systre()
+        return self._rscr_code
+
+    @property
+    def space_group(self):
+        if self._space_group is None:
+            self._run_systre()
+        return self._space_group
+
     def _run_systre(self):
-        ...
+        self._rscr_code = ""
+        self._space_group = ""
+
+        if not is_tool("java"):
+            raise JavaNotFoundError(
+                "To determine the topology of the net, `java` must be in the PATH."
+            )
+        systre_output = run_systre(self._write_systre_file())
+        self._rscr_code = systre_output["rscr_code"]
+        self._space_group = systre_output["space_group"]

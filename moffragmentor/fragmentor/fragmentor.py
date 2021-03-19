@@ -14,7 +14,9 @@ from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 
 def has_path_to_any_other_metal(mof, index: int, this_metal_index: int) -> bool:
     """Check if some neighbor at index is only connected to this_metal_index
-        or if we have some path to some other metal
+        or if we have some path to some other metal. A valid linker will have
+        a path to another metal wheras a solvent molecule will only have a bond
+        to `this_metal_index`
 
     Args:
         mof (MOF): A MOF instance that must provide .metal_indices and ._undirected_graph

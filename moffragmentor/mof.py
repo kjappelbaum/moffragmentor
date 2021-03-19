@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
-__all__ = ["get_subgraphs_as_molecules", "MOF"]
-
-
 import os
-import tempfile
-import warnings
 from copy import deepcopy
 from typing import List, Tuple, Union
 
@@ -12,7 +7,6 @@ import matplotlib.pylab as plt
 import networkx as nx
 import nglview
 import numpy as np
-import timeout_decorator
 from pymatgen import Structure
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 from pymatgen.analysis.local_env import (
@@ -23,10 +17,8 @@ from pymatgen.analysis.local_env import (
     VoronoiNN,
 )
 
-from .fragmentor import (
+from .fragmentor.fragmentor import (
     find_node_clusters,
-    fragment_all_node,
-    fragment_oxo_node,
     get_subgraphs_as_molecules,
     is_valid_linker,
     is_valid_node,
@@ -35,6 +27,8 @@ from .sbu import Linker, Node
 from .utils import pickle_dump, write_cif
 
 VestaCutoffDictNN = CutOffDictNN.from_preset("vesta_2019")
+
+__all__ = ["MOF"]
 
 
 class MOF:
@@ -112,6 +106,18 @@ class MOF:
         return cls(s, sg)
 
     def _is_branch_point(self, index, allow_metal: bool = False):
+        """The branch point definition is key for splitting MOFs
+        into linker and nodes. Branch points are here defined as points
+        that have at least three connections that do not lead to a tree or
+        leaf node.
+
+        Args:
+            index ([type]): [description]
+            allow_metal (bool, optional): [description]. Defaults to False.
+
+        Returns:
+            [type]: [description]
+        """
         valid_connections = 0
         connected_sites = self.get_neighbor_indices(index)
         if len(connected_sites) < 3:
@@ -130,13 +136,6 @@ class MOF:
 
     def _is_terminal(self, index):
         return len(self.get_neighbor_indices(index)) == 1
-
-    # @property
-    # def topology(self):
-    #     if not isinstance(self._topology, str):
-    #         self._topology = get_topology_code(self.structure)
-    #         return self.topology
-    #     return self._topology
 
     @property
     def _undirected_graph(self):

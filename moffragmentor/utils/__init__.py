@@ -2,6 +2,7 @@
 import datetime
 import os
 import pickle
+from shutil import which
 
 import numpy as np
 from openbabel import pybel as pb
@@ -210,3 +211,10 @@ def unwrap(cell, xyzs):
     dxyz -= celldiag * np.around(dxyz / celldiag)
     dxyz += xyzs[0]
     return dxyz
+
+
+def is_tool(name):
+    """Check whether `name` is on PATH and marked as executable.
+    https://stackoverflow.com/questions/11210104/check-if-a-program-exists-from-a-python-script"""
+
+    return which(name) is not None
