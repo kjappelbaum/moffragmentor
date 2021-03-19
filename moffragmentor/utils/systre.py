@@ -7,21 +7,23 @@ from contextlib import contextmanager
 from tempfile import NamedTemporaryFile
 from typing import List, Tuple
 
-
-@contextmanager
-def ClosedNamedTempfile(contents, mode="w", suffix=".cdg"):
-    f = NamedTemporaryFile(delete=False, mode=mode, suffix=suffix)
-    try:
-        with f:
-            f.write(contents)
-        yield f.name
-    finally:
-        os.unlink(f.name)
-
+__all__ = ["run_systre"]
 
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 
 SYSTRE_JAR = os.path.abspath(os.path.join(THIS_DIR, "..", "Systre-19.6.0.jar"))
+
+
+@contextmanager
+def ClosedNamedTempfile(contents, mode="w", suffix=".cdg"):
+    file = NamedTemporaryFile(delete=False, mode=mode, suffix=suffix)
+    try:
+        with file:
+            file.write(contents)
+        yield file.name
+    finally:
+        os.unlink(file.name)
+
 
 
 def run_systre(systre_string: str) -> dict:
@@ -65,9 +67,9 @@ def parse_systre_lines(lines: List[str]) -> dict:
             cell_line = i + 1
             angle_line = i + 2
         if i == cell_line:
-            cell = line_to_coords(line)
+            cell = _line_to_coords(line)
         if i == angle_line:
-            angles = line_to_coords(line)
+            angles = _line_to_coords(line)
         if "Relaxed positions:" in line:
             node_start_line = i + 1
         if i == node_start_line:
@@ -80,11 +82,11 @@ def parse_systre_lines(lines: List[str]) -> dict:
         if "Edge centers:" in line:
             in_edge_block = False
         if in_node_block:
-            node, coords = parse_node_line(line)
+            node, coords = _parse_node_line(line)
             nodes[node].append(coords)
 
         if in_edge_block:
-            edge_coords = line_to_coords(line)
+            edge_coords = _line_to_coords(line)
             edges.append((edge_coords[:3], edge_coords[3:]))
 
     results = {
@@ -92,19 +94,19 @@ def parse_systre_lines(lines: List[str]) -> dict:
         "rscr_code": rscr_code,
         "relaxed_cell": cell,
         "relaxed_angles": angles,
-        "relaxed_node_positions": nodes,
+        "relaxed_node_positions": dict(nodes),
         "relaxed_edges": edges,
     }
 
     return results
 
 
-def line_to_coords(line: str) -> List[float]:
+def _line_to_coords(line: str) -> List[float]:
     return [float(i) for i in re.findall("\d+.\d+", line)]
 
 
-def parse_node_line(line) -> Tuple[int, List[float]]:
+def _parse_node_line(line: str) -> Tuple[int, List[float]]:
     node_number = int(re.findall("Node\s(\d+):", line)[0])
-    coords = line_to_coords(line)
+    coords = _line_to_coords(line)
 
     return node_number, coords

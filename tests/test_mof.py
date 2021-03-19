@@ -15,12 +15,6 @@ def check_mof_creation_from_cif(get_cuiiibtc_mof):
     assert isinstance(mof.structure, Structure)
 
 
-@pytest.mark.julia
-def test_topology_computation(get_hkust_mof):
-    mof = get_hkust_mof
-    assert mof.topology == "tbo"
-
-
 def test_is_terminal(get_cuiiibtc_mof):
     """An atom is terminal when it only has one neighbor"""
     mof = get_cuiiibtc_mof

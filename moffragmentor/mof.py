@@ -37,41 +37,6 @@ from .utils import pickle_dump, write_cif
 VestaCutoffDictNN = CutOffDictNN.from_preset("vesta_2019")
 
 
-JULIA_AVAILABLE = False
-try:
-    from julia.api import Julia
-
-    jl = Julia(compiled_modules=False)
-    from julia import CrystalNets
-
-    JULIA_AVAILABLE = True
-except ImportError:
-    warnings.warn(
-        "Could not load the julia package for topology determination.", UserWarning
-    )
-
-
-@timeout_decorator.timeout(60)
-def call_crystalnet(f):
-    c, n = CrystalNets.do_clustering(
-        CrystalNets.parse_chemfile(f), CrystalNets.MOFClustering
-    )
-    code = CrystalNets.reckognize_topology(CrystalNets.topological_genome(n))
-    return code
-
-
-def get_topology_code(structure: Structure) -> str:
-    code = ""
-    if JULIA_AVAILABLE:
-        with tempfile.NamedTemporaryFile(suffix=".cif") as temp:
-            try:
-                structure.to(fmt="cif", filename=temp.name)
-                code = call_crystalnet(temp.name)
-            except Exception as e:
-                warnings.warn(f"Could not determine topology {e}", UserWarning)
-    return code
-
-
 class MOF:
     def __init__(self, structure: Structure, structure_graph: StructureGraph):
         self.structure = structure
