@@ -303,6 +303,20 @@ def get_p_linker_with_floating():
 
 
 @pytest.fixture(scope="module")
+def get_li_mof_with_floating():
+    mof = MOF.from_cif(os.path.join(THIS_DIR, "test_files", "LISZOE.cif"))
+    return mof
+
+
+@pytest.fixture(scope="module")
+def get_1d_node_with_floating():
+    """https://pubs.rsc.org/en/content/articlelanding/2014/cc/c3cc49684h#!divAbstract
+    found with Google search 'complicated node mof'"""
+    mof = MOF.from_cif(os.path.join(THIS_DIR, "test_files", "c3cc49684h3.cif"))
+    return mof
+
+
+@pytest.fixture(scope="module")
 def get_cgd_file():
     return HKUST_cdg
 

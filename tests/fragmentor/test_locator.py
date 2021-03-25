@@ -48,3 +48,25 @@ def test_find_p_linker_floating_mof_clusters(get_p_linker_with_floating):
     assert (
         node_lengths[0] == 25
     )  # ToDo: think more carefully if we want to deal this way with the µ1-carboxy
+
+
+def test_find_li_mof_floating_mof_cluster(get_li_mof_with_floating):
+    """A somewhat more complicated node,
+    see https://pubs.rsc.org/en/content/articlelanding/2014/DT/c3dt53415d#!divAbstract"""
+    mof = get_li_mof_with_floating
+    node_location_result = find_node_clusters(mof)
+    assert len(node_location_result) == 3
+    assert len(node_location_result.nodes) == 2
+    node_lengths = [len(node) for node in node_location_result.nodes]
+    assert len(set(node_lengths)) == 1
+    assert node_lengths[0] == 34
+
+
+def test_find_rod_node_floating_mof_cluster(get_1d_node_with_floating):
+    mof = get_1d_node_with_floating
+    node_location_result = find_node_clusters(mof)
+    assert len(node_location_result) == 3
+    assert len(node_location_result.nodes) == 4
+    node_lengths = [len(node) for node in node_location_result.nodes]
+    assert len(set(node_lengths)) == 1
+    # assert node_lengths[0] == 34

@@ -190,11 +190,10 @@ def find_node_clusters(mof) -> NODELOCATION_RESULT:
     # we find the connected components in those paths
     g = _to_graph(paths)
     nodes = list(nx.connected_components(g))
-    print(nodes)
     # filter out "node" candidates that are not actual nodes.
     # in practice this is relevant for ligands with metals in them (e.g., porphyrins)
     nodes = filter_nodes(nodes, mof.structure_graph, mof.metal_indices)
-    print(nodes)
+
     bs = set(sum(branch_sites, []))
     # we store the shortest paths between nodes and branching indices
     for metal, branch_sites_for_metal in zip(mof.metal_indices, branch_sites):
