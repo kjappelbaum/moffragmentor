@@ -157,6 +157,18 @@ def get_solvent_molecules_bound_to_node(
     return NonSbuMoleculeCollection(molecules)
 
 
+def get_all_bound_solvent_molecules(
+    mof, node_atom_sets: List[Set[int]]
+) -> NonSbuMoleculeCollection:
+    non_sbu_molecule_collections = NonSbuMoleculeCollection([])
+    for node_atom_set in node_atom_sets:
+        non_sbu_molecule_collections += get_solvent_molecules_bound_to_node(
+            mof, node_atom_set
+        )
+
+    return non_sbu_molecule_collections
+
+
 def _to_graph(l):
     G = nx.Graph()
     for part in l:

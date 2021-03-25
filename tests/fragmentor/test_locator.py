@@ -3,6 +3,7 @@ from collections import Counter
 
 from moffragmentor.fragmentor.locator import (
     find_node_clusters,
+    get_all_bound_solvent_molecules,
     get_solvent_molecules_bound_to_node,
 )
 from moffragmentor.molecule import NonSbuMoleculeCollection
@@ -59,7 +60,6 @@ def test_find_li_mof_floating_mof_cluster(get_li_mof_with_floating):
     see https://pubs.rsc.org/en/content/articlelanding/2014/DT/c3dt53415d#!divAbstract"""
     mof = get_li_mof_with_floating
     node_location_result = find_node_clusters(mof)
-    print(node_location_result.nodes)
     assert len(node_location_result) == 3
     assert len(node_location_result.nodes) == 2
     node_lengths = [len(node) for node in node_location_result.nodes]
@@ -118,3 +118,84 @@ def test_get_solvent_molecules_bound_to_node(get_li_mof_with_floating):
     solvent_molecules = get_solvent_molecules_bound_to_node(mof, node_indices)
     assert isinstance(solvent_molecules, NonSbuMoleculeCollection)
     assert solvent_molecules.composition == {"H2 O1": 2}
+
+
+def test_find_all_bound_solvent_molecules(get_li_mof_with_floating):
+    mof = get_li_mof_with_floating
+    node_collection = [
+        {
+            0,
+            128,
+            130,
+            2,
+            132,
+            4,
+            134,
+            6,
+            136,
+            138,
+            140,
+            142,
+            144,
+            146,
+            148,
+            150,
+            152,
+            154,
+            156,
+            158,
+            164,
+            166,
+            48,
+            50,
+            52,
+            54,
+            68,
+            70,
+            92,
+            94,
+            104,
+            106,
+            116,
+            118,
+        },
+        {
+            1,
+            129,
+            3,
+            131,
+            133,
+            5,
+            135,
+            7,
+            137,
+            139,
+            141,
+            143,
+            145,
+            147,
+            149,
+            151,
+            153,
+            155,
+            157,
+            159,
+            165,
+            167,
+            49,
+            51,
+            53,
+            55,
+            69,
+            71,
+            93,
+            95,
+            105,
+            107,
+            117,
+            119,
+        },
+    ]
+    solvent_molecules = get_all_bound_solvent_molecules(mof, node_collection)
+    assert isinstance(solvent_molecules, NonSbuMoleculeCollection)
+    assert solvent_molecules.composition == {"H2 O1": 4}
