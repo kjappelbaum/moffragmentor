@@ -283,6 +283,26 @@ def get_hkust_mof():
 
 
 @pytest.fixture(scope="module")
+def get_porphryin_mof():
+    mof = MOF.from_cif(os.path.join(THIS_DIR, "test_files", "porphyrin_mof.cif"))
+    return mof
+
+
+@pytest.fixture(scope="module")
+def get_hypothetical_mof():
+    mof = MOF.from_cif(
+        os.path.join(THIS_DIR, "test_files", "bcs_v1-litcic_1B_4H_Ch_opt_charge.cif")
+    )
+    return mof
+
+
+@pytest.fixture(scope="module")
+def get_p_linker_with_floating():
+    mof = MOF.from_cif(os.path.join(THIS_DIR, "test_files", "MAGBON.cif"))
+    return mof
+
+
+@pytest.fixture(scope="module")
 def get_cgd_file():
     return HKUST_cdg
 
@@ -315,5 +335,12 @@ def get_dicarboxy_biphenyl_graph():
 @pytest.fixture()
 def porphyrin_mof_structure_and_graph():
     s = Structure.from_file(os.path.join(THIS_DIR, "test_files", "porphyrin_mof.cif"))
+    sg = StructureGraph.with_local_env_strategy(s, JmolNN())
+    return s, sg
+
+
+@pytest.fixture()
+def hkust_structure_and_graph():
+    s = Structure.from_file(os.path.join(THIS_DIR, "test_files", "HKUST-1.cif"))
     sg = StructureGraph.with_local_env_strategy(s, JmolNN())
     return s, sg

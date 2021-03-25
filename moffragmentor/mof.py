@@ -17,12 +17,9 @@ from pymatgen.analysis.local_env import (
     VoronoiNN,
 )
 
-from .fragmentor.fragmentor import (
-    find_node_clusters,
-    get_subgraphs_as_molecules,
-    is_valid_linker,
-    is_valid_node,
-)
+from .fragmentor.filter import is_valid_linker, is_valid_node
+from .fragmentor.locator import find_node_clusters
+from .fragmentor.splitter import get_subgraphs_as_molecules
 from .sbu import Linker, Node
 from .utils import pickle_dump, write_cif
 
@@ -84,16 +81,6 @@ class MOF:
     @property
     def frac_coords(self):
         return self.structure.frac_coords
-
-    @property
-    def fragmentation_method(self):
-        return self._fragmentation_method
-
-    @fragmentation_method.setter
-    def fragmentation_method(self, value):
-        assert value in ["all_node", "oxo"]
-        self._fragmentation_method = value
-        self._reset()
 
     def set_use_solvent_filter(self, use_solvent_filter):
         assert isinstance(use_solvent_filter, bool)
