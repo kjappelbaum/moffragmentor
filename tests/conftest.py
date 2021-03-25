@@ -3,8 +3,8 @@ import os
 
 import networkx as nx
 import pytest
-from pymatgen import Structure
-from pymatgen.analysis.graphs import StructureGraph
+from pymatgen import Molecule, Structure
+from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 from pymatgen.analysis.local_env import JmolNN
 
 from moffragmentor import MOF
@@ -1126,3 +1126,17 @@ def hkust_structure_and_graph():
     s = Structure.from_file(os.path.join(THIS_DIR, "test_files", "HKUST-1.cif"))
     sg = StructureGraph.with_local_env_strategy(s, JmolNN())
     return s, sg
+
+
+@pytest.fixture()
+def get_methane_molecule_and_graph():
+    coords = [
+        [0.000000, 0.000000, 0.000000],
+        [0.000000, 0.000000, 1.089000],
+        [1.026719, 0.000000, -0.363000],
+        [-0.513360, -0.889165, -0.363000],
+        [-0.513360, 0.889165, -0.363000],
+    ]
+    methane = Molecule(["C", "H", "H", "H", "H"], coords)
+    mg = MoleculeGraph.with_local_env_strategy(methane, JmolNN())
+    return methane, mg

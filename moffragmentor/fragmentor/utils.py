@@ -2,6 +2,24 @@
 from typing import List, Union
 
 
+def _get_metal_sublist(
+    indices: List[int],
+    metal_indices: List[int],
+    periodic_index_map: Union[dict, None] = None,
+) -> List[int]:
+    metal_subset_in_node = []
+
+    for node_index in indices:
+        if node_index in metal_indices:
+            if periodic_index_map is not None:
+                # adding the periodic images
+                metal_subset_in_node.extend(periodic_index_map[node_index])
+            else:
+                metal_subset_in_node.append(node_index)
+
+    return metal_subset_in_node
+
+
 def _get_metal_sublists(
     indices: List[List[int]],
     metal_indices: list,
@@ -19,13 +37,6 @@ def _get_metal_sublists(
     """
     output_list = []
     for sublist in indices:
-        new_sublist = []
-        for item in sublist:
-            if item in metal_indices:
-                if periodic_index_map is not None:
-                    # adding the periodic images
-                    new_sublist.extend(periodic_index_map[item])
-                else:
-                    new_sublist.append(item)
+        new_sublist = _get_metal_sublist(sublist, metal_indices, periodic_index_map)
         output_list.append(new_sublist)
     return output_list

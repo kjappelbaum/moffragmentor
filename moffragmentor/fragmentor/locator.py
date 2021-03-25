@@ -10,6 +10,7 @@ import networkx as nx
 
 from ..utils.errors import NoMetalError
 from .filter import filter_nodes
+from .utils import _get_metal_sublist
 
 __all__ = ["find_node_clusters"]
 
@@ -110,13 +111,14 @@ def find_solvent_molecule_indices(mof, index: int, starting_metal: int) -> List[
     return path
 
 
-def classify_neighbors(mof, node_atoms: Set[int]) -> OrderedDict:
+def locate_bound_solvent(mof, node_atoms: Set[int]) -> OrderedDict:
     solvent_connections = set()
 
     solvent_indices = []
     good_connections = set()
 
-    for metal_index in node_atoms:
+    metal_subset = _get_metal_sublist(node_atoms, mof.metal_indices)
+    for metal_index in metal_subset:
         metal_neighbors = mof.get_neighbor_indices(metal_index)
 
         for metal_neighbor in metal_neighbors:

@@ -2,12 +2,13 @@
 import datetime
 import os
 import pickle
+from collections import defaultdict
 from shutil import which
 
 import numpy as np
 from openbabel import pybel as pb
 from pymatgen import Molecule
-from pymatgen.analysis.graphs import MoleculeGraph
+from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 from pymatgen.io.babel import BabelMolAdaptor
 from pymatgen.util.coord import pbc_shortest_vectors
 
@@ -218,3 +219,16 @@ def is_tool(name):
     https://stackoverflow.com/questions/11210104/check-if-a-program-exists-from-a-python-script"""
 
     return which(name) is not None
+
+
+def get_edge_dict(structure_graph: StructureGraph) -> dict:
+    def get_label(u, v):
+        u_label = structure_graph.structure[u].species_string
+        v_label = structure_graph.structure[v].species_string
+        return "-".join(sorted((u_label, v_label)))
+
+    types = defaultdict(list)
+    for u, v, d in structure_graph.graph.edges(data=True):
+        label = get_label(u, v)
+
+    return dict(types)

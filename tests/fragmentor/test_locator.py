@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from collections import Counter
 
-from moffragmentor.fragmentor.locator import classify_neighbors, find_node_clusters
+from moffragmentor.fragmentor.locator import find_node_clusters
 
 
 def test_find_cu_i_ii_btc_clusters(get_cuiiibtc_mof):
@@ -70,13 +70,3 @@ def test_find_rod_node_floating_mof_cluster(get_1d_node_with_floating):
     node_lengths = [len(node) for node in node_location_result.nodes]
     assert len(set(node_lengths)) == 1
     assert node_lengths[0] == 20
-
-
-def test_find_bound_water_hkust(get_hkust_mof):
-    mof = get_hkust_mof
-    candidate_indices = set(
-        [0, 578, 38, 583, 458, 267, 463, 272, 145, 432, 437, 246, 600, 605]
-    )
-
-    neighbor_classification = classify_neighbors(mof, candidate_indices)
-    assert len(neighbor_classification) == 3
