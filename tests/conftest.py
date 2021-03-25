@@ -1140,3 +1140,9 @@ def get_methane_molecule_and_graph():
     methane = Molecule(["C", "H", "H", "H", "H"], coords)
     mg = MoleculeGraph.with_local_env_strategy(methane, JmolNN())
     return methane, mg
+
+
+@pytest.fixture()
+def get_acetate_zr_mof():
+    mof = MOF.from_cif(os.path.join(THIS_DIR, "test_files", "1585873-1585874.cif"))
+    return mof

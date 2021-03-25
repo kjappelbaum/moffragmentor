@@ -60,3 +60,9 @@ def unbound_solvent_identification_li_mof(get_li_mof_with_floating):
     molecules = get_floating_solvent_molecules(get_li_mof_with_floating)
     assert len(molecules) == 8
     assert molecules.composition == {"H2 O1": 8}
+
+
+def unbound_solvent_identification_acetate_zr_mof(get_acetate_zr_mof):
+    molecules = get_floating_solvent_molecules(get_acetate_zr_mof)
+    assert len(molecules) == 6
+    assert molecules.composition == {"C2 H4 O2": 6}
