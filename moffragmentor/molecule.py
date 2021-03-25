@@ -5,6 +5,7 @@ from collections import Counter
 from copy import deepcopy
 from typing import List
 
+import nglview
 from pymatgen import Molecule
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 
@@ -62,6 +63,9 @@ class NonSbuMolecule:
         mg = MoleculeGraph.with_edges(mol, get_edge_dict(my_graph))
         return cls(mol, mg, indices)
 
+    def show_molecule(self):
+        return nglview.show_pymatgen(self.molecule)
+
 
 class NonSbuMoleculeCollection:
     """Class to handle collections of molecules, e.g. bound solvents and non-bound solvents"""
@@ -79,6 +83,10 @@ class NonSbuMoleculeCollection:
     def __next__(self):
         for molecule in self.molecules:
             yield molecule
+
+    def __add__(self, other):
+        molecules = self.molecules + other.molecules
+        return NonSbuMoleculeCollection(molecules)
 
     def _get_composition(self):
         if self._composition is None:

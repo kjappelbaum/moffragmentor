@@ -8,6 +8,7 @@ from typing import List, Set
 
 import networkx as nx
 
+from ..molecule import NonSbuMolecule, NonSbuMoleculeCollection
 from ..utils.errors import NoMetalError
 from .filter import filter_nodes
 from .utils import _get_metal_sublist
@@ -111,7 +112,7 @@ def find_solvent_molecule_indices(mof, index: int, starting_metal: int) -> List[
     return path
 
 
-def locate_bound_solvent(mof, node_atoms: Set[int]) -> OrderedDict:
+def _locate_bound_solvent(mof, node_atoms: Set[int]) -> OrderedDict:
     solvent_connections = set()
 
     solvent_indices = []
@@ -137,6 +138,23 @@ def locate_bound_solvent(mof, node_atoms: Set[int]) -> OrderedDict:
             ("non_solvent_connections", good_connections),
         ]
     )
+
+
+def get_solvent_molecules_bound_to_node(
+    mof, node_atoms: Set[int]
+) -> NonSbuMoleculeCollection:
+    bound_solvent_location_result = _locate_bound_solvent(mof, node_atoms)
+
+    molecules = []
+
+    for solvent_ind in bound_solvent_location_result["solvent_indices"]:
+        molecules.append(
+            NonSbuMolecule.from_structure_graph_and_indices(
+                mof.structure_graph, solvent_ind
+            )
+        )
+
+    return NonSbuMoleculeCollection(molecules)
 
 
 def _to_graph(l):
