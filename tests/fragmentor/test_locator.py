@@ -69,4 +69,4 @@ def test_find_rod_node_floating_mof_cluster(get_1d_node_with_floating):
     assert len(node_location_result.nodes) == 4
     node_lengths = [len(node) for node in node_location_result.nodes]
     assert len(set(node_lengths)) == 1
-    # assert node_lengths[0] == 34
+    assert node_lengths[0] == 20
