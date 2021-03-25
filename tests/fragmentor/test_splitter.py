@@ -30,3 +30,23 @@ def test_unbound_solvent_identification(get_p_linker_with_floating):
     print(composition_counter)
     assert composition_counter["C4 H10 N1"] == 8
     assert composition_counter["H2 O1"] == 8 * 4
+
+
+def test_unbound_solvent_identification_li_mof(get_li_mof_with_floating):
+    """Test flagging of unbound solvent in a MOF
+    with a Li containing node"""
+    unique_mols, unique_graphs, unique_indices = get_subgraphs_as_molecules(
+        get_li_mof_with_floating.structure_graph
+    )
+    assert len(unique_mols) == len(unique_graphs) == len(unique_indices) == 1
+    compositions = [
+        str(unique_mol.composition.alphabetical_formula) for unique_mol in unique_mols
+    ]
+    assert "H2 O1" in compositions
+
+    # Now, we'll return all in the unit cell
+    mols, graphs, indices = get_subgraphs_as_molecules(
+        get_li_mof_with_floating.structure_graph, return_unique=False
+    )
+
+    assert len(mols) == len(graphs) == len(indices) == 8

@@ -4,7 +4,7 @@ Node classification techniques described in https://pubs.acs.org/doi/pdf/10.1021
 """
 from collections import OrderedDict, namedtuple
 from copy import deepcopy
-from typing import List
+from typing import List, Set
 
 import networkx as nx
 
@@ -94,10 +94,6 @@ def recursive_dfs_until_branch(
     return path, branching_nodes
 
 
-def find_free_solvent_molecules(mof) -> List[List[int]]:
-    ...
-
-
 def find_solvent_molecule_indices(mof, index: int, starting_metal: int) -> List[int]:
     """Finds all the indices that belong to a solvent molecule
 
@@ -114,7 +110,7 @@ def find_solvent_molecule_indices(mof, index: int, starting_metal: int) -> List[
     return path
 
 
-def classify_neighbors(mof, node_atoms: List[int]) -> OrderedDict:
+def classify_neighbors(mof, node_atoms: Set[int]) -> OrderedDict:
     solvent_connections = set()
 
     solvent_indices = []
