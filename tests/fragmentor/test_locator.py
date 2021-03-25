@@ -199,3 +199,14 @@ def test_find_all_bound_solvent_molecules(get_li_mof_with_floating):
     solvent_molecules = get_all_bound_solvent_molecules(mof, node_collection)
     assert isinstance(solvent_molecules, NonSbuMoleculeCollection)
     assert solvent_molecules.composition == {"H2 O1": 4}
+
+
+def test_find_node_cluster_acetate_zr_mof(get_acetate_zr_mof):
+    """Nice (Zr6)2 node, see https://pubs.rsc.org/en/content/articlelanding/2018/CC/C8CC00507A#!divAbstract"""
+    mof = get_acetate_zr_mof
+    node_location_result = find_node_clusters(mof)
+    assert len(node_location_result) == 3
+    assert len(node_location_result.nodes) == 1
+    node_lengths = [len(node) for node in node_location_result.nodes]
+    assert len(set(node_lengths)) == 1
+    assert node_lengths[0] == 100  # Zr12O8(OH)8(CH3COO)24 according to paper

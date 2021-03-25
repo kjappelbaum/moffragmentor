@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 from pymatgen.core import Lattice, Structure
-from utils import is_tool
-from utils.errors import JavaNotFoundError
-from utils.systre import run_systre
+
+from .utils import is_tool
+from .utils.errors import JavaNotFoundError
+from .utils.systre import run_systre
 
 __all__ = ["NetEmbedding"]
 
