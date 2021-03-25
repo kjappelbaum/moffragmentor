@@ -2,7 +2,10 @@
 """Testing the splitting module of the fragmentor subpackage"""
 from collections import Counter
 
-from moffragmentor.fragmentor.splitter import get_subgraphs_as_molecules
+from moffragmentor.fragmentor.splitter import (
+    get_floating_solvent_molecules,
+    get_subgraphs_as_molecules,
+)
 
 
 def test_unbound_solvent_identification(get_p_linker_with_floating):
@@ -50,3 +53,10 @@ def test_unbound_solvent_identification_li_mof(get_li_mof_with_floating):
     )
 
     assert len(mols) == len(graphs) == len(indices) == 8
+
+
+def unbound_solvent_identification_li_mof(get_li_mof_with_floating):
+    """Test if we can get a NonSbuMoleculeCollection from the MOF"""
+    molecules = get_floating_solvent_molecules(get_li_mof_with_floating)
+    assert len(molecules) == 8
+    assert molecules.composition == {"H2 O1": 8}

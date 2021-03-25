@@ -7,6 +7,8 @@ import networkx as nx
 from pymatgen import Molecule
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 
+from ..molecule import NonSbuMolecule, NonSbuMoleculeCollection
+
 __all__ = ["get_subgraphs_as_molecules"]
 
 
@@ -179,3 +181,24 @@ def get_subgraphs_as_molecules(
     )
 
     return mol, return_subgraphs, idx
+
+
+def get_floating_solvent_molecules(mof) -> NonSbuMoleculeCollection:
+    """Create a collection of NonSbuMolecules
+    from a MOF
+
+    Args:
+        mof (MOF): instance of MOF
+
+    Returns:
+        NonSbuMoleculeCollection: collection of NonSbuMolecules
+    """
+    _, _, idx = get_subgraphs_as_molecules(mof.structure_graph, return_unique=False)
+    molecules = []
+
+    for id in idx:
+        molecules.append(
+            NonSbuMolecule.from_structure_graph_and_indices(mof.structure_graph, id)
+        )
+
+    return NonSbuMoleculeCollection(molecules)
