@@ -4,10 +4,11 @@ import os
 import pickle
 from collections import defaultdict
 from shutil import which
+from typing import Collection
 
 import numpy as np
 from openbabel import pybel as pb
-from pymatgen import Molecule
+from pymatgen import Molecule, Structure
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 from pymatgen.io.babel import BabelMolAdaptor
 from pymatgen.util.coord import pbc_shortest_vectors
@@ -232,3 +233,15 @@ def get_edge_dict(structure_graph: StructureGraph) -> dict:
         label = get_label(u, v)
 
     return dict(types)
+
+
+def visualize_part(mof, indices: Collection):
+    import nglview
+
+    sites = []
+    for index in indices:
+        sites.append(mof.structure[index])
+
+    s = Structure.from_sites(sites, to_unit_cell=True)
+
+    return nglview.show_pymatgen(s)

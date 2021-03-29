@@ -36,7 +36,7 @@ def _has_path_to_any_other_metal(mof, index: int, this_metal_index: int) -> bool
     """
     metal_indices = deepcopy(mof.metal_indices)
     metal_indices.remove(this_metal_index)
-    g = deepcopy(mof._undirected_graph)
+    g = deepcopy(mof.nx_graph)
     g.remove_node(this_metal_index)
     for metal_index in metal_indices:
         if nx.has_path(g, index, metal_index):
@@ -44,7 +44,9 @@ def _has_path_to_any_other_metal(mof, index: int, this_metal_index: int) -> bool
     return False
 
 
-def recursive_dfs_until_terminal(mof, start: int, path: List[int] = []) -> List[int]:
+def recursive_dfs_until_terminal(
+    mof, start: int, path: List[int] = [], skip_list: List[int] = []
+) -> List[int]:
     """From a given starting point perform depth-first search until leaf nodes are reached
 
     Args:
@@ -55,16 +57,31 @@ def recursive_dfs_until_terminal(mof, start: int, path: List[int] = []) -> List[
     Returns:
         List[int]: Path between start and the leaf node
     """
-    if start not in path:
+    if (start not in path) and (start not in skip_list):
         path.append(start)
-
         if mof._is_terminal(start):
             return path
 
         for neighbour in mof.get_neighbor_indices(start):
-            path = recursive_dfs_until_terminal(mof, neighbour, path)
+            path = recursive_dfs_until_terminal(mof, neighbour, path, skip_list)
 
     return path
+
+
+def complete_graph(
+    mof, paths: List[List[int]], branching_nodes: List[List[int]]
+) -> List[List[int]]:
+    completed_edges = []
+    visited = set()
+    branching_nodes = sum(branching_nodes, [])
+    for path in paths:
+        subpath = []
+        for vertex in path:
+            if vertex not in visited:
+                p = recursive_dfs_until_terminal(mof, vertex, [], branching_nodes)
+                subpath.extend(p)
+        completed_edges.append(subpath + path)
+    return completed_edges
 
 
 def recursive_dfs_until_branch(
@@ -214,7 +231,10 @@ def find_node_clusters(mof) -> NODELOCATION_RESULT:
         paths.append(p)
         branch_sites.append(b)
 
-    # Todo: maybe filter there the paths to only consider those that end at a valid branch point
+    # The complete_graph will add the "capping sites" like bridging OH
+    # or capping formate
+    paths = complete_graph(mof, paths, branch_sites)
+
     # we find the connected components in those paths
     g = _to_graph(paths)
     nodes = list(nx.connected_components(g))
@@ -227,9 +247,7 @@ def find_node_clusters(mof) -> NODELOCATION_RESULT:
     for metal, branch_sites_for_metal in zip(mof.metal_indices, branch_sites):
         for branch_site in branch_sites_for_metal:
             connecting_paths_.update(
-                sum(
-                    nx.all_shortest_paths(mof._undirected_graph, metal, branch_site), []
-                )
+                sum(nx.all_shortest_paths(mof.nx_graph, metal, branch_site), [])
             )
 
     # from the connecting paths we remove the metal indices and the branching indices

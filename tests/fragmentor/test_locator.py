@@ -13,6 +13,9 @@ def test_find_cu_i_ii_btc_clusters(get_cuiiibtc_mof):
     """Make sure that we do find the two correct node types in Cu(I/II)-BTC"""
     mof = get_cuiiibtc_mof
     node_location_result = find_node_clusters(mof)
+    for node in node_location_result.nodes:
+        # Every node has four branching indices from the carboxy
+        assert len(node & node_location_result.branching_indices) == 4
     assert len(node_location_result) == 3
     assert len(node_location_result.nodes) == 6  # four paddlewheels and two macrocylus
     nodes_sizes = [len(node) for node in node_location_result.nodes]
@@ -39,7 +42,7 @@ def test_find_hypothetical_mof_clusters(get_hypothetical_mof):
     assert len(node_location_result.nodes) == 16
     node_lengths = [len(node) for node in node_location_result.nodes]
     assert len(set(node_lengths)) == 1
-    assert node_lengths[0] == 24
+    assert node_lengths[0] == 26
 
 
 def test_find_p_linker_floating_mof_clusters(get_p_linker_with_floating):
@@ -207,9 +210,13 @@ def test_find_node_cluster_acetate_zr_mof(get_acetate_zr_mof):
     node_location_result = find_node_clusters(mof)
     assert len(node_location_result) == 3
     assert len(node_location_result.nodes) == 1
+    # there are only three carboxy that actually come from a linker in Zr6 part
+    assert len(node_location_result.branching_indices) == 6
     node_lengths = [len(node) for node in node_location_result.nodes]
     assert len(set(node_lengths)) == 1
-    assert node_lengths[0] == 204  # Zr12O8(OH)8(CH3COO)24 according to paper
+    assert (
+        node_lengths[0] == 180
+    )  # [Zr12O8(OH)8(CH3COO)18(tpp)2]·4CH3COOH according to paper
 
 
 def test_find_all_bound_solvent_molecules_acetate_zr_mof(get_acetate_zr_mof):

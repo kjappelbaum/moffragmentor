@@ -21,3 +21,8 @@ def test_is_terminal(get_cuiiibtc_mof):
     assert mof._is_terminal(32)
     assert not mof._is_terminal(129)
     assert not mof._is_terminal(176)
+
+
+def test__leads_to_terminal(get_cuiiibtc_mof):
+    mof = get_cuiiibtc_mof
+    assert mof._leads_to_terminal((15, 183))

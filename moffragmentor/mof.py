@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+from collections import defaultdict
 from copy import deepcopy
 from typing import List, Tuple, Union
 
@@ -35,6 +36,7 @@ class MOF:
         self._node_indices = None
         self._linker_indices = None
         self.nodes = []
+        self._bridges = None
         self.linker = []
         self._topology = None
         self._connecting_node_indices = None
@@ -44,6 +46,7 @@ class MOF:
         self._solvent_indices = None
         self._branching_indices = None
         self._clear_properties()
+        self._nx_graph = None
 
     def _clear_properties(self):
         for site in range(len(self.structure)):
@@ -57,6 +60,8 @@ class MOF:
         self._topology = None
         self._connecting_node_indices = None
         self._solvent_indices = None
+        self._bridges = None
+        self._nx_graph = None
         self._clear_properties()
 
     def dump(self, path):
@@ -92,21 +97,22 @@ class MOF:
         sg = StructureGraph.with_local_env_strategy(s, VestaCutoffDictNN)
         return cls(s, sg)
 
-    def _is_branch_point(self, index, allow_metal: bool = False):
+    def _is_branch_point(self, index: int, allow_metal: bool = False) -> bool:
         """The branch point definition is key for splitting MOFs
         into linker and nodes. Branch points are here defined as points
         that have at least three connections that do not lead to a tree or
         leaf node.
 
         Args:
-            index ([type]): [description]
-            allow_metal (bool, optional): [description]. Defaults to False.
+            index (int): index of site that is to be probed
+            allow_metal (bool, optional): If True it does not perform this check for metals (and just return False). Defaults to False.
 
         Returns:
-            [type]: [description]
+            bool: True if this is a branching index
         """
         valid_connections = 0
         connected_sites = self.get_neighbor_indices(index)
+        non_metal_connections = 0
         if len(connected_sites) < 3:
             return False
 
@@ -114,19 +120,50 @@ class MOF:
             if index in self.metal_indices:
                 return False
 
-        # ToDo: generalize to consider if this is yields to a terminal thing branch or not
         for connected_site in connected_sites:
-            if len(self.get_neighbor_indices(connected_site)) > 1:
+            if (not self._leads_to_terminal((index, connected_site))) and (
+                not self._is_terminal(connected_site)
+            ):
                 valid_connections += 1
+                if not connected_site in self.metal_indices:
+                    non_metal_connections += 1
 
-        return valid_connections >= 3
+        return (valid_connections >= 3) and (non_metal_connections >= 2)
 
     def _is_terminal(self, index):
         return len(self.get_neighbor_indices(index)) == 1
 
+    def _get_nx_graph(self):
+        if self._nx_graph is None:
+            self._nx_graph = nx.Graph(self.structure_graph.graph.to_undirected())
+        return self._nx_graph
+
+    def _leads_to_terminal(self, edge):
+        sorted_edge = sorted(edge)
+        try:
+            r = self.bridges[sorted_edge[0]]
+            return sorted_edge[1] in r
+        except KeyError:
+            return False
+
     @property
-    def _undirected_graph(self):
-        return self.structure_graph.graph.to_undirected()
+    def nx_graph(self):
+        return self._get_nx_graph()
+
+    def _generate_bridges(self):
+        if self._bridges is None:
+            bridges = list(nx.bridges(self.nx_graph))
+
+            bridges_dict = defaultdict(list)
+            for key, value in bridges:
+                bridges_dict[key].append(value)
+
+            self._bridges = dict(bridges_dict)
+        return self._bridges
+
+    @property
+    def bridges(self):
+        return self._generate_bridges()
 
     @property
     def adjaceny_matrix(self):
