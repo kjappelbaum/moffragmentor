@@ -12,24 +12,24 @@ For the fragmentation of a MOF structure we rely on a structure graph. In moffra
 
 For the fragmentation, there are a few definitions we have to make:
 
-.. topic:: Bridge
+.. topic:: **Bridge**
 
     In a graph, a `bridge <https://en.wikipedia.org/wiki/Bridge_(graph_theory)>`_ is an edge, if removed, would increase the number of connected components.
 
-.. topic:: Bound solvent
+.. topic:: **Bound solvent**
 
-    A bound solvent molecule is bound via a bridge egde to one metal. Accroding to this definition, M-OCH:sub:`3`, M-OH:sub:`2`, etc. are all bound solvents, whereas a bridging formate is not.
+    A bound solvent molecule is bound via a bridge egde to one metal. Accroding to this definition, M-OCH\ :sub:`3`, M-OH\ :sub:`2`, etc. are all bound solvents, whereas a bridging formate is not.
 
-.. topic:: Floating solvent
+.. topic:: **Floating solvent**
 
     Floating solvent is an isolated connected component in the structure graph that does not lie across periodic boundaries in a supercell.
 
-.. topic:: Branching site
+.. topic:: **Branching site**
 
     A branching site is a site with at least three non-bridge edges. A branching site is connected to at least two non-metal elements.
     A branching site that can only be reached from a metal by crossing another branching site is not a valid branching site.
 
-.. topic:: Capping site
+.. topic:: **Capping site**
 
     A capping site is part of a cycle with one of more metals that does not contain a branching site.
 
@@ -48,15 +48,15 @@ The fragmentation algorithm goes through the following steps:
 SBU dimensionality
 --------------------
 
-For many applications, the dimensionality of the SBUs can be of interest [Rosi2005]. For example, one can hypothesize that 1D nodes can have favorable charge conductance properties. Also, such rod SBUs may prevent interpenetration [Rosi2005].
+For many applications, the dimensionality of the SBUs can be of interest [Rosi2005]_. For example, one can hypothesize that 1D nodes can have favorable charge conductance properties. Also, such rod SBUs may prevent interpenetration [Rosi2005]_.
 
-To compute the dimensionality of the building blocks we use the algorithm proposed by Larsen et al. [Larsen2019].
+To compute the dimensionality of the building blocks we use the algorithm proposed by Larsen et al. [Larsen2019]_.
 
 
 SBU descriptors
 ------------------
 
-One key intuition MOF chemists have is that the shape of the building blocks dictates which MOF will form. This is discussed in great detail in [Kalmutzki2018]. Also, chemists know that it can be difficult to form MOFs with highly flexible linkers [Lin2014]. In other contexts, it already has been shown that flexibility is associated with a molecules tendency to form crystals [Wicker2015].
+One key intuition MOF chemists have is that the shape of the building blocks dictates which MOF will form. This is discussed in great detail in [Kalmutzki2018]_. Also, chemists know that it can be difficult to form MOFs with highly flexible linkers [Lin2014]_. In other contexts, it already has been shown that flexibility is associated with a molecules tendency to form crystals [Wicker2015]_.
 
 
 Chemical descriptors
@@ -68,7 +68,7 @@ From general chemistry we know that the hardness/softness of the connecting atom
 Geometrical descriptors
 .........................
 
-- Based on the branching index coordinates, we calculated local structure order parameters [Zimmermann2020]
+- Based on the branching index coordinates, we calculated local structure order parameters [Zimmermann2020]_
 
 
 
@@ -78,9 +78,19 @@ Flexibility descriptors
 To capture the flexibility of the building blocks we compute
 
 - the `rotable bond count <http://rdkit.org/docs/source/rdkit.Chem.rdMolDescriptors.html#rdkit.Chem.rdMolDescriptors.CalcNumRotatableBonds>`_
-- the :code:`nConf20` descriptor, proposed in [Wicker2016] which samples accessible conformer space.
-- the Kier flexibility index [Kier1989]
+- the :code:`nConf20` descriptor, proposed in [Wicker2016]_ which samples accessible conformer space.
+- the Kier flexibility index [Kier1989]_
 
+
+Net Embedding
+----------------
+
+A key concept in reticular chemistry is the one of the net. Computing the topology of the net embedding is not entirely trivial as there is no specific rule of of clusters of atoms should be condensed to a vertex [Bureekaew2015]_ (for example, `one might place vertices on subfragments of large linkers <https://www.mofplus.org/content/show/generalnetinfo>`_.
+In moffragmentor, we use the centers of node and linker clusters as vertices. Using the `Systre code <http://gavrog.org/Systre-Help.html>`_, we can then determine the `RCSR <http://rcsr.anu.edu.au/rcsr_nets>`_ code of this net.
+
+
+References
+-------------
 
 .. [Rosi2005] Rosi, N. L. et al. Rod Packings and Metal−Organic Frameworks Constructed from Rod-Shaped Secondary Building Units. J. Am. Chem. Soc. 127, 1504–1518 (2005).
 
@@ -97,3 +107,5 @@ To capture the flexibility of the building blocks we compute
 .. [Kier1989] Kier, L. B. An Index of Molecular Flexibility from Kappa Shape Attributes. Quant. Struct.-Act. Relat. 8, 221–224 (1989).
 
 .. [Zimmermann2020] Zimmermann, N. E. R. & Jain, A. Local structure order parameters and site fingerprints for quantification of coordination environment and crystal structure similarity. RSC Adv. 10, 6063–6081 (2020).
+
+.. [Bureekaew2015] Bureekaew, S., Balwani, V., Amirjalayer, S. & Schmid, R. Isoreticular isomerism in 4,4-connected paddle-wheel metal–organic frameworks: structural prediction by the reverse topological approach. CrystEngComm 17, 344–352 (2015).

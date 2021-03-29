@@ -6,10 +6,16 @@
 Welcome to moffragmentor's documentation!
 =========================================
 
+The moffragmentor package gives utilities to interact with reticular building blocks in an object-oriented way.
+
+Contents
+---------
+
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
 
+   getting_started
+   background
 
 
 Indices and tables
