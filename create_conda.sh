@@ -10,5 +10,6 @@ conda install nglview==$nglviewversion -c conda-forge -y
 conda install jupyterlab=$labversion  -y -c conda-forge
 conda install openbabel rdkit ase click
 pip install "pymatgen>=2021.1,<2022"
+pip install git+https://github.com/skearnes/rdkit-utils.git
 jupyter-labextension install @jupyter-widgets/jupyterlab-manager
 jupyter-labextension install nglview-js-widgets@$nglviewversion

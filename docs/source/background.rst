@@ -68,9 +68,7 @@ From general chemistry we know that the hardness/softness of the connecting atom
 Geometrical descriptors
 .........................
 
-- Based on the branching index coordinates, we calculated local structure order parameters [Zimmermann2020]_
-
-
+- Based on the branching index coordinates, we calculated local structure order parameters [Zimmermann2020]_. One can think of those structure order parameters as similarity measures to "ideal" coordination polyhedra. That is, the octahedral order parameter would measure the distance of the actual coordination polyhedron to an "ideal" octahedron.
 
 Flexibility descriptors
 .........................
@@ -81,12 +79,13 @@ To capture the flexibility of the building blocks we compute
 - the :code:`nConf20` descriptor, proposed in [Wicker2016]_ which samples accessible conformer space.
 - the Kier flexibility index [Kier1989]_
 
+All those descriptors operator on RDKit molecules (with enumerated conformers) and hence are only reliable for the organic linkers.
 
 Net Embedding
 ----------------
 
 A key concept in reticular chemistry is the one of the net. Computing the topology of the net embedding is not entirely trivial as there is no specific rule of of clusters of atoms should be condensed to a vertex [Bureekaew2015]_ (for example, `one might place vertices on subfragments of large linkers <https://www.mofplus.org/content/show/generalnetinfo>`_.
-In moffragmentor, we use the centers of node and linker clusters as vertices. Using the `Systre code <http://gavrog.org/Systre-Help.html>`_, we can then determine the `RCSR <http://rcsr.anu.edu.au/rcsr_nets>`_ code of this net.
+In moffragmentor, we use the centers of node and linker clusters as vertices. Using the `Systre code <http://gavrog.org/Systre-Help.html>`_ [DelagoFriedrichs2003]_, we can then determine the `RCSR <http://rcsr.anu.edu.au/rcsr_nets>`_ code of this net.
 
 
 References
@@ -109,3 +108,5 @@ References
 .. [Zimmermann2020] Zimmermann, N. E. R. & Jain, A. Local structure order parameters and site fingerprints for quantification of coordination environment and crystal structure similarity. RSC Adv. 10, 6063–6081 (2020).
 
 .. [Bureekaew2015] Bureekaew, S., Balwani, V., Amirjalayer, S. & Schmid, R. Isoreticular isomerism in 4,4-connected paddle-wheel metal–organic frameworks: structural prediction by the reverse topological approach. CrystEngComm 17, 344–352 (2015).
+
+.. [DelagoFriedrichs2003] Delgado-Friedrichs, O. & O’Keeffe, M. Identification of and symmetry computation for crystal nets. Acta Cryst Sect A 59, 351–360 (2003).

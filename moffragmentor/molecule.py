@@ -73,6 +73,8 @@ class NonSbuMoleculeCollection:
     def __init__(self, non_sbu_molecules=List[NonSbuMolecule]):
         self.molecules = non_sbu_molecules
         self._composition = None
+        # currently also contains indices from the supercell expansion
+        self.indices = sum([molecule.indices for molecule in self.molecules], [])
 
     def __len__(self):
         return len(self.molecules)

@@ -20,7 +20,10 @@ from pymatgen.analysis.local_env import (
 
 from .fragmentor.filter import is_valid_linker, is_valid_node
 from .fragmentor.locator import find_node_clusters
-from .fragmentor.splitter import get_subgraphs_as_molecules
+from .fragmentor.splitter import (
+    get_floating_solvent_molecules,
+    get_subgraphs_as_molecules,
+)
 from .sbu import Linker, Node
 from .utils import pickle_dump, write_cif
 
@@ -41,12 +44,16 @@ class MOF:
         self._topology = None
         self._connecting_node_indices = None
         self.meta = {}
-        self._filter_solvent = True
         self.fragmentation_method = "all_node"
         self._solvent_indices = None
         self._branching_indices = None
         self._clear_properties()
         self._nx_graph = None
+        nx.set_node_attributes(
+            self.structure_graph.graph,
+            name="idx",
+            values=dict(zip(range(len(structure_graph)), range(len(structure_graph)))),
+        )
 
     def _clear_properties(self):
         for site in range(len(self.structure)):
@@ -86,10 +93,6 @@ class MOF:
     @property
     def frac_coords(self):
         return self.structure.frac_coords
-
-    def set_use_solvent_filter(self, use_solvent_filter):
-        assert isinstance(use_solvent_filter, bool)
-        self._filter_solvent = use_solvent_filter
 
     @classmethod
     def from_cif(cls, cif: Union[str, os.PathLike]):
@@ -216,37 +219,9 @@ class MOF:
             self._linker_indices -= set(sum(self._solvent_indices, []))
         return self._linker_indices
 
-    def _label_site(self, site: int, label: str = "branching", key: bool = True):
-        """adds property site to a structure"""
-        self.structure[site].properties[label] = key
-
-    # def _label_structure(self):
-    #     """Label node and linker atoms that are connected"""
-    #     for branching_atom in self._connecting_node_indices:
-    #         neighbor_indices = self.get_neighbor_indices(branching_atom)
-    #         for neighbor_idx in neighbor_indices:
-    #             if neighbor_idx in self.linker_indices:
-    #                 self._label_site(branching_atom)
-    #                 self._label_site(neighbor_idx)
-
-    def _label_branching_sites(self):
-        for branching_index in self._branching_indices:
-            self._label_site(branching_index, "branching", True)
-
-    def _label_binding_sites(self):
-        for binding_index in self._binding_indices:
-            self._label_site(binding_index, "binding", True)
-
-    def _label_structure(self):
-        if self._binding_indices is None or self._branching_indices is None:
-            self._get_node_indices()
-
-        self._label_branching_sites()
-        self._label_binding_sites()
-
     def _fragment(self) -> Tuple[List[Linker], List[Node]]:
         node_indices = self.node_indices
-        self._label_structure()
+
         sg1 = deepcopy(self.structure_graph)
         linkers = []
         nodes = []
@@ -290,11 +265,7 @@ class MOF:
         self.linkers = linkers
         return linkers, nodes
 
-    def fragment(
-        self, fragmentation_method="all_node", filter_out_solvent: bool = True
-    ):
-        self.fragmentation_method = fragmentation_method
-        self.set_use_solvent_filter(filter_out_solvent)
+    def fragment(self):
 
         return self._fragment()
 
@@ -306,15 +277,6 @@ class MOF:
             f.write(self._get_cif_text())
 
     def _get_node_indices(self):
-        # if self.fragmentation_method == "all_node":
-        #     result = fragment_all_node(self, self._filter_solvent)
-        # elif self.fragmentation_method == "oxo":
-        #     result = fragment_oxo_node(self, self._filter_solvent)
-
-        # self._node_indices = result["node_indices"]
-        # self._solvent_connections = result["solvent_connections"]
-        # self._solvent_indices = result["solvent_indices"]
-        # self._connecting_node_indices = result["connecting_node_indices"]
         nodes, bs, connecting_paths = find_node_clusters(self)
         self._node_indices = nodes
         self._branching_indices = bs

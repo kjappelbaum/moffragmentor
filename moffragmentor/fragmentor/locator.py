@@ -243,12 +243,16 @@ def find_node_clusters(mof) -> NODELOCATION_RESULT:
     nodes = filter_nodes(nodes, mof.structure_graph, mof.metal_indices)
 
     bs = set(sum(branch_sites, []))
+
     # we store the shortest paths between nodes and branching indices
+    # ToDo: we can extract this from the DFS paths above
     for metal, branch_sites_for_metal in zip(mof.metal_indices, branch_sites):
         for branch_site in branch_sites_for_metal:
-            connecting_paths_.update(
-                sum(nx.all_shortest_paths(mof.nx_graph, metal, branch_site), [])
-            )
+            paths = list(nx.all_shortest_paths(mof.nx_graph, metal, branch_site))
+            for p in paths:
+                metal_in_path = [i for i in p if i in mof.metal_indices]
+                if len(metal_in_path) == 1:
+                    connecting_paths_.update(p)
 
     # from the connecting paths we remove the metal indices and the branching indices
     connecting_paths_ -= set(mof.metal_indices)

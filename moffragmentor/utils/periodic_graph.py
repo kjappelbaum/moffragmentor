@@ -42,6 +42,24 @@ def _get_supergraph_index_map(number_atoms: int) -> Dict[int, List[int]]:
     return dict(mapping)
 
 
+def _get_reverse_supergraph_index_map(number_atoms: int) -> Dict[int, List[int]]:
+    """create a map of supercell image indices to original graph
+
+    Args:
+        number_atoms (int): number of atoms in the structure
+
+    Returns:
+        Dict[int, List[int]]: Mapping of supercell image indices to original graph
+    """
+    mapping = dict()
+    # Looping over all possible replicas
+    for i in range(27):
+        # Adding the offset
+        for n in range(number_atoms):
+            mapping[n + i * number_atoms] = n
+    return dict(mapping)
+
+
 def _get_leaf_nodes(graph: nx.Graph) -> List[int]:
     return [node for node in graph.nodes() if graph.degree(node) == 1]
 

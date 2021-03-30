@@ -8,15 +8,14 @@ __all__ = [
     "NodeCollection",
 ]
 
-import datetime
 from copy import deepcopy
-from typing import Dict, List
+from typing import Collection, Dict, List, Set
 
 import nglview
 import numpy as np
 from openbabel import pybel as pb
 from pymatgen import Molecule, Structure
-from pymatgen.analysis.graphs import MoleculeGraph
+from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 from pymatgen.io.babel import BabelMolAdaptor
 from rdkit import Chem
 from rdkit.Chem import AllChem
@@ -28,7 +27,18 @@ from .descriptors import (
     get_lsop,
     rdkit_descriptors,
 )
+from .fragmentor.splitter import get_subgraphs_as_molecules
 from .utils import pickle_dump, unwrap, write_cif
+
+
+def _not_relevant_structure_indices(
+    structure: Structure, indices: Collection
+) -> List[int]:
+    not_relevant = []
+    for i in range(len(structure)):
+        if i not in indices:
+            not_relevant.append(i)
+    return not_relevant
 
 
 def get_max_sep(coordinates):
@@ -120,16 +130,6 @@ class SBU:
         else:
             return self.get_openbabel_mol()
 
-    @classmethod
-    def from_labled_molecule(cls, mol, mg, mapping_from_original_indices, meta={}):
-        branching_indices = get_indices_with_property(mol)
-        binding_indices = get_indices_with_property(mol, "binding")
-        sbu = cls(
-            mol, mg, branching_indices, binding_indices, mapping_from_original_indices
-        )
-        sbu.meta = meta
-        return sbu
-
     def get_openbabel_mol(self):
         a = BabelMolAdaptor(self.molecule)
         pm = pb.Molecule(a.openbabel_mol)
@@ -204,7 +204,54 @@ class SBU:
 
 
 class Node(SBU):
-    pass
+    @classmethod
+    def from_mof_and_indices(
+        cls,
+        mof,
+        node_indices: Set[int],
+        branching_indices: Set[int],
+        binding_indices: Set[int],
+    ):
+        graph_ = deepcopy(mof.structure_graph)
+        to_delete = _not_relevant_structure_indices(mof.structure, node_indices)
+        graph_.remove_nodes(to_delete)
+        mol, graph, idx = get_subgraphs_as_molecules(graph_)
+        index_mapping = dict(zip(idx[0], range(len(indices))))
+        node = cls(mol[0], graph[0], branching_indices, binding_indices, index_mapping)
+        return node
+
+
+class Linker(SBU):
+    @classmethod
+    def from_mof_and_indices(
+        cls,
+        mof,
+        node_indices: Set[int],
+        branching_indices: Set[int],
+        binding_indices: Set[int],
+    ):
+        graph_ = deepcopy(mof.structure_graph)
+        to_delete = node_indices
+        graph_.remove_nodes(to_delete)
+        mol, graph, idx = get_subgraphs_as_molecules(graph_)
+        index_mapping = dict(zip(idx[0], range(len(indices))))
+        node = cls(mol[0], graph[0], branching_indices, binding_indices, index_mapping)
+        return node
+
+    @classmethod
+    def from_carboxy_mol(cls, mol):
+        carboxy = Chem.MolFromSmarts("[O]C(=O)")
+        matches = mol.GetSubstructMatches(carboxy)
+        connection_sites = []
+        for tpl in matches:
+            connection_sites.append(tpl[0])
+            connection_sites.append(tpl[2])
+
+        edges = _get_edge_dict_from_rdkit_mol(mol)
+        pmg_mol = _make_mol_from_rdkit_mol(mol)
+        mg = MoleculeGraph.with_edges(pmg_mol, edges)
+
+        return cls(pmg_mol, mg, connection_sites)
 
 
 class SBUCollection:
@@ -213,6 +260,7 @@ class SBUCollection:
         self._sbu_types = None
         self._composition = None
         self._unique_sbus = None
+        # self.indices = sum([sbu.indices for sbu in self.sbus], [])
 
     def __len__(self):
         return len(self.sbus)
@@ -258,6 +306,7 @@ class LinkerCollection(SBUCollection):
     def composition(self):
         if self._composition is None:
             self._composition = ["".join(["L", i]) for i in self.sbu_types]
+        return self._composition
 
 
 class NodeCollection(SBUCollection):
@@ -265,6 +314,7 @@ class NodeCollection(SBUCollection):
     def composition(self):
         if self._composition is None:
             self._composition = ["".join(["N", i]) for i in self.sbu_types]
+        return self._composition
 
 
 def _get_edge_dict_from_rdkit_mol(mol):
@@ -282,23 +332,6 @@ def _make_mol_from_rdkit_mol(mol):
     positions = conf[0].GetPositions()
     symbols = [atom.GetSymbol() for atom in mol.GetAtoms()]
     return Molecule(symbols, positions)
-
-
-class Linker(SBU):
-    @classmethod
-    def from_carboxy_mol(cls, mol):
-        carboxy = Chem.MolFromSmarts("[O]C(=O)")
-        matches = mol.GetSubstructMatches(carboxy)
-        connection_sites = []
-        for tpl in matches:
-            connection_sites.append(tpl[0])
-            connection_sites.append(tpl[2])
-
-        edges = _get_edge_dict_from_rdkit_mol(mol)
-        pmg_mol = _make_mol_from_rdkit_mol(mol)
-        mg = MoleculeGraph.with_edges(pmg_mol, edges)
-
-        return cls(pmg_mol, mg, connection_sites)
 
 
 def get_indices_with_property(mol, property: str = "branching"):

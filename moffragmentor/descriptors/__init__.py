@@ -60,7 +60,7 @@ def rdkit_descriptors(rdkit_mol, three_dimensional: bool = True):
     }
 
     if three_dimensional:
-        engine = conformers.ConformerGenerator(max_conformers=10)
+        engine = conformers.ConformerGenerator(max_conformers=20)
         mol = engine.generate_conformers(rdkit_mol)
         descriptors["spherocity"] = rdMolDescriptors.CalcSpherocityIndex(mol)
         descriptors["eccentricity"] = rdMolDescriptors.CalcEccentricity(mol)
