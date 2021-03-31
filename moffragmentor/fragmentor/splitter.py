@@ -35,9 +35,8 @@ def _select_parts_in_cell(
     valid_indices = defaultdict(list)
 
     for i, ind in enumerate(indices_here):
-        if any([i < molecule_size for i in ind]):
-            sorted_idx = sorted(indices[i])
-            valid_indices[str(sorted_idx)].append(i)
+        sorted_idx = sorted(indices[i])
+        valid_indices[str(sorted_idx)].append(i)
 
     molecules_ = []
     selected_indices = []
@@ -133,13 +132,15 @@ def get_subgraphs_as_molecules(
         for subgraph in molecule_subgraphs:
             coords = [supercell_sg.structure[n].coords for n in subgraph.nodes()]
             species = [supercell_sg.structure[n].specie for n in subgraph.nodes()]
-            binding = [
-                supercell_sg.structure[n].properties["binding"]
-                for n in subgraph.nodes()
-            ]
+            # binding = [
+            #     supercell_sg.structure[n].properties["binding"]
+            #     for n in subgraph.nodes()
+            # ]
             idx = [subgraph.nodes[n]["idx"] for n in subgraph.nodes()]
             idx_here = [n for n in subgraph.nodes()]
-            molecule = Molecule(species, coords, site_properties={"binding": binding})
+            molecule = Molecule(
+                species, coords
+            )  #  site_properties={"binding": binding}
             mol_centers.append(
                 np.mean(supercell_sg.structure.cart_coords[idx_here], axis=0)
             )
@@ -198,7 +199,7 @@ def get_floating_solvent_molecules(mof) -> NonSbuMoleculeCollection:
     Returns:
         NonSbuMoleculeCollection: collection of NonSbuMolecules
     """
-    mols, graphs, idx = get_subgraphs_as_molecules(
+    mols, graphs, idx, _ = get_subgraphs_as_molecules(
         mof.structure_graph, return_unique=False
     )
     molecules = []

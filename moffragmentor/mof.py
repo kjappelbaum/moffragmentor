@@ -18,12 +18,7 @@ from pymatgen.analysis.local_env import (
     VoronoiNN,
 )
 
-from .fragmentor.filter import is_valid_linker, is_valid_node
-from .fragmentor.locator import find_node_clusters
-from .fragmentor.splitter import (
-    get_floating_solvent_molecules,
-    get_subgraphs_as_molecules,
-)
+from .fragmentor import run_fragmentation
 from .sbu import Linker, Node
 from .utils import pickle_dump, write_cif
 
@@ -44,10 +39,8 @@ class MOF:
         self._topology = None
         self._connecting_node_indices = None
         self.meta = {}
-        self.fragmentation_method = "all_node"
         self._solvent_indices = None
         self._branching_indices = None
-        self._clear_properties()
         self._nx_graph = None
 
         # ToDo: Maybe add the binding/branching attributes back to the graph
@@ -56,10 +49,6 @@ class MOF:
             name="idx",
             values=dict(zip(range(len(structure_graph)), range(len(structure_graph)))),
         )
-
-    def _clear_properties(self):
-        for site in range(len(self.structure)):
-            self.structure[site].properties = {"binding": False, "branching": False}
 
     def _reset(self):
         self._node_indices = None
@@ -71,7 +60,6 @@ class MOF:
         self._solvent_indices = None
         self._bridges = None
         self._nx_graph = None
-        self._clear_properties()
 
     def dump(self, path):
         """Dump this object as pickle file"""
@@ -212,60 +200,9 @@ class MOF:
     def show_structure(self):
         return nglview.show_pymatgen(self.structure)
 
-    @property
-    def linker_indices(self) -> set:
-        if self._linker_indices is None:
-            node_indices = self.node_indices
-            self._linker_indices = set(range(len(self.structure)))
-            self._linker_indices -= node_indices
-            self._linker_indices -= set(sum(self._solvent_indices, []))
-        return self._linker_indices
-
-    def _fragment(self) -> Tuple[List[Linker], List[Node]]:
-        node_indices = self.node_indices
-
-        sg1 = deepcopy(self.structure_graph)
-        linkers = []
-        nodes = []
-        node_structure = Structure.from_sites([self.structure[i] for i in node_indices])
-        sg0 = StructureGraph.with_local_env_strategy(
-            node_structure, MinimumDistanceNN(0.5)
-        )
-
-        node_molecules, node_graphs, node_indices = get_subgraphs_as_molecules(sg0)
-        for node_molecule, node_graph, node_idx in zip(
-            node_molecules, node_graphs, node_indices
-        ):
-            valid_node, to_add = is_valid_node(self, node_idx)
-            if valid_node:
-                nodes.append(
-                    Node.from_labled_molecule(node_molecule, node_graph, self.meta)
-                )
-            if to_add:
-                self._linker_indices.update(to_add)
-                for idx in to_add:
-                    self._node_indices.remove(idx)
-
-        sg1.remove_nodes(list(self.node_indices))
-        linker_molecules, linker_graphs, linker_indices = get_subgraphs_as_molecules(
-            sg1
-        )
-        for linker_molecule, linker_graph, linker_idx in zip(
-            linker_molecules, linker_graphs, linker_indices
-        ):
-            if is_valid_linker(linker_molecule):
-                linkers.append(
-                    Linker.from_labled_molecule(
-                        linker_molecule, linker_graph, self.meta
-                    )
-                )
-            else:
-                # Something went wrong, we should raise a warning
-                ...
-
-        self.nodes = nodes
-        self.linkers = linkers
-        return linkers, nodes
+    def _fragment(self):
+        fragmentation_result = run_fragmentation(self)
+        return fragmentation_result
 
     def fragment(self):
 
@@ -277,9 +214,3 @@ class MOF:
     def write_cif(self, filename):
         with open(filename, "w") as f:
             f.write(self._get_cif_text())
-
-    def _get_node_indices(self):
-        nodes, bs, connecting_paths = find_node_clusters(self)
-        self._node_indices = nodes
-        self._branching_indices = bs
-        self._binding_indices = connecting_paths

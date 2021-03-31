@@ -92,6 +92,11 @@ class NetEmbedding:
         node_symbols = ["Si" for _ in self.node_collection]
         return Structure(self.lattice, linker_symbols + node_symbols, self.frac_coords)
 
+    def show_dummy_structure(self):
+        import nglview
+
+        return nglview.show_pymatgen(self._get_dummy_structure())
+
     def plot_net(self):
         import matplotlib.pyplot as plt
 

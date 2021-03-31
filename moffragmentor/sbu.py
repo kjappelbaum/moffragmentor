@@ -8,6 +8,7 @@ __all__ = [
     "NodeCollection",
 ]
 
+from collections import Counter
 from copy import deepcopy
 from typing import Collection, Dict, List, Set
 
@@ -82,6 +83,10 @@ class SBU:
 
     def dump(self, path):
         pickle_dump(self, path)
+
+    @property
+    def composition(self):
+        return self.molecule.composition.alphabetical_formula
 
     @property
     def cart_coords(self):
@@ -289,10 +294,24 @@ class SBUCollection:
         self._unique_sbus = unique_strings
         self._sbu_types = unique_mapping
 
+    def _get_composition(self):
+        if self._composition is None:
+            composition = []
+            for mol in self.sbus:
+                composition.append(str(mol.composition))
+            composition_counter = Counter(composition)
+            self._composition = dict(composition_counter)
+
+        return self._composition
+
+    @property
+    def composition(self):
+        return self._get_composition()
+
 
 class LinkerCollection(SBUCollection):
     @property
-    def composition(self):
+    def building_block_composition(self):
         if self._composition is None:
             self._composition = ["".join(["L", i]) for i in self.sbu_types]
         return self._composition
@@ -300,7 +319,7 @@ class LinkerCollection(SBUCollection):
 
 class NodeCollection(SBUCollection):
     @property
-    def composition(self):
+    def building_block_composition(self):
         if self._composition is None:
             self._composition = ["".join(["N", i]) for i in self.sbu_types]
         return self._composition

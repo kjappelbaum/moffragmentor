@@ -2,6 +2,7 @@
 from collections import Counter
 
 from moffragmentor.fragmentor.locator import (
+    _create_linkers_from_node_location_result,
     _get_solvent_molecules_bound_to_node,
     find_node_clusters,
     get_all_bound_solvent_molecules,
@@ -328,3 +329,15 @@ def test_find_all_bound_solvent_molecules_acetate_zr_mof(get_acetate_zr_mof):
     solvent_molecules = get_all_bound_solvent_molecules(mof, node_collection)
     assert isinstance(solvent_molecules, NonSbuMoleculeCollection)
     assert solvent_molecules.composition == {"C2 H3 O2": 8}
+
+
+def test__create_linkers_from_node_location_result(get_hkust_mof):
+    mof = get_hkust_mof
+    unbound_solvent = NonSbuMoleculeCollection([])
+    node_location_result = find_node_clusters(mof)
+    linkers = _create_linkers_from_node_location_result(
+        mof, node_location_result, unbound_solvent
+    )
+    assert len(linkers) == 32
+    linker_lengths = [len(l) for l in linkers]
+    assert len(set(linker_lengths)) == 1

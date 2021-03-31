@@ -269,6 +269,132 @@ SYSTRE_OUT = """Structure #1 - .
 
 Finished structure #1 - ."""
 
+SYSTRE_OUT_2 = """Data file "/Users/kevinmaikjablonka/Downloads/test_systre.cgd".
+
+Structure #1.
+
+   Input structure described as 3-periodic.
+   Given space group is P1.
+   14 nodes and 24 edges in repeat unit as given.
+
+   Structure is not connected.
+   Processing components separately.
+
+   ==========
+   Processing component 1:
+      dimension = 2
+   Input structure described as 2-periodic.
+   Given space group is P1.
+   14 nodes and 24 edges in repeat unit as given.
+
+   Ideal repeat unit smaller than given (12 vs 24 edges).
+   Point group has 8 elements.
+   3 kinds of node.
+
+   Equivalences for non-unique nodes:
+      V3 --> V2
+      V5 --> V1
+      V6 --> V1
+      V7 --> V1
+      V8 --> V1
+      V9 --> V1
+      V10 --> V1
+      V11 --> V4
+      V12 --> V2
+      V13 --> V2
+      V14 --> V1
+
+   Coordination sequences:
+      Node V1:    3 7 8 15 15 24 21 32 27 40
+      Node V2:    4 6 12 12 20 18 28 24 36 30
+      Node V4:    4 4 8 12 20 16 28 28 36 24
+
+   TD10 = 191
+
+   Ideal space group is p4mm.
+   Ideal group or setting differs from given (p4mm vs P1).
+
+   Structure was identified with RCSR symbol:
+       Name:        mtf
+
+
+   Coordinates are for a full conventional cell.
+   Relaxed cell parameters:
+       a = 3.05792, b = 3.05792, gamma = 90.0000
+   Barycentric positions:
+      Node 1:    0.33333 0.33333
+      Node 2:    0.33333 0.66667
+      Node 3:    0.66667 0.33333
+      Node 4:    0.66667 0.66667
+      Node 5:    0.00000 0.50000
+      Node 6:    0.50000 0.00000
+      Node 7:    0.50000 0.50000
+   Edges:
+      0.33333 0.33333  <->  0.50000 0.50000
+      0.50000 0.50000  <->  0.33333 0.33333
+      0.50000 0.50000  <->  0.33333 0.66667
+      0.50000 0.50000  <->  0.66667 0.33333
+      0.50000 0.50000  <->  0.66667 0.66667
+      0.33333 0.66667  <->  0.50000 0.50000
+      0.66667 0.33333  <->  0.50000 0.50000
+      0.66667 0.66667  <->  0.50000 0.50000
+      0.00000 0.50000  <->  0.33333 0.33333
+      0.00000 0.50000  <->  0.33333 0.66667
+      0.00000 0.50000  <->  -0.33333 0.33333
+      0.00000 0.50000  <->  -0.33333 0.66667
+      0.50000 0.00000  <->  0.33333 0.33333
+      0.50000 0.00000  <->  0.33333 -0.33333
+      0.50000 0.00000  <->  0.66667 0.33333
+      0.50000 0.00000  <->  0.66667 -0.33333
+      0.33333 0.33333  <->  0.00000 0.50000
+      0.33333 0.33333  <->  0.50000 0.00000
+      0.33333 0.66667  <->  0.00000 0.50000
+      0.33333 0.66667  <->  0.50000 1.00000
+      0.66667 0.33333  <->  0.50000 0.00000
+      0.66667 0.33333  <->  1.00000 0.50000
+      0.66667 0.66667  <->  0.50000 1.00000
+      0.66667 0.66667  <->  1.00000 0.50000
+   Edge centers:
+      0.41667 0.41667
+      0.41667 0.41667
+      0.41667 0.58333
+      0.58333 0.41667
+      0.58333 0.58333
+      0.41667 0.58333
+      0.58333 0.41667
+      0.58333 0.58333
+      0.16667 0.41667
+      0.16667 0.58333
+      -0.16667 0.41667
+      -0.16667 0.58333
+      0.41667 0.16667
+      0.41667 -0.16667
+      0.58333 0.16667
+      0.58333 -0.16667
+      0.16667 0.41667
+      0.41667 0.16667
+      0.16667 0.58333
+      0.41667 0.83333
+      0.58333 0.16667
+      0.83333 0.41667
+      0.58333 0.83333
+      0.83333 0.58333
+
+   Edge statistics: minimum = 0.72076, maximum = 1.13962, average = 1.00000
+   Angle statistics: minimum = 53.13010, maximum = 180.00000, average = 120.00000
+   Shortest non-bonded distance = 1.01931
+
+   Degrees of freedom: 2
+
+   Finished component 1.
+
+   ==========
+
+Finished structure #1.
+
+Finished data file "/Users/kevinmaikjablonka/Downloads/test_systre.cgd".
+"""
+
 
 @pytest.fixture(scope="module")
 def get_cuiiibtc_mof():
@@ -1092,6 +1218,11 @@ def get_cgd_file():
 @pytest.fixture(scope="module")
 def get_systre_output():
     return SYSTRE_OUT
+
+
+@pytest.fixture(scope="module")
+def get_systre_output2():
+    return SYSTRE_OUT_2
 
 
 @pytest.fixture(scope="module")
