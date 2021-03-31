@@ -21,4 +21,4 @@ def run_fragmentation(mof) -> FragmentationResult:
 
     # Now, get the net
 
-    fragmentation_results = FragmentationResult()
+    fragmentation_results = FragmentationResult(unbound_solvent)

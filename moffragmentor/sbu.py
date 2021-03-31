@@ -28,17 +28,7 @@ from .descriptors import (
     rdkit_descriptors,
 )
 from .fragmentor.splitter import get_subgraphs_as_molecules
-from .utils import pickle_dump, unwrap, write_cif
-
-
-def _not_relevant_structure_indices(
-    structure: Structure, indices: Collection
-) -> List[int]:
-    not_relevant = []
-    for i in range(len(structure)):
-        if i not in indices:
-            not_relevant.append(i)
-    return not_relevant
+from .utils import _not_relevant_structure_indices, pickle_dump, unwrap, write_cif
 
 
 def get_max_sep(coordinates):
@@ -56,7 +46,7 @@ class SBU:
         molecule_graph: MoleculeGraph,
         branching_indices: List[int],
         binding_indices: List[int],
-        mapping_from_original_indices: Dict[int, int],
+        original_indices: Collection[int],
     ):
         self.molecule = molecule
         self._ob_mol = None
@@ -69,10 +59,12 @@ class SBU:
         self.binding_indices: List = binding_indices
         self._descriptors = None
         self.meta = {}
-        self.mapping_from_original_indices = mapping_from_original_indices
-        self.mapping_to_original_indices = {
-            v: k for k, v in self.mapping_from_original_indices.items()
-        }
+        self.mapping_from_original_indices = dict(
+            zip(original_indices, range(len(molecule)))
+        )
+        self.mapping_to_original_indices = dict(
+            zip(range(len(molecule)), original_indices)
+        )
 
     def __len__(self):
         return len(self.molecule)
@@ -215,29 +207,20 @@ class Node(SBU):
         graph_ = deepcopy(mof.structure_graph)
         to_delete = _not_relevant_structure_indices(mof.structure, node_indices)
         graph_.remove_nodes(to_delete)
+        # Todo: we can make this more efficient by skipping the expansion to the supercell and directly extracting the subgraphs
         mol, graph, idx = get_subgraphs_as_molecules(graph_)
-        index_mapping = dict(zip(idx[0], range(len(indices))))
-        node = cls(mol[0], graph[0], branching_indices, binding_indices, index_mapping)
+        assert len(mol) == 1
+        node = cls(
+            mol[0],
+            graph[0],
+            branching_indices & node_indices,
+            binding_indices & node_indices,
+            idx[0],
+        )
         return node
 
 
 class Linker(SBU):
-    @classmethod
-    def from_mof_and_indices(
-        cls,
-        mof,
-        node_indices: Set[int],
-        branching_indices: Set[int],
-        binding_indices: Set[int],
-    ):
-        graph_ = deepcopy(mof.structure_graph)
-        to_delete = node_indices
-        graph_.remove_nodes(to_delete)
-        mol, graph, idx = get_subgraphs_as_molecules(graph_)
-        index_mapping = dict(zip(idx[0], range(len(indices))))
-        node = cls(mol[0], graph[0], branching_indices, binding_indices, index_mapping)
-        return node
-
     @classmethod
     def from_carboxy_mol(cls, mol):
         carboxy = Chem.MolFromSmarts("[O]C(=O)")

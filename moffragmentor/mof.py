@@ -49,6 +49,8 @@ class MOF:
         self._branching_indices = None
         self._clear_properties()
         self._nx_graph = None
+
+        # ToDo: Maybe add the binding/branching attributes back to the graph
         nx.set_node_attributes(
             self.structure_graph.graph,
             name="idx",

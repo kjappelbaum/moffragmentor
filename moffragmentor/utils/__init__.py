@@ -4,7 +4,7 @@ import os
 import pickle
 from collections import defaultdict
 from shutil import which
-from typing import Collection
+from typing import Collection, List
 
 import numpy as np
 from openbabel import pybel as pb
@@ -233,6 +233,26 @@ def get_edge_dict(structure_graph: StructureGraph) -> dict:
         label = get_label(u, v)
 
     return dict(types)
+
+
+def _not_relevant_structure_indices(
+    structure: Structure, indices: Collection[int]
+) -> List[int]:
+    """Returns the indices of the structure that are *not* in the indices
+    collection
+
+    Args:
+        structure (Structure): pymatgen Structure object
+        indices (Collection[int]): Collection of integers
+
+    Returns:
+        List[int]: indices of structure that are not in the indices collection
+    """
+    not_relevant = []
+    for i in range(len(structure)):
+        if i not in indices:
+            not_relevant.append(i)
+    return not_relevant
 
 
 def visualize_part(mof, indices: Collection):
