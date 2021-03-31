@@ -96,7 +96,8 @@ class NetEmbedding:
 
     def plot_net(self):
         import matplotlib.pyplot as plt
-        from mpl_toolkits import mplot3d
+
+        # from mpl_toolkits import mplot3d
 
         ax = plt.axes(projection="3d")
         linker_coords = self.frac_coords[range(len(self.linker_collection))]

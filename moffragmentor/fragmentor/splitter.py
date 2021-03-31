@@ -189,16 +189,12 @@ def get_floating_solvent_molecules(mof) -> NonSbuMoleculeCollection:
     Returns:
         NonSbuMoleculeCollection: collection of NonSbuMolecules
     """
-    _, _, idx = get_subgraphs_as_molecules(mof.structure_graph, return_unique=False)
+    mols, graphs, idx = get_subgraphs_as_molecules(
+        mof.structure_graph, return_unique=False
+    )
     molecules = []
-    # Todo: this mapping is probably something that should go into the get_subgraphs_as_molecules function
-    mapping = _get_reverse_supergraph_index_map(len(mof))
-    for id in idx:
-        new_ids = [mapping[i] for i in id]
-        molecules.append(
-            NonSbuMolecule.from_structure_graph_and_indices(
-                mof.structure_graph * (3, 3, 3), new_ids
-            )
-        )
+
+    for mol, graph, id in zip(mols, graphs, idx):
+        molecules.append(NonSbuMolecule(mol, graph, id))
 
     return NonSbuMoleculeCollection(molecules)

@@ -331,28 +331,44 @@ def create_node_collection(
     return NodeCollection(nodes)
 
 
-def _create_linkers_from_node_location_result(mof, node_location_result):
+def _create_linkers_from_node_location_result(
+    mof, node_location_result, unbound_solvent
+):
     linkers = []
 
+    all_node_indices = set()
+    for node_indices in node_location_result.nodes:
+        all_node_indices.update(node_indices)
+
+    not_linker_indices = (
+        all_node_indices
+        - node_location_result.connecting_paths
+        - node_location_result.branching_indices
+    ) | set(unbound_solvent.indices)
+
     graph_ = deepcopy(mof.structure_graph)
-    graph_.remove_nodes(node_location_result.nodes)
+    graph_.remove_nodes(not_linker_indices)
     mols, graphs, idxs = get_subgraphs_as_molecules(
         graph_, return_unique=False, original_len=len(mof)
     )
 
     for mol, graph, idx in zip(mols, graphs, idxs):
+        idxs = set(idx)
         linker = Linker(
             mol,
             graph,
-            node_location_result.branching_indices & idx,
-            node_location_result.connecting_paths & idx,
+            node_location_result.branching_indices & idxs,
+            node_location_result.connecting_paths & idxs,
             idx,
         )
         linkers.append(linker)
+    return linkers
 
 
 def create_linker_collection(
-    mof, node_location_result: Nodelocation_Result
+    mof, node_location_result: Nodelocation_Result, unbound_solvents
 ) -> LinkerCollection:
-    linkers = _create_linkers_from_node_location_result(mof, node_location_result)
+    linkers = _create_linkers_from_node_location_result(
+        mof, node_location_result, unbound_solvents
+    )
     return LinkerCollection(linkers)

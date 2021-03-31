@@ -2,9 +2,9 @@
 from collections import Counter
 
 from moffragmentor.fragmentor.locator import (
+    _get_solvent_molecules_bound_to_node,
     find_node_clusters,
     get_all_bound_solvent_molecules,
-    get_solvent_molecules_bound_to_node,
 )
 from moffragmentor.molecule import NonSbuMoleculeCollection
 
@@ -80,7 +80,7 @@ def test_find_rod_node_floating_mof_cluster(get_1d_node_with_floating):
     assert node_lengths[0] == 20
 
 
-def test_get_solvent_molecules_bound_to_node(get_li_mof_with_floating):
+def test__get_solvent_molecules_bound_to_node(get_li_mof_with_floating):
     mof = get_li_mof_with_floating
     node_indices = [
         0,
@@ -118,7 +118,7 @@ def test_get_solvent_molecules_bound_to_node(get_li_mof_with_floating):
         116,
         118,
     ]
-    solvent_molecules = get_solvent_molecules_bound_to_node(mof, node_indices)
+    solvent_molecules = _get_solvent_molecules_bound_to_node(mof, node_indices)
     assert isinstance(solvent_molecules, NonSbuMoleculeCollection)
     assert solvent_molecules.composition == {"H2 O1": 2}
 

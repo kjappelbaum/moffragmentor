@@ -25,10 +25,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -e .[testing,pre-commit]
-          conda install openbabel -c conda-forge
-          conda install -c conda-forge rdkit
+          sh setup_conda.sh
+          pip install -e .
+          pip install pytest pytest-cov
       - name: Test with pytest (numba activated)
         run: |
           pytest --cov=./ --cov-report=xml
