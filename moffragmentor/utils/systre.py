@@ -81,12 +81,18 @@ def parse_systre_lines(lines: List[str]) -> dict:
         if "Edge centers:" in line:
             in_edge_block = False
         if in_node_block:
-            node, coords = _parse_node_line(line)
-            nodes[node].append(coords)
+            try:
+                node, coords = _parse_node_line(line)
+                nodes[node].append(coords)
+            except IndexError:
+                pass
 
         if in_edge_block:
-            edge_coords = _line_to_coords(line)
-            edges.append((edge_coords[:3], edge_coords[3:]))
+            try:
+                edge_coords = _line_to_coords(line)
+                edges.append((edge_coords[:3], edge_coords[3:]))
+            except IndexError:
+                pass
 
     results = {
         "space_group": space_group,

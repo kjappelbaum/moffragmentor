@@ -13,7 +13,7 @@ def test_systre_call(get_cgd_file):
     assert isinstance(systre_output["relaxed_node_positions"], dict)
 
 
-def test_systre_parser(get_systre_output, get_systre_output_2):
+def test_systre_parser(get_systre_output, get_systre_output2):
     systre_output = parse_systre_lines(get_systre_output.split("\n"))
     assert systre_output["space_group"] == "Fm-3m"
     assert systre_output["rscr_code"] == "tbo"
@@ -21,7 +21,7 @@ def test_systre_parser(get_systre_output, get_systre_output_2):
     assert len(systre_output["relaxed_node_positions"]) == 2
     assert isinstance(systre_output["relaxed_node_positions"], dict)
 
-    systre_output2 = parse_systre_lines(get_systre_output_2.split("\n"))
-    assert systre_output["space_group"] == "p4mm"
-    assert systre_output["rscr_code"] == "mtf"
-    assert systre_output["relaxed_cell"] == [3.05792, 3.05792, 90.0000]
+    systre_output2 = parse_systre_lines(get_systre_output2.split("\n"))
+    assert systre_output2["space_group"] == "p4mm"
+    assert systre_output2["rscr_code"] == "mtf"
+    assert systre_output2["relaxed_cell"] == [3.05792, 3.05792, 90.0000]
