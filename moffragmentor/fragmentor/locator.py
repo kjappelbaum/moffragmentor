@@ -7,10 +7,11 @@ from copy import deepcopy
 from typing import List, Set
 
 import networkx as nx
+import numpy as np
 
 from ..molecule import NonSbuMolecule, NonSbuMoleculeCollection
 from ..sbu import Linker, LinkerCollection, Node, NodeCollection
-from ..utils import _not_relevant_structure_indices
+from ..utils import _not_relevant_structure_indices, unwrap
 from ..utils.errors import NoMetalError
 from .filter import filter_nodes
 from .splitter import get_subgraphs_as_molecules
@@ -348,15 +349,17 @@ def _create_linkers_from_node_location_result(
 
     graph_ = deepcopy(mof.structure_graph)
     graph_.remove_nodes(not_linker_indices)
-    mols, graphs, idxs = get_subgraphs_as_molecules(
-        graph_, return_unique=False, original_len=len(mof)
+    mols, graphs, idxs, centers = get_subgraphs_as_molecules(
+        graph_,
+        return_unique=False,
     )
 
-    for mol, graph, idx in zip(mols, graphs, idxs):
+    for mol, graph, idx, center in zip(mols, graphs, idxs, centers):
         idxs = set(idx)
         linker = Linker(
             mol,
             graph,
+            center,
             node_location_result.branching_indices & idxs,
             node_location_result.connecting_paths & idxs,
             idx,

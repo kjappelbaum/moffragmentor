@@ -44,19 +44,19 @@ class SBU:
         self,
         molecule: Molecule,
         molecule_graph: MoleculeGraph,
+        center: np.ndarray,
         branching_indices: List[int],
         binding_indices: List[int],
         original_indices: Collection[int],
     ):
         self.molecule = molecule
+        self.center = center
         self._ob_mol = None
         self._smiles = None
         self._rdkit_mol = None
         self.molecule_graph = molecule_graph
-        self.branching_indices: List = branching_indices
-        self._original_branching_indices = None
-        self._original_binding_indices = None
-        self.binding_indices: List = binding_indices
+        self._original_branching_indices = branching_indices
+        self._original_binding_indices = binding_indices
         self._descriptors = None
         self.meta = {}
         self.mapping_from_original_indices = dict(
@@ -65,6 +65,11 @@ class SBU:
         self.mapping_to_original_indices = dict(
             zip(range(len(molecule)), original_indices)
         )
+        self._indices = original_indices
+
+    @property
+    def indices(self):
+        return self._indices
 
     def __len__(self):
         return len(self.molecule)
@@ -84,27 +89,14 @@ class SBU:
 
     @property
     def coordination(self):
-        return len(self.branching_indices)
+        return len(self.original_branching_indices)
 
     @property
     def original_branching_indices(self):
-        if self._original_branching_indices is None:
-            _original_branching_indices = {
-                self.mapping_to_original_indices[i] for i in self.branching_indices
-            }
-
-            self._original_branching_indices = _original_branching_indices
-
         return self._original_branching_indices
 
     @property
     def original_binding_indices(self):
-        if self._original_binding_indices is None:
-            _original_binding_indices = {
-                self.mapping_to_original_indices[i] for i in self.branching_indices
-            }
-            self._original_binding_indices = _original_binding_indices
-
         return self._original_binding_indices
 
     @property
@@ -208,11 +200,13 @@ class Node(SBU):
         to_delete = _not_relevant_structure_indices(mof.structure, node_indices)
         graph_.remove_nodes(to_delete)
         # Todo: we can make this more efficient by skipping the expansion to the supercell and directly extracting the subgraphs
-        mol, graph, idx = get_subgraphs_as_molecules(graph_)
+        mol, graph, idx, centers = get_subgraphs_as_molecules(graph_)
         assert len(mol) == 1
+
         node = cls(
             mol[0],
             graph[0],
+            centers[0],
             branching_indices & node_indices,
             binding_indices & node_indices,
             idx[0],
@@ -243,7 +237,11 @@ class SBUCollection:
         self._sbu_types = None
         self._composition = None
         self._unique_sbus = None
-        # self.indices = sum([sbu.indices for sbu in self.sbus], [])
+        self._centers = [sbu.center for sbu in self.sbus]
+        self._indices = [sbu.indices for sbu in self.sbus]
+
+        assert len(self._indices) == len(self.sbus)
+        assert len(self._indices) == len(self.sbus)
 
     def __len__(self):
         return len(self.sbus)
@@ -254,6 +252,14 @@ class SBUCollection:
     def __next__(self):
         for sbu in self.sbus:
             yield sbu
+
+    @property
+    def indices(self):
+        return self._indices
+
+    @property
+    def centers(self):
+        return self._centers
 
     @property
     def sbu_types(self):

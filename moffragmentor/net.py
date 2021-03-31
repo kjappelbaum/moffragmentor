@@ -16,14 +16,12 @@ class NetEmbedding:
         self,
         linker_collection,
         node_collection,
-        linker_centers,
-        node_centers,
         lattice: Lattice,
     ):
         self.node_collection = node_collection
         self.linker_collection = linker_collection
-        self.linker_centers = linker_centers
-        self.node_centers = node_centers
+        self.linker_centers = linker_collection.centers
+        self.node_centers = node_collection.centers
         self._edges = None
         self._lattice = lattice
         self._cart_coords = None
