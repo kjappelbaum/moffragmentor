@@ -11,7 +11,7 @@ import numpy as np
 
 from ..molecule import NonSbuMolecule, NonSbuMoleculeCollection
 from ..sbu import Linker, LinkerCollection, Node, NodeCollection
-from ..utils import _not_relevant_structure_indices, unwrap
+from ..utils import _flatten_list_of_sets, _not_relevant_structure_indices, unwrap
 from ..utils.errors import NoMetalError
 from .filter import filter_nodes
 from .splitter import get_subgraphs_as_molecules
@@ -238,21 +238,37 @@ def get_all_bound_solvent_molecules(
     return non_sbu_molecule_collections
 
 
-def _to_graph(l):
+def _to_graph(mof, paths, branch_sites):
+    """https://stackoverflow.com/questions/4842613/merge-lists-that-share-common-elements"""
     G = nx.Graph()
-    for part in l:
+    for part in paths:
         G.add_nodes_from(part)
         G.add_edges_from(_to_edges(part))
+    G.add_edges_from(
+        _connect_connected_branching_indices(mof, _flatten_list_of_sets(branch_sites))
+    )
     return G
 
 
-def _to_edges(l):
-    it = iter(l)
+def _to_edges(paths):
+    it = iter(paths)
     last = next(it)
 
     for current in it:
         yield last, current
         last = current
+
+
+def _connect_connected_branching_indices(mof, flattend_path):
+    edges = set()
+
+    for i in flattend_path:
+        neighbors = mof.get_neighbor_indices(i)
+        for neighbor in neighbors:
+            if neighbor in flattend_path:
+                edges.add(tuple(sorted((i, neighbor))))
+
+    return edges
 
 
 def find_node_clusters(mof) -> Nodelocation_Result:
@@ -288,8 +304,15 @@ def find_node_clusters(mof) -> Nodelocation_Result:
     paths = _complete_graph(mof, paths, branch_sites)
 
     # we find the connected components in those paths
-    g = _to_graph(paths)
+    g = _to_graph(mof, paths, branch_sites)
     nodes = list(nx.connected_components(g))
+
+    # flattend_paths = sum(paths, [])
+    # to_delete_indices = _not_relevant_structure_indices(mof.structure, flattend_paths)
+    # new_sg = deepcopy(mof.structure_graph)
+    # new_sg.remove_nodes(to_delete_indices)
+    # _, _, nodes, _= get_subgraphs_as_molecules(new_sg, return_unique=False, disable_boundary_crossing_check=False)
+
     # filter out "node" candidates that are not actual nodes.
     # in practice this is relevant for ligands with metals in them (e.g., porphyrins)
     nodes = filter_nodes(nodes, mof.structure_graph, mof.metal_indices)

@@ -1277,3 +1277,10 @@ def get_methane_molecule_and_graph():
 def get_acetate_zr_mof():
     mof = MOF.from_cif(os.path.join(THIS_DIR, "test_files", "1585873-1585874.cif"))
     return mof
+
+
+@pytest.fixture()
+def get_across_periodic_boundary_node():
+    # Zn4(μ3-OH)2(TPO)2(H2O)2]
+    mof = MOF.from_cif(os.path.join(THIS_DIR, "test_files", "NIYZIG.cif"))
+    return mof

@@ -224,14 +224,12 @@ def is_tool(name):
 
 def get_edge_dict(structure_graph: StructureGraph) -> dict:
     def get_label(u, v):
-        u_label = structure_graph.structure[u].species_string
-        v_label = structure_graph.structure[v].species_string
-        return "-".join(sorted((u_label, v_label)))
+        return sorted((u, v))
 
     types = defaultdict(list)
     for u, v, d in structure_graph.graph.edges(data=True):
         label = get_label(u, v)
-
+        types[tuple(label)] = None
     return dict(types)
 
 
@@ -265,3 +263,31 @@ def visualize_part(mof, indices: Collection):
     s = Structure.from_sites(sites, to_unit_cell=True)
 
     return nglview.show_pymatgen(s)
+
+
+def _flatten_list_of_sets(parts):
+    flattened_parts = []
+
+    for sublist in parts:
+        for elm in sublist:
+            flattened_parts.append(elm)
+    return flattened_parts
+
+
+def connected_mol_from_indices(mof, indices):
+    new_positions = []
+    frac_coords = mof.structure.frac_coords
+    for i in indices:
+        _, images = mof.structure.lattice.get_distance_and_image(
+            frac_coords[0], frac_coords[i]
+        )
+        new_positions.append(mof.lattice.get_cartesian_coords(frac_coords[i] + images))
+
+    species = []
+
+    for s in indices:
+        species.append(str(mof.structure[s].specie))
+
+    mol = Molecule(species, new_positions)
+
+    return mol

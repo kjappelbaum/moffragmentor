@@ -29,7 +29,14 @@ from .descriptors import (
     rdkit_descriptors,
 )
 from .fragmentor.splitter import get_subgraphs_as_molecules
-from .utils import _not_relevant_structure_indices, pickle_dump, unwrap, write_cif
+from .utils import (
+    _not_relevant_structure_indices,
+    connected_mol_from_indices,
+    get_edge_dict,
+    pickle_dump,
+    unwrap,
+    write_cif,
+)
 
 
 def get_max_sep(coordinates):
@@ -128,6 +135,9 @@ class SBU:
     def show_molecule(self):
         return nglview.show_pymatgen(self.molecule)
 
+    def to(self, fmt: str, filename: str):
+        return self.molecule.to(fmt, filename)
+
     @property
     def smiles(self):
         mol = self.openbabel_mol
@@ -204,17 +214,22 @@ class Node(SBU):
         graph_ = deepcopy(mof.structure_graph)
         to_delete = _not_relevant_structure_indices(mof.structure, node_indices)
         graph_.remove_nodes(to_delete)
-        # Todo: we can make this more efficient by skipping the expansion to the supercell and directly extracting the subgraphs
-        mol, graph, idx, centers = get_subgraphs_as_molecules(graph_)
-        assert len(mol) == 1
+
+        mol = connected_mol_from_indices(mof, node_indices)
+        graph = MoleculeGraph.with_edges(mol, get_edge_dict(graph_))
+        # # Todo: we can make this more efficient by skipping the expansion to the supercell and directly extracting the subgraphs
+        # mol, graph, idx, centers = get_subgraphs_as_molecules(graph_)
+        # assert len(mol) == 1
+
+        center = np.mean(mol.cart_coords, axis=0)
 
         node = cls(
-            mol[0],
-            graph[0],
-            centers[0],
+            mol,
+            graph,
+            center,
             branching_indices & node_indices,
             binding_indices & node_indices,
-            idx[0],
+            node_indices,
         )
         return node
 

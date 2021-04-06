@@ -46,7 +46,7 @@ def run_systre(systre_string: str) -> dict:
 
 
 def parse_systre_lines(lines: List[str]) -> dict:
-    rscr_line = float("inf")
+    rcsr_line = float("inf")
     cell_line = float("inf")
     angle_line = float("inf")
     in_node_block = False
@@ -59,9 +59,9 @@ def parse_systre_lines(lines: List[str]) -> dict:
         if "Ideal space group" in line:
             space_group = line.split("is")[-1].strip().replace(".", "")
         if "Structure was identified with RCSR symbol:" in line:
-            rscr_line = i + 1
-        if i == rscr_line:
-            rscr_code = line.split()[-1].strip()
+            rcsr_line = i + 1
+        if i == rcsr_line:
+            rcsr_code = line.split()[-1].strip()
         if "Relaxed cell parameters" in line:
             cell_line = i + 1
             angle_line = i + 2
@@ -96,7 +96,7 @@ def parse_systre_lines(lines: List[str]) -> dict:
 
     results = {
         "space_group": space_group,
-        "rscr_code": rscr_code,
+        "rcsr_code": rcsr_code,
         "relaxed_cell": cell,
         "relaxed_angles": angles,
         "relaxed_node_positions": dict(nodes),

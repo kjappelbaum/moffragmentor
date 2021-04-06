@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from collections import Counter
 
+from pymatgen import Structure
+
 from moffragmentor.fragmentor.locator import (
     _create_linkers_from_node_location_result,
     _get_solvent_molecules_bound_to_node,
@@ -341,3 +343,17 @@ def test__create_linkers_from_node_location_result(get_hkust_mof):
     assert len(linkers) == 32
     linker_lengths = [len(l) for l in linkers]
     assert len(set(linker_lengths)) == 1
+
+
+def test__get_node_cluster_across_pbc(get_across_periodic_boundary_node):
+    mof = get_across_periodic_boundary_node
+    node_location_result = find_node_clusters(mof)
+    assert (
+        len(node_location_result.nodes) == 2
+    )  # we have 8 Zn in unit cell and Zn4 nodes
+    sites = []
+
+    for site in node_location_result.nodes[0]:
+        sites.append(mof.structure[site])
+    s = Structure.from_sites(sites)
+    assert str(s.composition) == "Zn4 O18 P2 H6 C6"

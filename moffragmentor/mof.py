@@ -77,6 +77,10 @@ class MOF:
         return self.structure.lattice
 
     @property
+    def composition(self):
+        return self.structure.composition.alphabetical_formula
+
+    @property
     def cart_coords(self):
         return self.structure.cart_coords
 

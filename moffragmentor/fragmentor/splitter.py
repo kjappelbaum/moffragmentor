@@ -35,8 +35,9 @@ def _select_parts_in_cell(
     valid_indices = defaultdict(list)
 
     for i, ind in enumerate(indices_here):
-        sorted_idx = sorted(indices[i])
-        valid_indices[str(sorted_idx)].append(i)
+        if any([i < molecule_size for i in ind]):
+            sorted_idx = sorted(indices[i])
+            valid_indices[str(sorted_idx)].append(i)
 
     molecules_ = []
     selected_indices = []
@@ -44,10 +45,11 @@ def _select_parts_in_cell(
     centers_ = []
 
     for _, v in valid_indices.items():
-        selected_indices.append(indices[v[0]])
-        molecules_.append(molecules[v[0]])
-        graphs_.append(graphs[v[0]])
-        centers_.append(centers[v[0]])
+        for index in v:
+            selected_indices.append(indices[index])
+            molecules_.append(molecules[index])
+            graphs_.append(graphs[index])
+            centers_.append(centers[index])
 
     return molecules_, graphs_, selected_indices, centers_
 
@@ -57,6 +59,7 @@ def get_subgraphs_as_molecules(
     use_weights: bool = False,
     return_unique: bool = True,
     original_len: int = None,
+    disable_boundary_crossing_check: bool = False,
 ) -> Tuple[List[Molecule], List[MoleculeGraph], List[List[int]]]:
     """Copied from
     http://pymatgen.org/_modules/pymatgen/analysis/graphs.html#StructureGraph.get_subgraphs_as_molecules
@@ -89,12 +92,14 @@ def get_subgraphs_as_molecules(
     molecule_subgraphs = []
 
     for subgraph in all_subgraphs:
-        intersects_boundary = any(
-            [d["to_jimage"] != (0, 0, 0) for u, v, d in subgraph.edges(data=True)]
-        )
-
-        if not intersects_boundary:
+        if disable_boundary_crossing_check:
             molecule_subgraphs.append(nx.MultiDiGraph(subgraph))
+        else:
+            intersects_boundary = any(
+                [d["to_jimage"] != (0, 0, 0) for u, v, d in subgraph.edges(data=True)]
+            )
+            if not intersects_boundary:
+                molecule_subgraphs.append(nx.MultiDiGraph(subgraph))
 
     # add specie names to graph to be able to test for isomorphism
     for subgraph in molecule_subgraphs:
@@ -160,6 +165,7 @@ def get_subgraphs_as_molecules(
 
     if return_unique:
         mol, idx, indices_here, centers = make_mols(unique_subgraphs, center=True)
+        print(indices_here)
         return_subgraphs = unique_subgraphs
         return (
             mol,
@@ -172,7 +178,6 @@ def get_subgraphs_as_molecules(
         )
 
     mol, idx, indices_here, centers = make_mols(molecule_subgraphs)
-
     return_subgraphs = [
         MoleculeGraph(mol, relabel_graph(graph))
         for mol, graph in zip(mol, molecule_subgraphs)

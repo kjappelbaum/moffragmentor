@@ -2,7 +2,7 @@
 import numpy as np
 from pymatgen.core import Lattice, Structure
 
-from .utils import is_tool
+from .utils import is_tool, unwrap
 from .utils.errors import JavaNotFoundError
 from .utils.systre import run_systre
 
@@ -26,7 +26,7 @@ class NetEmbedding:
         self._lattice = lattice
         self._cart_coords = None
         self._composition = None
-        self._rscr_code = None
+        self._rcsr_code = None
         self._space_group = None
 
     def __len__(self):
@@ -73,7 +73,7 @@ class NetEmbedding:
     @property
     def cart_coords(self):
         if self._cart_coords is None:
-            self._get_coordinates()
+            self._cart_coords = self._get_coordinates()
         return self._cart_coords
 
     def _get_coordinates(self):
@@ -131,7 +131,7 @@ class NetEmbedding:
 
     @property
     def frac_coords(self):
-        return self.cart_coords / np.array(self.lattice.abc)
+        return self.lattice.fractional_coords(self.cart_coords)
 
     @property
     def composition(self):
@@ -177,14 +177,17 @@ class NetEmbedding:
             frac_coords_a = self.frac_coords[edge[0]]
             frac_coords_b = self.frac_coords[edge[1]]
 
-            _, image = self.lattice.get_distance_and_image(frac_coords_a, frac_coords_b)
-            frac_coords_b += image
-            if sum(image) != 0:
-                missing_nodes.append(frac_coords_b)
+            _, images = self.lattice.get_distance_and_image(
+                frac_coords_a, frac_coords_b
+            )
+
+            for image in images:
+                frac_coords_b_new = frac_coords_b + image
+                missing_nodes.append(frac_coords_b_new)
                 missing_node_indices.append(edge[1])
 
             edge_lines.append(
-                f"   EDGE   {frac_coords_a[0]:.4f} {frac_coords_a[1]:.4f} {frac_coords_a[2]:.4f} {frac_coords_b[0]:.4f} {frac_coords_b[1]:.4f} {frac_coords_b[2]:.4f}"
+                f"   EDGE   {frac_coords_a[0]:.4f} {frac_coords_a[1]:.4f} {frac_coords_a[2]:.4f} {frac_coords_b_new[0]:.4f} {frac_coords_b_new[1]:.4f} {frac_coords_b_new[2]:.4f}"
             )
 
         file_lines = (
@@ -199,10 +202,10 @@ class NetEmbedding:
         return filestring
 
     @property
-    def rscr_code(self):
-        if self._rscr_code is None:
+    def rcsr_code(self):
+        if self._rcsr_code is None:
             self._run_systre()
-        return self._rscr_code
+        return self._rcsr_code
 
     @property
     def space_group(self):
@@ -211,7 +214,7 @@ class NetEmbedding:
         return self._space_group
 
     def _run_systre(self):
-        self._rscr_code = ""
+        self._rcsr_code = ""
         self._space_group = ""
 
         if not is_tool("java"):
@@ -219,5 +222,5 @@ class NetEmbedding:
                 "To determine the topology of the net, `java` must be in the PATH."
             )
         systre_output = run_systre(self._write_systre_file())
-        self._rscr_code = systre_output["rscr_code"]
+        self._rcsr_code = systre_output["rcsr_code"]
         self._space_group = systre_output["space_group"]
