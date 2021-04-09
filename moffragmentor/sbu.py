@@ -217,9 +217,6 @@ class Node(SBU):
 
         mol = connected_mol_from_indices(mof, node_indices)
         graph = MoleculeGraph.with_edges(mol, get_edge_dict(graph_))
-        # # Todo: we can make this more efficient by skipping the expansion to the supercell and directly extracting the subgraphs
-        # mol, graph, idx, centers = get_subgraphs_as_molecules(graph_)
-        # assert len(mol) == 1
 
         center = np.mean(mol.cart_coords, axis=0)
 

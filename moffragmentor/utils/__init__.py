@@ -277,9 +277,10 @@ def _flatten_list_of_sets(parts):
 def connected_mol_from_indices(mof, indices):
     new_positions = []
     frac_coords = mof.structure.frac_coords
+    indices = list(indices)
     for i in indices:
         _, images = mof.structure.lattice.get_distance_and_image(
-            frac_coords[0], frac_coords[i]
+            frac_coords[indices[0]], frac_coords[i]
         )
         new_positions.append(mof.lattice.get_cartesian_coords(frac_coords[i] + images))
 

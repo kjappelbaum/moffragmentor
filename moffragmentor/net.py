@@ -73,7 +73,7 @@ class NetEmbedding:
     @property
     def cart_coords(self):
         if self._cart_coords is None:
-            self._cart_coords = self._get_coordinates()
+            self._get_coordinates()
         return self._cart_coords
 
     def _get_coordinates(self):
@@ -131,7 +131,7 @@ class NetEmbedding:
 
     @property
     def frac_coords(self):
-        return self.lattice.fractional_coords(self.cart_coords)
+        return self.lattice.get_fractional_coords(self.cart_coords)
 
     @property
     def composition(self):
@@ -180,14 +180,13 @@ class NetEmbedding:
             _, images = self.lattice.get_distance_and_image(
                 frac_coords_a, frac_coords_b
             )
-
-            for image in images:
-                frac_coords_b_new = frac_coords_b + image
-                missing_nodes.append(frac_coords_b_new)
+            frac_coords_b += images
+            if sum(images) != 0:
+                missing_nodes.append(frac_coords_b)
                 missing_node_indices.append(edge[1])
 
             edge_lines.append(
-                f"   EDGE   {frac_coords_a[0]:.4f} {frac_coords_a[1]:.4f} {frac_coords_a[2]:.4f} {frac_coords_b_new[0]:.4f} {frac_coords_b_new[1]:.4f} {frac_coords_b_new[2]:.4f}"
+                f"   EDGE   {frac_coords_a[0]:.4f} {frac_coords_a[1]:.4f} {frac_coords_a[2]:.4f} {frac_coords_b[0]:.4f} {frac_coords_b[1]:.4f} {frac_coords_b[2]:.4f}"
             )
 
         file_lines = (
