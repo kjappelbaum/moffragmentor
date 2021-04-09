@@ -25,7 +25,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          sh create_conda.sh
+          bash create_conda.sh
           pip install -e .
           pip install pytest pytest-cov
       - name: Test with pytest (numba activated)
