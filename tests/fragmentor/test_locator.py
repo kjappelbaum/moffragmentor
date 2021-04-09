@@ -356,4 +356,4 @@ def test__get_node_cluster_across_pbc(get_across_periodic_boundary_node):
     for site in node_location_result.nodes[0]:
         sites.append(mof.structure[site])
     s = Structure.from_sites(sites)
-    assert str(s.composition) == "Zn4 O18 P2 H6 C6"
+    assert str(s.composition) == "Zn4 P2 H6 C6 O18"
