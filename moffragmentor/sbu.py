@@ -62,6 +62,7 @@ class SBU:
         self._ob_mol = None
         self._smiles = None
         self._rdkit_mol = None
+        self._original_indices = original_indices
         self.molecule_graph = molecule_graph
         self._original_branching_indices = branching_indices
         self._original_binding_indices = binding_indices

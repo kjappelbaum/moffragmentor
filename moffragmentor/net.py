@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
+from typing import List
+
 import numpy as np
 from pymatgen.core import Lattice, Structure
 
+from .sbu import LinkerCollection, NodeCollection
 from .utils import is_tool, unwrap
 from .utils.errors import JavaNotFoundError
 from .utils.systre import run_systre
@@ -14,14 +17,16 @@ class NetEmbedding:
 
     def __init__(
         self,
-        linker_collection,
-        node_collection,
+        linker_collection: LinkerCollection,
+        node_collection: NodeCollection,
+        selected_linkers: List[int],
         lattice: Lattice,
     ):
         self.node_collection = node_collection
         self.linker_collection = linker_collection
         self.linker_centers = linker_collection.centers
         self.node_centers = node_collection.centers
+        self.selected_linkers = selected_linkers
         self._edges = None
         self._lattice = lattice
         self._cart_coords = None
@@ -30,7 +35,7 @@ class NetEmbedding:
         self._space_group = None
 
     def __len__(self):
-        return len(self.node_collection) + len(self.linker_collection)
+        return len(self.node_collection) + len(self.selected_linkers)
 
     @property
     def edges(self):
@@ -73,24 +78,34 @@ class NetEmbedding:
     @property
     def cart_coords(self):
         if self._cart_coords is None:
-            self._get_coordinates()
+            self._cart_coords = self._get_coordinates()
         return self._cart_coords
 
-    def _get_coordinates(self):
+    def _get_coordinates(self, exclude_linker_images=False):
         coordinates = []
 
         for i, _ in enumerate(self.linker_collection):
-            coordinates.append(self.linker_centers[i])
+            if exclude_linker_images:
+                if i in self.selected_linkers:
+                    coordinates.append(self.linker_centers[i])
+            else:
+                coordinates.append(self.linker_centers[i])
 
         for i, _ in enumerate(self.node_collection):
             coordinates.append(self.node_centers[i])
 
-        self._cart_coords = np.array(coordinates).reshape(-1, 3)
+        return np.array(coordinates).reshape(-1, 3)
 
     def _get_dummy_structure(self):
-        linker_symbols = ["O" for _ in self.linker_collection]
+        linker_symbols = [
+            "O"
+            for i, _ in enumerate(self.linker_collection)
+            if i in self.selected_linkers
+        ]
         node_symbols = ["Si" for _ in self.node_collection]
-        return Structure(self.lattice, linker_symbols + node_symbols, self.frac_coords)
+        coordinates = self._get_coordinates(exclude_linker_images=True)
+        frac_coords = self.lattice.get_fractional_coords(coordinates)
+        return Structure(self.lattice, linker_symbols + node_symbols, frac_coords)
 
     def show_dummy_structure(self):
         import nglview

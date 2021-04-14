@@ -165,7 +165,6 @@ def get_subgraphs_as_molecules(
 
     if return_unique:
         mol, idx, indices_here, centers = make_mols(unique_subgraphs, center=True)
-        print(indices_here)
         return_subgraphs = unique_subgraphs
         return (
             mol,
