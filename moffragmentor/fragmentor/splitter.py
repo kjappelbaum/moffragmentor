@@ -10,7 +10,7 @@ from pymatgen import Molecule
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 
 from ..molecule import NonSbuMolecule, NonSbuMoleculeCollection
-from ..utils import unwrap
+from ..utils import _is_any_atom_in_cell, unwrap
 from ..utils.periodic_graph import _get_reverse_supergraph_index_map
 
 __all__ = ["get_subgraphs_as_molecules"]
@@ -29,13 +29,15 @@ def _select_parts_in_cell(
     indices: List[List[int]],
     indices_here: List[List[int]],
     centers: List[np.ndarray],
-    molecule_size: int = np.inf,
+    fractional_coordinates: np.ndarray,
+    coordinates: np.ndarray,
 ) -> Tuple[List[Molecule], List[MoleculeGraph], List[List[int]]]:
-
     valid_indices = defaultdict(list)
-
     for i, ind in enumerate(indices_here):
-        if any([i < molecule_size for i in ind]):
+        # change this check to having an atom in the cell
+        frac_coords = fractional_coordinates[ind]
+
+        if _is_any_atom_in_cell(frac_coords):
             sorted_idx = sorted(indices[i])
             valid_indices[str(sorted_idx)].append(i)
 
@@ -43,6 +45,7 @@ def _select_parts_in_cell(
     selected_indices = []
     graphs_ = []
     centers_ = []
+    coordinates_ = []
 
     for _, v in valid_indices.items():
         for index in v:
@@ -50,17 +53,18 @@ def _select_parts_in_cell(
             molecules_.append(molecules[index])
             graphs_.append(graphs[index])
             centers_.append(centers[index])
+            coordinates_.append(coordinates[index])
 
-    return molecules_, graphs_, selected_indices, centers_
+    return molecules_, graphs_, selected_indices, centers_, coordinates_
 
 
 def get_subgraphs_as_molecules(
     structure_graph: StructureGraph,
     use_weights: bool = False,
     return_unique: bool = True,
-    original_len: int = None,
     disable_boundary_crossing_check: bool = False,
-) -> Tuple[List[Molecule], List[MoleculeGraph], List[List[int]]]:
+    filter_in_cell: bool = True,
+) -> Tuple[List[Molecule], List[MoleculeGraph], List[List[int]], List[np.ndarray]]:
     """Copied from
     http://pymatgen.org/_modules/pymatgen/analysis/graphs.html#StructureGraph.get_subgraphs_as_molecules
     and removed the duplicate check
@@ -70,14 +74,17 @@ def get_subgraphs_as_molecules(
         return_unique (bool): If true, it only returns the unique molecules.
             If False, it will return all molecules that are completely included in the unit cell
             and fragments of the ones that are only partly in the cell
+        filter_in_cell (bool): If True, it will only return molecules that have at least one atom
+            in the cell
 
     Returns:
-        List: list of molecules
+        Tuple[List[Molecule], List[MoleculeGraph], List[List[int]], List[np.ndarray]]
     """
     # creating a supercell is an easy way to extract
     # molecules (and not, e.g., layers of a 2D crystal)
     # without adding extra logic
     supercell_sg = structure_graph * (3, 3, 3)
+
     # make undirected to find connected subgraphs
     supercell_sg.graph = nx.Graph(supercell_sg.graph)
 
@@ -134,6 +141,7 @@ def get_subgraphs_as_molecules(
         indices = []
         indices_here = []
         mol_centers = []
+        coordinates = []
         for subgraph in molecule_subgraphs:
             coords = [supercell_sg.structure[n].coords for n in subgraph.nodes()]
             species = [supercell_sg.structure[n].specie for n in subgraph.nodes()]
@@ -155,7 +163,8 @@ def get_subgraphs_as_molecules(
             indices.append(idx)
             molecules.append(molecule)
             indices_here.append(idx_here)
-        return molecules, indices, indices_here, mol_centers
+            coordinates.append(coords)
+        return molecules, indices, indices_here, mol_centers, coordinates
 
     def relabel_graph(multigraph):
         mapping = dict(zip(multigraph, range(0, len(multigraph.nodes()))))
@@ -164,7 +173,9 @@ def get_subgraphs_as_molecules(
         )
 
     if return_unique:
-        mol, idx, indices_here, centers = make_mols(unique_subgraphs, center=True)
+        mol, idx, indices_here, centers, coordinates = make_mols(
+            unique_subgraphs, center=True
+        )
         return_subgraphs = unique_subgraphs
         return (
             mol,
@@ -174,23 +185,30 @@ def get_subgraphs_as_molecules(
             ],
             idx,
             centers,
+            coordinates,
         )
 
-    mol, idx, indices_here, centers = make_mols(molecule_subgraphs)
+    mol, idx, indices_here, centers, coordinates = make_mols(molecule_subgraphs)
+
     return_subgraphs = [
         MoleculeGraph(mol, relabel_graph(graph))
         for mol, graph in zip(mol, molecule_subgraphs)
     ]
 
-    if original_len is not None:
-        len_limit = original_len
-    else:
-        len_limit = len(structure_graph)
-    mol, return_subgraphs, idx, centers = _select_parts_in_cell(
-        mol, return_subgraphs, idx, indices_here, centers, len_limit
-    )
+    if filter_in_cell:
+        mol, return_subgraphs, idx, centers, coordinates = _select_parts_in_cell(
+            mol,
+            return_subgraphs,
+            idx,
+            indices_here,
+            centers,
+            structure_graph.structure.lattice.get_fractional_coords(
+                supercell_sg.structure.cart_coords
+            ),
+            coordinates,
+        )
 
-    return mol, return_subgraphs, idx, centers
+    return mol, return_subgraphs, idx, centers, coordinates
 
 
 def get_floating_solvent_molecules(mof) -> NonSbuMoleculeCollection:
@@ -203,7 +221,7 @@ def get_floating_solvent_molecules(mof) -> NonSbuMoleculeCollection:
     Returns:
         NonSbuMoleculeCollection: collection of NonSbuMolecules
     """
-    mols, graphs, idx, _ = get_subgraphs_as_molecules(
+    mols, graphs, idx, _, _ = get_subgraphs_as_molecules(
         mof.structure_graph, return_unique=False
     )
     molecules = []

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from typing import Dict, List
+from typing import Dict
 
 import numpy as np
 from pymatgen.core import Lattice, Structure
@@ -82,15 +82,11 @@ class NetEmbedding:
             self._cart_coords = self._get_coordinates()
         return self._cart_coords
 
-    def _get_coordinates(self, exclude_linker_images=False):
+    def _get_coordinates(self):
         coordinates = []
 
         for i, _ in enumerate(self.linker_collection):
-            if exclude_linker_images:
-                if i in self.selected_linkers:
-                    coordinates.append(self.linker_centers[i])
-            else:
-                coordinates.append(self.linker_centers[i])
+            coordinates.append(self.linker_centers[i])
 
         for i, _ in enumerate(self.node_collection):
             coordinates.append(self.node_centers[i])
@@ -98,13 +94,9 @@ class NetEmbedding:
         return np.array(coordinates).reshape(-1, 3)
 
     def _get_dummy_structure(self):
-        linker_symbols = [
-            "O"
-            for i, _ in enumerate(self.linker_collection)
-            if i in self.selected_linkers
-        ]
+        linker_symbols = ["O" for i, _ in enumerate(self.linker_collection)]
         node_symbols = ["Si" for _ in self.node_collection]
-        coordinates = self._get_coordinates(exclude_linker_images=True)
+        coordinates = self._get_coordinates()
         frac_coords = self.lattice.get_fractional_coords(coordinates)
         return Structure(self.lattice, linker_symbols + node_symbols, frac_coords)
 

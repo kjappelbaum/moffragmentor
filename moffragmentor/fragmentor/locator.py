@@ -446,7 +446,8 @@ def _get_new_edge_dict(
                 relevant_subindex = counter
                 break
 
-        linker_index = value[counter][0]
+        linker_index = [j for j, i in enumerate(linker_indices) if i == idx][0]
+
         selected_center = mof.lattice.get_fractional_coords(value[relevant_subindex][1])
 
         for counter, (idx, center) in enumerate(value):
@@ -486,6 +487,38 @@ def _compress_node_neighbors_dict(
     return new_node_neighbors_dict
 
 
+def _get_neighboring_linkers(
+    coords: List[np.ndarray],
+    mof,
+    branching_indices: List[int],
+    centers: List[np.ndarray],
+):
+    linkers = []
+    for branching_index in branching_indices:
+        for i, coord in enumerate(coords):
+            if np.any(
+                np.linalg.norm(
+                    coord - mof.structure.cart_coords[branching_index], axis=1
+                )
+                < 0.01
+            ):
+                linkers.append((branching_index, i, centers[i]))
+
+    return linkers
+
+
+def _get_edge_dict(
+    coords: List[np.ndarray], mof, node_collection, centers: List[np.ndarray]
+):
+    edge_dict = {}
+    for i, node in enumerate(node_collection):
+        edge_dict[i] = _get_neighboring_linkers(
+            coords, mof, node.original_branching_indices, centers
+        )
+
+    return edge_dict
+
+
 def _create_linkers_from_node_location_result(
     mof, node_location_result, node_collection, unbound_solvent
 ) -> Tuple[List[int], dict]:
@@ -503,20 +536,18 @@ def _create_linkers_from_node_location_result(
 
     graph_ = deepcopy(mof.structure_graph)
     graph_.remove_nodes(not_linker_indices)
-    mols, graphs, idxs, centers = get_subgraphs_as_molecules(
-        graph_, return_unique=False, original_len=len(mof)
+    mols, graphs, idxs, centers, coordinates = get_subgraphs_as_molecules(
+        graph_,
+        return_unique=False,
+        filter_in_cell=False,
+        disable_boundary_crossing_check=True,
     )
 
     linker_indices, _ = _pick_linker_indices(
         idxs, centers, node_location_result.branching_indices
     )
 
-    exploded_node_neighbors_dict = _get_exploded_node_neighbors_dict(
-        node_collection, idxs, centers
-    )
-    edge_dict = _compress_node_neighbors_dict(
-        exploded_node_neighbors_dict, mof, linker_indices
-    )
+    edge_dict = _get_edge_dict(coordinates, mof, node_collection, centers)
 
     for i, (mol, graph, idx, center) in enumerate(zip(mols, graphs, idxs, centers)):
         idxs = set(idx)

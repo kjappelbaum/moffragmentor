@@ -10,7 +10,7 @@ from moffragmentor.fragmentor.splitter import (
 
 def test_unbound_solvent_identification(get_p_linker_with_floating):
     """Test that we can correctly flag the floating solvents"""
-    unique_mols, unique_graphs, unique_indices, _ = get_subgraphs_as_molecules(
+    unique_mols, unique_graphs, unique_indices, _, _ = get_subgraphs_as_molecules(
         get_p_linker_with_floating.structure_graph
     )
     # we see pyrrolidinium, h2o and h3o+ as solvent, see https://www.ccdc.cam.ac.uk/structures/Search?Ccdcid=MAGBON&DatabaseToSearch=Published
@@ -24,7 +24,7 @@ def test_unbound_solvent_identification(get_p_linker_with_floating):
     assert "O1" in compositions
 
     # Now, we'll return all in the unit cell
-    mols, graphs, indices, _ = get_subgraphs_as_molecules(
+    mols, graphs, indices, _, _ = get_subgraphs_as_molecules(
         get_p_linker_with_floating.structure_graph, return_unique=False
     )
     assert len(mols) == 48
@@ -38,7 +38,7 @@ def test_unbound_solvent_identification(get_p_linker_with_floating):
 def test_unbound_solvent_identification_li_mof(get_li_mof_with_floating):
     """Test flagging of unbound solvent in a MOF
     with a Li containing node"""
-    unique_mols, unique_graphs, unique_indices, _ = get_subgraphs_as_molecules(
+    unique_mols, unique_graphs, unique_indices, _, _ = get_subgraphs_as_molecules(
         get_li_mof_with_floating.structure_graph
     )
     assert len(unique_mols) == len(unique_graphs) == len(unique_indices) == 1
@@ -48,7 +48,7 @@ def test_unbound_solvent_identification_li_mof(get_li_mof_with_floating):
     assert "H2 O1" in compositions
 
     # Now, we'll return all in the unit cell
-    mols, graphs, indices, _ = get_subgraphs_as_molecules(
+    mols, graphs, indices, _, _ = get_subgraphs_as_molecules(
         get_li_mof_with_floating.structure_graph, return_unique=False
     )
 

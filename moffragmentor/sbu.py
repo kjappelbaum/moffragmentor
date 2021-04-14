@@ -267,7 +267,7 @@ class SBUCollection:
     def __getitem__(self, index):
         return self.sbus[index]
 
-    def __next__(self):
+    def __iter__(self):
         for sbu in self.sbus:
             yield sbu
 

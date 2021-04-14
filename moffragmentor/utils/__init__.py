@@ -292,3 +292,14 @@ def connected_mol_from_indices(mof, indices):
     mol = Molecule(species, new_positions)
 
     return mol
+
+
+def _is_in_cell(frac_coords):
+    return all(frac_coords <= 1)
+
+
+def _is_any_atom_in_cell(frac_coords):
+    for row in frac_coords:
+        if _is_in_cell(row):
+            return True
+    return False
