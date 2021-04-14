@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-from typing import List
+from typing import Dict, List
 
 import numpy as np
 from pymatgen.core import Lattice, Structure
 
 from .sbu import LinkerCollection, NodeCollection
-from .utils import is_tool, unwrap
+from .utils import is_tool
 from .utils.errors import JavaNotFoundError
 from .utils.systre import run_systre
 
@@ -19,14 +19,15 @@ class NetEmbedding:
         self,
         linker_collection: LinkerCollection,
         node_collection: NodeCollection,
-        selected_linkers: List[int],
+        edge_dict: Dict[int, dict],
         lattice: Lattice,
     ):
         self.node_collection = node_collection
         self.linker_collection = linker_collection
         self.linker_centers = linker_collection.centers
         self.node_centers = node_collection.centers
-        self.selected_linkers = selected_linkers
+        self.edge_dict = edge_dict
+
         self._edges = None
         self._lattice = lattice
         self._cart_coords = None

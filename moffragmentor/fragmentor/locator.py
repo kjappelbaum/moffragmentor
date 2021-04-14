@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """Some pure functions that are used to perform the node identification
-Node classification techniques described in https://pubs.acs.org/doi/pdf/10.1021/acs.cgd.8b00126
+Node classification techniques described in https://pubs.acs.org/doi/pdf/10.1021/acs.cgd.8b00126.
+
+Note that we currently only place one vertex for every linker which might loose some
+information about isomers
 """
 from collections import OrderedDict, defaultdict, namedtuple
 from copy import deepcopy

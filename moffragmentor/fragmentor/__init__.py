@@ -14,14 +14,7 @@ __all__ = ["FragmentationResult"]
 
 FragmentationResult = namedtuple(
     "FragmentationResult",
-    [
-        "nodes",
-        "linkers",
-        "bound_solvent",
-        "unbound_solvent",
-        "net_embedding",
-        "all_linkers",
-    ],
+    ["nodes", "linkers", "bound_solvent", "unbound_solvent", "net_embedding"],
 )
 
 
@@ -33,12 +26,12 @@ def run_fragmentation(mof) -> FragmentationResult:
     # Find bound solvent
     bound_solvent = get_all_bound_solvent_molecules(mof, node_result.nodes)
     # Filter the linkers (valid linkers have at least two branch points)
-    linker_collection, all_linkers, selected_linkers = create_linker_collection(
+    linker_collection, edge_dict = create_linker_collection(
         mof, node_result, node_collection, unbound_solvent
     )
     # Now, get the net
     net_embedding = NetEmbedding(
-        all_linkers, node_collection, selected_linkers, mof.lattice
+        linker_collection, node_collection, edge_dict, mof.lattice
     )
     fragmentation_results = FragmentationResult(
         node_collection,
@@ -46,7 +39,6 @@ def run_fragmentation(mof) -> FragmentationResult:
         bound_solvent,
         unbound_solvent,
         net_embedding,
-        all_linkers,
     )
 
     return fragmentation_results
