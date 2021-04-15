@@ -109,6 +109,17 @@ class SBU:
         return self._original_branching_indices
 
     @property
+    def branching_indices(self):
+        return [
+            self.mapping_from_original_indices[i]
+            for i in self.original_branching_indices
+        ]
+
+    @property
+    def branching_coords(self):
+        return self.cart_coords[self.branching_indices]
+
+    @property
     def original_binding_indices(self):
         return self._original_binding_indices
 

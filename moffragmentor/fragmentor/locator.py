@@ -547,8 +547,6 @@ def _create_linkers_from_node_location_result(
         idxs, centers, node_location_result.branching_indices
     )
 
-    edge_dict = _get_edge_dict(coordinates, mof, node_collection, centers)
-
     for i, (mol, graph, idx, center) in enumerate(zip(mols, graphs, idxs, centers)):
         idxs = set(idx)
         linker = Linker(
@@ -563,7 +561,9 @@ def _create_linkers_from_node_location_result(
         if i in linker_indices:
             linkers.append(linker)
 
-    return linkers, edge_dict
+    linker_collection = LinkerCollection(linkers)
+    edge_dict = _get_edge_dict(node_collection, linker_collection)
+    return linker_collection, edge_dict
 
 
 def create_linker_collection(
@@ -572,7 +572,7 @@ def create_linker_collection(
     node_collection: NodeCollection,
     unbound_solvents,
 ) -> Tuple[LinkerCollection, dict]:
-    linkers, edge_dict = _create_linkers_from_node_location_result(
+    linker_collection, edge_dict = _create_linkers_from_node_location_result(
         mof, node_location_result, node_collection, unbound_solvents
     )
-    return LinkerCollection(linkers), edge_dict
+    return linker_collection, edge_dict
