@@ -487,33 +487,38 @@ def _compress_node_neighbors_dict(
     return new_node_neighbors_dict
 
 
-def _get_neighboring_linkers(
-    coords: List[np.ndarray],
-    mof,
-    branching_indices: List[int],
-    centers: List[np.ndarray],
-):
-    linkers = []
-    for branching_index in branching_indices:
-        for i, coord in enumerate(coords):
-            if np.any(
-                np.linalg.norm(
-                    coord - mof.structure.cart_coords[branching_index], axis=1
-                )
-                < 0.01
-            ):
-                linkers.append((branching_index, i, centers[i]))
+def _get_connected_linkers(
+    mof, branching_coordinates: List[np.array], linker_collection
+) -> List[Tuple[int, np.array, np.array]]:
+    """The insight of this function is that the branching indices outside the cell a node might
+    be bound to are periodic images of the ones in the cell"""
+    linked_to = []
+    for i, branching_coordinate in enumerate(branching_coordinates):
+        frac_a = mof.lattice.get_fractional_coords(branching_coordinate)
+        for j, linker in enumerate(linker_collection):
+            for coord in linker.branching_coords:
+                frac_b = mof.lattice.get_fractional_coords(coord)
 
-    return linkers
+                distance, image = mof.lattice.get_distance_and_image(frac_a, frac_b)
+                if distance < 0.001:
+                    center_frac = mof.lattice.get_fractional_coords(linker.center)
+
+                    linked_to.append(
+                        (
+                            j,
+                            image,
+                            mof.lattice.get_cartesian_coords(center_frac + image),
+                        )
+                    )
+
+    return linked_to
 
 
-def _get_edge_dict(
-    coords: List[np.ndarray], mof, node_collection, centers: List[np.ndarray]
-):
+def _get_edge_dict(mof, node_collection, linker_collection):
     edge_dict = {}
     for i, node in enumerate(node_collection):
-        edge_dict[i] = _get_neighboring_linkers(
-            coords, mof, node.original_branching_indices, centers
+        edge_dict[i] = _get_connected_linkers(
+            mof, node.branching_coords, linker_collection
         )
 
     return edge_dict
@@ -521,7 +526,7 @@ def _get_edge_dict(
 
 def _create_linkers_from_node_location_result(
     mof, node_location_result, node_collection, unbound_solvent
-) -> Tuple[List[int], dict]:
+) -> Tuple[LinkerCollection, dict]:
     linkers = []
 
     all_node_indices = set()
@@ -562,7 +567,7 @@ def _create_linkers_from_node_location_result(
             linkers.append(linker)
 
     linker_collection = LinkerCollection(linkers)
-    edge_dict = _get_edge_dict(node_collection, linker_collection)
+    edge_dict = _get_edge_dict(mof, node_collection, linker_collection)
     return linker_collection, edge_dict
 
 

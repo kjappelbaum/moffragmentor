@@ -7,6 +7,10 @@ from pymatgen.core import Lattice, Structure
 from .sbu import LinkerCollection, NodeCollection
 from .utils import is_tool
 from .utils.errors import JavaNotFoundError
+from .utils.periodic_graph import (
+    _draw_net_structure_graph,
+    _get_pmg_structure_graph_for_net,
+)
 from .utils.systre import run_systre
 
 __all__ = ["NetEmbedding"]
@@ -34,6 +38,7 @@ class NetEmbedding:
         self._composition = None
         self._rcsr_code = None
         self._space_group = None
+        self._structure_graph = _get_pmg_structure_graph_for_net(self)
 
     def __len__(self):
         return len(self.node_collection) + len(self.selected_linkers)
@@ -106,36 +111,11 @@ class NetEmbedding:
         return nglview.show_pymatgen(self._get_dummy_structure())
 
     def plot_net(self):
-        import matplotlib.pyplot as plt
+        return _draw_net_structure_graph(self)
 
-        # from mpl_toolkits import mplot3d
-
-        ax = plt.axes(projection="3d")
-        linker_coords = self.frac_coords[range(len(self.linker_collection))]
-        node_coords = self.frac_coords[
-            range(len(self.linker_collection), len(self.cart_coords))
-        ]
-
-        # Draw nodes
-        ax.scatter3D(
-            linker_coords[:, 0],
-            linker_coords[:, 1],
-            linker_coords[:, 2],
-            label="linker",
-        )
-        ax.scatter3D(
-            node_coords[:, 0], node_coords[:, 1], node_coords[:, 2], label="node"
-        )
-
-        # Edges
-        for edge in self.edges:
-            edge_coordinates = self.frac_coords[[edge[0], edge[1]], :]
-            ax.plot3D(
-                edge_coordinates[:, 0],
-                edge_coordinates[:, 1],
-                edge_coordinates[:, 2],
-                c="black",
-            )
+    @property
+    def structure_graph(self):
+        return self._structure_graph
 
     @property
     def frac_coords(self):

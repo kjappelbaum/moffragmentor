@@ -66,3 +66,41 @@ def _get_leaf_nodes(graph: nx.Graph) -> List[int]:
 
 def _get_number_of_leaf_nodes(graph: nx.Graph) -> int:
     return len(_get_leaf_nodes(graph))
+
+
+def _get_pmg_edge_dict_from_net(net) -> dict:
+    pmg_edge_dict = {}
+
+    number_linkers = len(net.linker_collection)
+
+    for k, v in net.edge_dict.items():
+        node_vertex_number = k + number_linkers
+        for bound_linker in v:
+            linker_idx, image, _ = bound_linker
+            pmg_edge_dict[
+                (node_vertex_number, linker_idx, (0, 0, 0), tuple(image))
+            ] = None
+
+    return pmg_edge_dict
+
+
+def _get_colormap_for_net_sg(net):
+    color_map = ["blue"] * len(net.linker_collection) + ["red"] * len(
+        net.node_collection
+    )
+    return color_map
+
+
+def _draw_net_structure_graph(net):
+    color_map = _get_colormap_for_net_sg(net)
+    return nx.draw(
+        net.structure_graph.graph.to_undirected(),
+        node_color=color_map,
+        with_labels=True,
+    )
+
+
+def _get_pmg_structure_graph_for_net(net) -> StructureGraph:
+    edge_dict = _get_pmg_edge_dict_from_net(net)
+    sg = StructureGraph.with_edges(net._get_dummy_structure(), edge_dict)
+    return sg
