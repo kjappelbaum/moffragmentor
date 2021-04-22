@@ -31,8 +31,6 @@ class MOF:
         self._solvent_indices = None
         self._branching_indices = None
         self._nx_graph = None
-        self._netlsd_heat = None
-        self._netlsd_wave = None
         # ToDo: Maybe add the binding/branching attributes back to the graph
         nx.set_node_attributes(
             self.structure_graph.graph,
@@ -50,8 +48,6 @@ class MOF:
         self._solvent_indices = None
         self._bridges = None
         self._nx_graph = None
-        self._netlsd_heat = None
-        self._netlsd_wave = None
 
     def dump(self, path):
         """Dump this object as pickle file"""
@@ -59,38 +55,6 @@ class MOF:
 
     def __len__(self):
         return len(self.structure)
-
-    def _get_netlsd_heat(self):
-        import netlsd
-
-        if self._netlsd_heat is None:
-            self._netlsd_heat = netlsd.heat(self.nx_graph)
-        return self._netlsd_heat
-
-    def _get_netlsd_wave(self):
-        import netlsd
-
-        if self._netlsd_wave is None:
-            self._netlsd_wave = netlsd.wave(self.nx_graph)
-        return self._netlsd_wave
-
-    @property
-    def netlsd_heat(self):
-        return self._get_netlsd_heat()
-
-    @property
-    def netlsd_wave(self):
-        return self._get_netlsd_wave()
-
-    def heat_compare(self, other):
-        import netlsd
-
-        return netlsd.compare(self.netlsd_heat, other.netlsd_heat)
-
-    def wave_compare(self, other):
-        import netlsd
-
-        return netlsd.compare(self.netlsd_wave, other.netlsd_wave)
 
     @property
     def lattice(self):
