@@ -3,9 +3,9 @@ import os
 
 import networkx as nx
 import pytest
-from pymatgen import Molecule, Structure
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 from pymatgen.analysis.local_env import JmolNN
+from pymatgen.core import Molecule, Structure
 
 from moffragmentor import MOF
 

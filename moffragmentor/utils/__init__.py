@@ -8,8 +8,8 @@ from typing import Collection, List
 
 import numpy as np
 from openbabel import pybel as pb
-from pymatgen import Molecule, Structure
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
+from pymatgen.core import Molecule, Structure
 from pymatgen.io.babel import BabelMolAdaptor
 from pymatgen.util.coord import pbc_shortest_vectors
 

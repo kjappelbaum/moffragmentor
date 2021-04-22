@@ -10,8 +10,9 @@ from .utils.errors import JavaNotFoundError
 from .utils.periodic_graph import (
     _draw_net_structure_graph,
     _get_pmg_structure_graph_for_net,
+    _simplify_structure_graph,
 )
-from .utils.systre import run_systre
+from .utils.systre import _get_systre_input_from_pmg_structure_graph, run_systre
 
 __all__ = ["NetEmbedding"]
 
@@ -23,9 +24,28 @@ class NetEmbedding:
         self,
         linker_collection: LinkerCollection,
         node_collection: NodeCollection,
-        edge_dict: Dict[int, dict],
+        edge_dict: Dict[int, list],
         lattice: Lattice,
     ):
+        """
+        A NetEmbedding instance is defined by a collection of linkers and nodes
+        and their connection on a lattice
+
+        Args:
+            linker_collection (LinkerCollection): Iterable object in which every item is a Linker,
+                the order is important as the edge dict uses indices to refer to specific linker
+            node_collection (NodeCollection): Iterable object in which every item is a metal node,
+                the order is important as the keys of the edge dict are node indices, refering to
+                the node collection
+            edge_dict (Dict[int, list]): Defining the connection between metal nodes and linkers.
+                The main keys are the node indices. The value is a list of tuples that contain the
+                linker indices, the jimages, and the centers
+            lattice (Lattice): A net is a periodic graph. Hence we need information about
+                the periodicity, i.e., the lattice. For this we use a pymatgen Lattice object.
+                We use it to convert between cartesian and fractional coordinates and
+                to get the lattice constants. Usually, it can simply be accessed from a pymatgen
+                Structure `s` via `s.lattice`.
+        """
         self.node_collection = node_collection
         self.linker_collection = linker_collection
         self.linker_centers = linker_collection.centers
@@ -144,48 +164,14 @@ class NetEmbedding:
         ]
         self._kinds = self.linker_collection.sbu_types + node_indices
 
-    def _write_systre_file(self):
-        symmetry_group = "   GROUP P1"
-
-        cell_line = f"   CELL {self.lattice.a} {self.lattice.b} {self.lattice.c} {self.lattice.alpha} {self.lattice.beta} {self.lattice.gamma}"
-        atom_lines = []
-        counter = 0
-        for coordination, coordinate in zip(
-            self.coordination_numbers, self.frac_coords
-        ):
-            atom_lines.append(
-                f"   NODE {counter} {coordination} {coordinate[0]:.4f} {coordinate[1]:.4f} {coordinate[2]:.4f}"
-            )
-            counter += 1
-
-        edge_lines = []
-        missing_nodes = []
-        missing_node_indices = []
-        for edge in self.edges:
-            frac_coords_a = self.frac_coords[edge[0]]
-            frac_coords_b = self.frac_coords[edge[1]]
-
-            _, images = self.lattice.get_distance_and_image(
-                frac_coords_a, frac_coords_b
-            )
-            frac_coords_b += images
-            if sum(images) != 0:
-                missing_nodes.append(frac_coords_b)
-                missing_node_indices.append(edge[1])
-
-            edge_lines.append(
-                f"   EDGE   {frac_coords_a[0]:.4f} {frac_coords_a[1]:.4f} {frac_coords_a[2]:.4f} {frac_coords_b[0]:.4f} {frac_coords_b[1]:.4f} {frac_coords_b[2]:.4f}"
-            )
-
-        file_lines = (
-            ["CRYSTAL", "   NAME", symmetry_group, cell_line]
-            + atom_lines
-            + edge_lines
-            + ["END"]
+    def _write_systre_file(self, simplify: bool = True):
+        if simplify:
+            new_structure_graph = _simplify_structure_graph(self.structure_graph)
+        else:
+            new_structure_graph = self.structure_graph
+        filestring = _get_systre_input_from_pmg_structure_graph(
+            new_structure_graph, self.lattice
         )
-
-        filestring = "\n".join(file_lines)
-
         return filestring
 
     @property

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from collections import Counter
 
-from pymatgen import Structure
+from pymatgen.core import Structure
 
 from moffragmentor.fragmentor.locator import (
     _create_linkers_from_node_location_result,

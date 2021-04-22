@@ -6,8 +6,8 @@ from typing import List, Tuple
 
 import networkx as nx
 import numpy as np
-from pymatgen import Molecule
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
+from pymatgen.core import Molecule
 
 from ..molecule import NonSbuMolecule, NonSbuMoleculeCollection
 from ..utils import _is_any_atom_in_cell, unwrap

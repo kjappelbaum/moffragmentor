@@ -6,8 +6,8 @@ from copy import deepcopy
 from typing import List
 
 import nglview
-from pymatgen import Molecule
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
+from pymatgen.core import Molecule
 
 from .utils import get_edge_dict
 

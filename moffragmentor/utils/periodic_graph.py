@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
+from copy import deepcopy
 from typing import Dict, List, Tuple
 
 import networkx as nx
@@ -68,7 +69,7 @@ def _get_number_of_leaf_nodes(graph: nx.Graph) -> int:
     return len(_get_leaf_nodes(graph))
 
 
-def _get_pmg_edge_dict_from_net(net) -> dict:
+def _get_pmg_edge_dict_from_net(net: "NetEmbeding") -> dict:
     pmg_edge_dict = {}
 
     number_linkers = len(net.linker_collection)
@@ -84,14 +85,14 @@ def _get_pmg_edge_dict_from_net(net) -> dict:
     return pmg_edge_dict
 
 
-def _get_colormap_for_net_sg(net):
+def _get_colormap_for_net_sg(net: "NetEmbeding"):
     color_map = ["blue"] * len(net.linker_collection) + ["red"] * len(
         net.node_collection
     )
     return color_map
 
 
-def _draw_net_structure_graph(net):
+def _draw_net_structure_graph(net: "NetEmbeding"):
     color_map = _get_colormap_for_net_sg(net)
     return nx.draw(
         net.structure_graph.graph.to_undirected(),
@@ -100,7 +101,49 @@ def _draw_net_structure_graph(net):
     )
 
 
-def _get_pmg_structure_graph_for_net(net) -> StructureGraph:
+def _get_pmg_structure_graph_for_net(net: "NetEmbeding") -> StructureGraph:
     edge_dict = _get_pmg_edge_dict_from_net(net)
     sg = StructureGraph.with_edges(net._get_dummy_structure(), edge_dict)
     return sg
+
+
+def _simplify_structure_graph(structure_graph: StructureGraph) -> StructureGraph:
+    """Simplifies a structure graph by removing two-connected nodes.
+    We will place an edge between the nodes that were connected
+    by the two-connected node.
+
+    The function does not touch the input graph (it creates a deep copy).
+    Using the deep copy simplifies the implementation a lot as we can
+    add the edges in a first loop where we check for two-connected nodes
+    and then remove the nodes. This avoids the need for dealing with indices
+    that might change when one creates a new graph.
+
+    Args:
+        structure_graph (StructureGraph): Input structure graph.
+            Usually this is a "net graph". That is, a structure graph for
+            a structure in which the atoms are MOF SBUs
+
+    Returns:
+        StructureGraph: simplified structure graph, where we removed the
+            two-connected nodes.
+    """
+    graph_copy = deepcopy(structure_graph)
+    to_remove = []
+
+    # in the first iteration we just add the edge
+    # and collect the nodes to delete
+    for i, site in enumerate(structure_graph.structure):
+        if structure_graph.get_coordination_of_site(i) == 2:
+            indices = []
+            images = []
+            for neighbor in structure_graph.get_connected_sites(i):
+                indices.append(neighbor.index)
+                images.append(neighbor.jimage)
+
+            graph_copy.add_edge(indices[0], indices[1], images[0], images[1])
+            to_remove.append(i)
+
+    # after we added all the edges, we can remove the nodes
+    graph_copy.remove_nodes(to_remove)
+
+    return graph_copy

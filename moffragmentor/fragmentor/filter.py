@@ -4,8 +4,8 @@ from copy import deepcopy
 from typing import List, Tuple
 
 import networkx as nx
-from pymatgen import Molecule
 from pymatgen.analysis.graphs import StructureGraph
+from pymatgen.core import Molecule
 
 from ..utils.periodic_graph import (
     _get_number_of_leaf_nodes,

@@ -353,7 +353,7 @@ def create_node_collection(
 
 
 def _pick_linker_indices(
-    idxs, centers, all_node_branching_indices
+    idxs: List[List[int]], centers, all_node_branching_indices
 ) -> Tuple[List[int], List[int]]:
     """Trying to have a more reasonable way to filter out linkers
     (of multiple versions of the linker that might be wrapped across a unit cell)"""

@@ -2,7 +2,7 @@
 import os
 
 import pytest
-from pymatgen import Structure
+from pymatgen.core import Structure
 
 from moffragmentor import MOF
 

@@ -7,6 +7,10 @@ from contextlib import contextmanager
 from tempfile import NamedTemporaryFile
 from typing import List, Tuple
 
+import numpy as np
+from pymatgen.analysis.graph import StructureGraph
+from pymatgen.core import Lattice
+
 __all__ = ["run_systre"]
 
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -46,6 +50,18 @@ def run_systre(systre_string: str) -> dict:
 
 
 def parse_systre_lines(lines: List[str]) -> dict:
+    """Given the lines from a Systre output file, which might be created with
+    ```
+    with open('systre.out', 'r') as handle:
+        lines = handle.readlines()
+    ```
+
+    Args:
+        lines (List[str]): [description]
+
+    Returns:
+        dict: [description]
+    """
     rcsr_line = float("inf")
     cell_line = float("inf")
     angle_line = float("inf")
@@ -115,3 +131,69 @@ def _parse_node_line(line: str) -> Tuple[int, List[float]]:
     coords = _line_to_coords(line)
 
     return node_number, coords
+
+
+def _get_systre_input_from_pmg_structure_graph(
+    structure_graph: StructureGraph, lattice: Lattice = None
+) -> str:
+    """
+    Loop over all atoms in a StructureGraph and use them as nodes.
+    Place edges such that all nodes are represented with their
+    full connectivity.
+
+    Args:
+        structure_graph (StrucutureGraph): pymatgen StructureGraph
+            object representing the net. This will correspond to having
+            one atom per SBU in the structure graph.
+        lattice (Lattice): pymatgen lattice object. Needed for the cell dimension
+
+    Returns:
+        str: systre input string. Does not contain the optional edge centers
+    """
+    lattice = structure_graph.structure.lattice if lattice is None else lattice
+    vertices = []
+    edges = set()
+
+    symmetry_group = "   GROUP P1"
+
+    cell_line = f"   CELL {lattice.a} {lattice.b} {lattice.c} {lattice.alpha} {lattice.beta} {lattice.gamma}"
+
+    frac_coords = structure_graph.structure.frac_coords
+
+    for i in range(len(structure_graph)):
+        vertices.append((structure_graph.get_coordination_of_site(i), frac_coords[i]))
+
+        neighbors = structure_graph.get_connected_sites(i)
+
+        for neighbor in neighbors:
+            norm_a = np.linalg.norm(frac_coords[i])
+            norm_b = np.linalg.norm(neighbor.site.frac_coords)
+
+            if norm_a < norm_b:
+                edges.add((tuple(frac_coords[i]), tuple(neighbor.site.frac_coords)))
+            else:
+                edges.add((tuple(neighbor.site.frac_coords), tuple(frac_coords[i])))
+
+    def _create_vertex_string(counter, coordination, coordinate):
+        return f"   NODE {counter} {coordination} {coordinate[0]:.4f} {coordinate[1]:.4f} {coordinate[2]:.4f}"
+
+    def _create_edge_string(coordinate_0, coordinate_1):
+        return f"   EDGE {coordinate_0[0]:.4f} {coordinate_0[1]:.4f} {coordinate_0[2]:.4f} {coordinate_1[0]:.4f} {coordinate_1[1]:.4f} {coordinate_1[2]:.4f}"
+
+    edge_lines = []
+    vertex_lines = []
+
+    for i, vertex in enumerate(vertices):
+        vertex_lines.append(_create_vertex_string(i, vertex[0], vertex[1]))
+
+    for i, edge in enumerate(edges):
+        edge_lines.append(_create_edge_string(edge[0], edge[1]))
+
+    file_lines = (
+        ["CRYSTAL", "   NAME", symmetry_group, cell_line]
+        + vertex_lines
+        + edge_lines
+        + ["END"]
+    )
+
+    return "\n".join(file_lines)
