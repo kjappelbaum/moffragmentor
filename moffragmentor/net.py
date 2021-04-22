@@ -64,33 +64,6 @@ class NetEmbedding:
         return len(self.node_collection) + len(self.selected_linkers)
 
     @property
-    def edges(self):
-        if self._edges is None:
-            self._find_edges()
-        return self._edges
-
-    def _find_edges(self):
-        edges = set()
-        for i, node in enumerate(self.node_collection):
-            for j, linker in enumerate(self.linker_collection):
-                if (
-                    len(
-                        linker.original_branching_indices
-                        & node.original_branching_indices
-                    )
-                    > 0
-                ):
-                    edge_tuple = (j, i + len(self.linker_collection))
-                    edges.add(edge_tuple)
-        self._edges = edges
-
-    def get_distance(self, i, j):
-        return np.linalg.norm(self.cart_coords[i] - self.cart_coords[j])
-
-    def get_frac_distance(self, i, j):
-        return np.linalg.norm(self.frac_coords[i] - self.frac_coords[j])
-
-    @property
     def lattice(self):
         return self._lattice
 
