@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""This module contains classes that are used to organize non-SBU molecules such as floating or bound solvents
-"""
+"""This module contains classes that are used to organize non-SBU molecules
+such as floating or bound solvents"""
 from collections import Counter
 from copy import deepcopy
 from typing import List
@@ -10,6 +10,8 @@ from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 from pymatgen.core import Molecule
 
 from .utils import get_edge_dict
+
+__all__ = ["NonSbuMolecule", "NonSbuMoleculeCollection"]
 
 
 class NonSbuMolecule:
@@ -25,7 +27,8 @@ class NonSbuMolecule:
         self.molecule = molecule
         self.molecule_graph = molecule_graph
         self.indices = indices
-        # We store the connecting index to see which atom we would need to give the elctron from the bond to the metal, it is not used atm but (hopefully) will be
+        # We store the connecting index to see which atom we would need to give the elctron from the bond to the metal,
+        # it is not used atm but (hopefully) will be
         self.connecting_index = connecting_index
 
     @property

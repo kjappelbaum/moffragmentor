@@ -1,25 +1,17 @@
 # -*- coding: utf-8 -*-
 import os
 from collections import defaultdict
-from copy import deepcopy
-from typing import List, Tuple, Union
+from typing import List, Union
 
 import matplotlib.pylab as plt
 import networkx as nx
 import nglview
 import numpy as np
-from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
-from pymatgen.analysis.local_env import (
-    CrystalNN,
-    CutOffDictNN,
-    JmolNN,
-    MinimumDistanceNN,
-    VoronoiNN,
-)
+from pymatgen.analysis.graphs import StructureGraph
+from pymatgen.analysis.local_env import CutOffDictNN
 from pymatgen.core import Structure
 
 from .fragmentor import run_fragmentation
-from .sbu import Linker, Node
 from .utils import pickle_dump, write_cif
 
 VestaCutoffDictNN = CutOffDictNN.from_preset("vesta_2019")

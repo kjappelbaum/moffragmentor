@@ -94,8 +94,9 @@ def _get_colormap_for_net_sg(net: "NetEmbeding"):
 
 def _draw_net_structure_graph(net: "NetEmbeding"):
     color_map = _get_colormap_for_net_sg(net)
+    g = net.structure_graph.graph.to_undirected()
     return nx.draw(
-        net.structure_graph.graph.to_undirected(),
+        g,
         node_color=color_map,
         with_labels=True,
     )

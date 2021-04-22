@@ -11,7 +11,6 @@ from openbabel import pybel as pb
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 from pymatgen.core import Molecule, Structure
 from pymatgen.io.babel import BabelMolAdaptor
-from pymatgen.util.coord import pbc_shortest_vectors
 
 
 def get_smiles_from_pmg_mol(pmg_mol):

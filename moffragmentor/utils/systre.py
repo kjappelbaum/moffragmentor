@@ -8,7 +8,7 @@ from tempfile import NamedTemporaryFile
 from typing import List, Tuple
 
 import numpy as np
-from pymatgen.analysis.graph import StructureGraph
+from pymatgen.analysis.graphs import StructureGraph
 from pymatgen.core import Lattice
 
 __all__ = ["run_systre"]
@@ -44,12 +44,12 @@ def run_systre(systre_string: str) -> dict:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
-        systre_result = parse_systre_lines(out.stdout.split("\n"))
+        systre_result = _parse_systre_lines(out.stdout.split("\n"))
 
         return systre_result
 
 
-def parse_systre_lines(lines: List[str]) -> dict:
+def _parse_systre_lines(lines: List[str]) -> dict:
     """Given the lines from a Systre output file, which might be created with
     ```
     with open('systre.out', 'r') as handle:

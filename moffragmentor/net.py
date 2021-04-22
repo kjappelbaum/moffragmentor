@@ -76,6 +76,10 @@ class NetEmbedding:
 
     @property
     def cart_coords(self):
+        """Returns cartesian coordinates for all vertices.
+        As for all outputs of this class, linkers are first,
+        then metal SBUs
+        """
         if self._cart_coords is None:
             self._cart_coords = self._get_coordinates()
         return self._cart_coords
@@ -104,10 +108,14 @@ class NetEmbedding:
         return nglview.show_pymatgen(self._get_dummy_structure())
 
     def plot_net(self):
+        """It draws the repeat unit of the net using networkx"""
         return _draw_net_structure_graph(self)
 
     @property
     def structure_graph(self):
+        """Returns the "structure graph" of the net. The structure here
+        is a dummy structure where atoms are placed on the centers of metal nodes
+        and linkers"""
         return self._structure_graph
 
     @property
