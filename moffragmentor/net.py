@@ -12,6 +12,7 @@ from .utils.periodic_graph import (
     _get_pmg_structure_graph_for_net,
     _simplify_structure_graph,
 )
+from .utils.plotting import ploty_plot_structure_graph
 from .utils.systre import _get_systre_input_from_pmg_structure_graph, run_systre
 
 __all__ = ["NetEmbedding"]
@@ -61,7 +62,11 @@ class NetEmbedding:
         self._structure_graph = _get_pmg_structure_graph_for_net(self)
 
     def __len__(self):
-        return len(self.node_collection) + len(self.selected_linkers)
+        return len(self.node_collection) + len(self.linker_collection)
+
+    @property
+    def density(self):
+        return len(self) / (self.lattice.volume)
 
     @property
     def lattice(self):
@@ -107,8 +112,13 @@ class NetEmbedding:
 
         return nglview.show_pymatgen(self._get_dummy_structure())
 
-    def plot_net(self):
+    def plot_net(self, plotly=True):
         """It draws the repeat unit of the net using networkx"""
+        if plotly:
+            try:
+                return ploty_plot_structure_graph(self.structure_graph)
+            except Exception:
+                return _draw_net_structure_graph(self)
         return _draw_net_structure_graph(self)
 
     @property

@@ -193,7 +193,6 @@ class MOF:
         return fragmentation_result
 
     def fragment(self):
-
         return self._fragment()
 
     def _get_cif_text(self):

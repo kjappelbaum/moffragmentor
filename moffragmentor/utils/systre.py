@@ -152,7 +152,7 @@ def _get_systre_input_from_pmg_structure_graph(
     """
     lattice = structure_graph.structure.lattice if lattice is None else lattice
     vertices = []
-    edges = set()
+    edges = []
 
     symmetry_group = "   GROUP P1"
 
@@ -163,16 +163,10 @@ def _get_systre_input_from_pmg_structure_graph(
     for i in range(len(structure_graph)):
         vertices.append((structure_graph.get_coordination_of_site(i), frac_coords[i]))
 
-        neighbors = structure_graph.get_connected_sites(i)
-
-        for neighbor in neighbors:
-            norm_a = np.linalg.norm(frac_coords[i])
-            norm_b = np.linalg.norm(neighbor.site.frac_coords)
-
-            if norm_a < norm_b:
-                edges.add((tuple(frac_coords[i]), tuple(neighbor.site.frac_coords)))
-            else:
-                edges.add((tuple(neighbor.site.frac_coords), tuple(frac_coords[i])))
+    for edge in structure_graph.graph.edges(data=True):
+        start = frac_coords[edge[0]]
+        end = frac_coords[edge[1]] + edge[2]["to_jimage"]
+        edges.append((tuple(start), tuple(end)))
 
     def _create_vertex_string(counter, coordination, coordinate):
         return f"   NODE {counter} {coordination} {coordinate[0]:.4f} {coordinate[1]:.4f} {coordinate[2]:.4f}"

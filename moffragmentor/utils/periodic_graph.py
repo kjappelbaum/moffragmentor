@@ -130,6 +130,7 @@ def _simplify_structure_graph(structure_graph: StructureGraph) -> StructureGraph
     """
     graph_copy = deepcopy(structure_graph)
     to_remove = []
+    added_edges = set()
 
     # in the first iteration we just add the edge
     # and collect the nodes to delete
@@ -140,11 +141,17 @@ def _simplify_structure_graph(structure_graph: StructureGraph) -> StructureGraph
             for neighbor in structure_graph.get_connected_sites(i):
                 indices.append(neighbor.index)
                 images.append(neighbor.jimage)
+                graph_copy.break_edge(i, neighbor.index, neighbor.jimage)
 
-            graph_copy.add_edge(indices[0], indices[1], images[0], images[1])
+            sorted_images = [x for _, x in sorted(zip(indices, images))]
+            edge_tuple = (tuple(sorted(indices)), tuple(sorted_images))
+            # in principle, this check should not be needed ...
+            if edge_tuple not in added_edges:
+                added_edges.add(edge_tuple)
+                graph_copy.add_edge(indices[0], indices[1], images[0], images[1])
+
             to_remove.append(i)
 
     # after we added all the edges, we can remove the nodes
     graph_copy.remove_nodes(to_remove)
-
     return graph_copy
