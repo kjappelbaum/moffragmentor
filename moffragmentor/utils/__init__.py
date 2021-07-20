@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Helper functions"""
 import datetime
 import os
 import pickle
@@ -88,8 +89,8 @@ def build_molecule_and_graph(s, sites, edges):
         new_edges[(remapper[a], remapper[b])] = None
 
     mol = mol_from_sites(selected_sites)
-    mg = MoleculeGraph.with_edges(mol, new_edges)
-    return mol, mg
+    molecule_graph = MoleculeGraph.with_edges(mol, new_edges)
+    return mol, molecule_graph
 
 
 def write_cif(s, graph, connection_indices, molecule=None, write_bonding_mode=False):
