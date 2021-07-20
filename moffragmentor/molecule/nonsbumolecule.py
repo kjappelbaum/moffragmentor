@@ -21,7 +21,8 @@ class NonSbuMolecule:
         self.molecule = molecule
         self.molecule_graph = molecule_graph
         self.indices = indices
-        # We store the connecting index to see which atom we would need to give the elctron from the bond to the metal,
+        # We store the connecting index to see which atom we would
+        # need to give the elctron from the bond to the metal,
         # it is not used atm but (hopefully) will be
         self.connecting_index = connecting_index
 

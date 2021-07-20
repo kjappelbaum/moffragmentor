@@ -34,7 +34,7 @@ def run_systre(systre_string: str) -> dict:
         cmd_list = [
             "java",
             "-cp",
-            "/Users/kevinmaikjablonka/Dropbox (LSMO)/Documents/open_source/pymoffragmentor/moffragmentor/Systre-19.6.0.jar",
+            str(SYSTRE_JAR),
             "org.gavrog.apps.systre.SystreCmdline",
             filename,
         ]

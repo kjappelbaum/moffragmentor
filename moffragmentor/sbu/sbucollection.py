@@ -6,6 +6,8 @@ from .sbu import SBU
 
 
 class SBUCollection:
+    """Container for a collection of SBUs"""
+
     def __init__(self, sbus: List[SBU]):
         self.sbus = sbus
         self._sbu_types = None
