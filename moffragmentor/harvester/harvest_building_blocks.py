@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+"""Functionality to fragment all MOFs in a folder of CIF files"""
 import concurrent.futures
 import logging
 import os

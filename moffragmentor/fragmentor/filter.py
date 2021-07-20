@@ -7,10 +7,7 @@ import networkx as nx
 from pymatgen.analysis.graphs import StructureGraph
 from pymatgen.core import Molecule
 
-from ..utils.periodic_graph import (
-    _get_number_of_leaf_nodes,
-    _get_supergraph_and_index_map,
-)
+from ..utils.periodic_graph import _get_number_of_leaf_nodes
 from .utils import _get_metal_sublists
 
 
@@ -65,7 +62,6 @@ def filter_nodes(
     graph: StructureGraph,
     metal_indices: List[int],
 ) -> List[List[int]]:
-    # supergraph, index_map = _get_supergraph_and_index_map(graph)
     metal_sublist = _get_metal_sublists(node_candidate_indices, metal_indices)
 
     filtered_nodes, original_indices = _filter_isolated_node_candidates(

@@ -51,6 +51,10 @@ class SBUCollection:
             self._get_unique()
         return self._unique_sbus
 
+    @property
+    def sbu_properties(self):
+        return dict(zip(self.sbu_types, self.coordination_numbers))
+
     def _get_unique(self):
         all_strings = [str(sbu) for sbu in self.sbus]
         unique_strings = set(all_strings)

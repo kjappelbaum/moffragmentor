@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
+"""Defines the Python representation of the embedding of the reticular
+building blocks on a net"""
 from typing import Dict
 
 import numpy as np
+from backports.cached_property import cached_property
 from pymatgen.core import Lattice, Structure
 
 from .sbu import LinkerCollection, NodeCollection
@@ -53,6 +56,7 @@ class NetEmbedding:
         self.node_centers = node_collection.centers
         self.edge_dict = edge_dict
 
+        self._kinds = None
         self._edges = None
         self._lattice = lattice
         self._cart_coords = None
@@ -61,11 +65,23 @@ class NetEmbedding:
         self._space_group = None
         self._structure_graph = _get_pmg_structure_graph_for_net(self)
 
-    def __len__(self):
+    def __len__(self) -> int:
+        """Number of building blocks"""
         return len(self.node_collection) + len(self.linker_collection)
 
+    @cached_property
+    def q(self):
+        return len(self.simplified_structure_graph.types_of_coordination_environments())
+
     @property
-    def density(self):
+    def pq(self):
+        """Returns the pq symbol: Number of vertex and edge types.
+        These are the first two symbols of the transistivty pqrs.
+        r(faces) and (s) are only defined if there is a tiling"""
+        raise NotImplementedError
+
+    @property
+    def density(self) -> float:
         return len(self) / (self.lattice.volume)
 
     @property
@@ -108,7 +124,7 @@ class NetEmbedding:
         return Structure(self.lattice, linker_symbols + node_symbols, frac_coords)
 
     def show_dummy_structure(self):
-        import nglview
+        import nglview  # pylint: disable=import-outside-toplevel
 
         return nglview.show_pymatgen(self._get_dummy_structure())
 
@@ -117,7 +133,7 @@ class NetEmbedding:
         if plotly:
             try:
                 return ploty_plot_structure_graph(self.structure_graph)
-            except Exception:
+            except Exception:  # pylint:disable=broad-except
                 return _draw_net_structure_graph(self)
         return _draw_net_structure_graph(self)
 
@@ -140,7 +156,7 @@ class NetEmbedding:
 
     @property
     def kinds(self):
-        if self._self_kinds is None:
+        if self._kinds is None:
             self._get_kinds()
 
         return self._kinds
@@ -155,9 +171,13 @@ class NetEmbedding:
         ]
         self._kinds = self.linker_collection.sbu_types + node_indices
 
+    @cached_property
+    def simplified_structure_graph(self):
+        return _simplify_structure_graph(self.structure_graph)
+
     def _write_systre_file(self, simplify: bool = True):
         if simplify:
-            new_structure_graph = _simplify_structure_graph(self.structure_graph)
+            new_structure_graph = self.simplified_structure_graph
         else:
             new_structure_graph = self.structure_graph
         filestring = _get_systre_input_from_pmg_structure_graph(

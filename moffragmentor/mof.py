@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Defining the main representation of a MOF"""
 import os
 from collections import defaultdict
 from typing import List, Union
@@ -7,14 +8,21 @@ import matplotlib.pylab as plt
 import networkx as nx
 import nglview
 import numpy as np
+import yaml
+from backports.cached_property import cached_property
 from pymatgen.analysis.graphs import StructureGraph
 from pymatgen.analysis.local_env import CutOffDictNN
-from pymatgen.core import Structure
+from pymatgen.core import Lattice, Structure
 
 from .fragmentor import run_fragmentation
 from .utils import pickle_dump, write_cif
 
-VestaCutoffDictNN = CutOffDictNN.from_preset("vesta_2019")
+THIS_DIR = os.path.dirname(os.path.realpath(__file__))
+
+with open(os.path.join(THIS_DIR, "utils", "tuned_vesta.yml"), "r") as handle:
+    VESTA_CUTOFFS = yaml.load(handle, Loader=yaml.UnsafeLoader)
+
+VestaCutoffDictNN = CutOffDictNN(cut_off_dict=VESTA_CUTOFFS)
 
 __all__ = ["MOF"]
 
@@ -31,7 +39,6 @@ class MOF:
         self._solvent_indices = None
         self._branching_indices = None
         self._nx_graph = None
-        # ToDo: Maybe add the binding/branching attributes back to the graph
         nx.set_node_attributes(
             self.structure_graph.graph,
             name="idx",
@@ -41,8 +48,6 @@ class MOF:
     def _reset(self):
         self._node_indices = None
         self._linker_indices = None
-        self.nodes = []
-        self.linker = []
         self._topology = None
         self._connecting_node_indices = None
         self._solvent_indices = None
@@ -53,23 +58,23 @@ class MOF:
         """Dump this object as pickle file"""
         pickle_dump(self, path)
 
-    def __len__(self):
+    def __len__(self) -> str:
         return len(self.structure)
 
     @property
-    def lattice(self):
+    def lattice(self) -> Lattice:
         return self.structure.lattice
 
     @property
-    def composition(self):
+    def composition(self) -> str:
         return self.structure.composition.alphabetical_formula
 
     @property
-    def cart_coords(self):
+    def cart_coords(self) -> np.ndarray:
         return self.structure.cart_coords
 
     @property
-    def frac_coords(self):
+    def frac_coords(self) -> np.ndarray:
         return self.structure.frac_coords
 
     @classmethod
@@ -86,7 +91,8 @@ class MOF:
 
         Args:
             index (int): index of site that is to be probed
-            allow_metal (bool, optional): If True it does not perform this check for metals (and just return False). Defaults to False.
+            allow_metal (bool, optional): If True it does not perform
+                this check for metals (and just return False). Defaults to False.
 
         Returns:
             bool: True if this is a branching index
@@ -127,8 +133,9 @@ class MOF:
         except KeyError:
             return False
 
-    @property
+    @cached_property
     def nx_graph(self):
+        """Structure graph as networkx graph object"""
         return self._get_nx_graph()
 
     def _generate_bridges(self):
@@ -142,15 +149,18 @@ class MOF:
             self._bridges = dict(bridges_dict)
         return self._bridges
 
-    @property
-    def bridges(self):
+    @cached_property
+    def bridges(self) -> dict:
+        """Bridges are edges in a graph that, if deleted,
+        increase the number of connected components"""
         return self._generate_bridges()
 
-    @property
+    @cached_property
     def adjaceny_matrix(self):
         return nx.adjacency_matrix(self.structure_graph.graph)
 
     def show_adjacency_matrix(self, highlight_metals=False):
+        """Plot structure graph as adjaceny matrix"""
         matrix = self.adjaceny_matrix.todense()
         if highlight_metals:
             cols = np.nonzero(matrix[self.metal_indices, :])
@@ -159,33 +169,28 @@ class MOF:
             matrix[rows, self.metal_indices] = 2
         plt.imshow(self.adjaceny_matrix.todense(), cmap="Greys_r")
 
-    @property
+    @cached_property
     def metal_indices(self) -> List[int]:
         return [
             i for i, species in enumerate(self.structure.species) if species.is_metal
         ]
 
-    @property
+    @cached_property
     def h_indices(self) -> List[int]:
         return [
             i for i, species in enumerate(self.structure.species) if str(species) == "H"
         ]
 
     def get_neighbor_indices(self, site: int) -> List[int]:
+        """Get list of indices of neighboring sites"""
         return [site.index for site in self.structure_graph.get_connected_sites(site)]
 
     def get_symbol_of_site(self, site: int) -> str:
+        """Get elemental symbol of site indexed site"""
         return str(self.structure[site].specie)
 
-    @property
-    def node_indices(self) -> set:
-        """Returns node indices from cache if they already have been determined, otherwise calculates them"""
-        if self._node_indices is None:
-            self._get_node_indices()
-
-        return self._node_indices
-
     def show_structure(self):
+        """Visualize structure using nglview"""
         return nglview.show_pymatgen(self.structure)
 
     def _fragment(self):
@@ -193,11 +198,14 @@ class MOF:
         return fragmentation_result
 
     def fragment(self):
+        """Splits the MOF into building blocks (linkers, nodes, bound,
+        undbound solvent, net embedding of those building blocks)"""
         return self._fragment()
 
-    def _get_cif_text(self):
+    def _get_cif_text(self) -> str:
         return write_cif(self.structure, self.structure_graph, [])
 
-    def write_cif(self, filename):
-        with open(filename, "w") as f:
-            f.write(self._get_cif_text())
+    def write_cif(self, filename) -> None:
+        """Writes the structure to a CIF file"""
+        with open(filename, "w") as handle:
+            handle.write(self._get_cif_text())

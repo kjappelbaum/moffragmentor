@@ -10,8 +10,7 @@ from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 from pymatgen.core import Molecule
 
 from ..molecule import NonSbuMolecule, NonSbuMoleculeCollection
-from ..utils import _is_any_atom_in_cell, unwrap
-from ..utils.periodic_graph import _get_reverse_supergraph_index_map
+from ..utils import _is_any_atom_in_cell
 
 __all__ = ["get_subgraphs_as_molecules"]
 
