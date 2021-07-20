@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import plotly as py
 import plotly.graph_objs as go
 
 

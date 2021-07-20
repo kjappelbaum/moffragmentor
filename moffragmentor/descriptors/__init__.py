@@ -138,8 +138,8 @@ def get_lsop(structure):
 def distance_descriptors(structure):
     try:
         distances = []
-        for i, sitei in enumerate(structure):
-            for j, sitej in enumerate(structure):
+        for i, _ in enumerate(structure):
+            for j, _ in enumerate(structure):
                 if i < j:
                     distances.append(structure.get_distance(i, j))
 
@@ -150,7 +150,7 @@ def distance_descriptors(structure):
             "median_distance": np.mean(distances),
             "std_distance": np.std(distances),
         }
-    except Exception:
+    except Exception:  # pylint: disable=broad-except
         return {
             "min_distance": 0,
             "max_distance": 0,
