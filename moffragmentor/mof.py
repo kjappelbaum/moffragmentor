@@ -27,7 +27,7 @@ VestaCutoffDictNN = CutOffDictNN(cut_off_dict=VESTA_CUTOFFS)
 __all__ = ["MOF"]
 
 
-class MOF:
+class MOF:  # pylint:disable=too-many-instance-attributes
     """Main representation for a MOF structure"""
 
     def __init__(self, structure: Structure, structure_graph: StructureGraph):
@@ -209,5 +209,5 @@ class MOF:
 
     def write_cif(self, filename) -> None:
         """Writes the structure to a CIF file"""
-        with open(filename, "w") as handle:
-            handle.write(self._get_cif_text())
+        with open(filename, "w") as file_handle:
+            file_handle.write(self._get_cif_text())

@@ -70,11 +70,12 @@ class NetEmbedding:
         return len(self.node_collection) + len(self.linker_collection)
 
     @cached_property
-    def q(self):
+    def q(self):  # pylint: disable=invalid-name
+        """Number of vertices"""
         return len(self.simplified_structure_graph.types_of_coordination_environments())
 
     @property
-    def pq(self):
+    def pq(self):  # pylint: disable=invalid-name
         """Returns the pq symbol: Number of vertex and edge types.
         These are the first two symbols of the transistivty pqrs.
         r(faces) and (s) are only defined if there is a tiling"""
@@ -126,7 +127,9 @@ class NetEmbedding:
     def show_dummy_structure(self):
         import nglview  # pylint: disable=import-outside-toplevel
 
-        return nglview.show_pymatgen(self._get_dummy_structure())
+        return nglview.show_pymatgen(
+            self._get_dummy_structure()
+        )  # pylint:disable=protected-access
 
     def plot_net(self, plotly=True):
         """It draws the repeat unit of the net using networkx"""
@@ -145,11 +148,11 @@ class NetEmbedding:
         return self._structure_graph
 
     @property
-    def frac_coords(self):
+    def frac_coords(self) -> np.ndarray:
         return self.lattice.get_fractional_coords(self.cart_coords)
 
     @property
-    def composition(self):
+    def composition(self) -> str:
         if self._composition is None:
             self._get_composition()
         return self._composition
@@ -186,7 +189,7 @@ class NetEmbedding:
         return filestring
 
     @property
-    def rcsr_code(self):
+    def rcsr_code(self) -> str:
         if self._rcsr_code is None:
             self._run_systre()
         return self._rcsr_code

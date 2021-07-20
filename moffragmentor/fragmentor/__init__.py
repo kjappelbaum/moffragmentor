@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Methods for the fragmentation of MOFs"""
 from collections import namedtuple
 
 from ..net import NetEmbedding
