@@ -28,6 +28,8 @@ __all__ = ["MOF"]
 
 
 class MOF:
+    """Main representation for a MOF structure"""
+
     def __init__(self, structure: Structure, structure_graph: StructureGraph):
         self.structure = structure
         self.structure_graph = structure_graph
