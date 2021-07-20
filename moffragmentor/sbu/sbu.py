@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Representation for a secondary building block"""
 from typing import Collection, List
 
 import networkx as nx
@@ -16,6 +17,8 @@ __all__ = ["SBU"]
 
 
 class SBU:
+    """Representation for a secondary building block"""
+
     def __init__(
         self,
         molecule: Molecule,

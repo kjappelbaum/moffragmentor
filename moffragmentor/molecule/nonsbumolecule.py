@@ -26,7 +26,7 @@ class NonSbuMolecule:
         self.connecting_index = connecting_index
 
     @property
-    def composition(self):
+    def composition(self) -> str:
         return self.molecule.composition.alphabetical_formula
 
     def __str__(self):
@@ -57,10 +57,10 @@ class NonSbuMolecule:
         for site in structure:
             sites.append(site)
         mol = Molecule.from_sites(sites)
-        mg = MoleculeGraph.with_edges(mol, get_edge_dict(my_graph))
-        return cls(mol, mg, indices)
+        molecule_graph = MoleculeGraph.with_edges(mol, get_edge_dict(my_graph))
+        return cls(mol, molecule_graph, indices)
 
     def show_molecule(self):
-        import nglview
+        import nglview  # pre-commit:disable=import-outside-toplevel
 
         return nglview.show_pymatgen(self.molecule)

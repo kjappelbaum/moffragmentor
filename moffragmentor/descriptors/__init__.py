@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Collection of descriptor methods"""
 import numpy as np
 import pandas as pd
 from pymatgen.analysis.local_env import LocalStructOrderParams
