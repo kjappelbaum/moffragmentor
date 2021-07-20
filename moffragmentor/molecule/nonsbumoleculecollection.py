@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""collections of molecules, e.g. bound solvents and non-bound solvents"""
 from collections import Counter
 from typing import List
 
@@ -6,7 +7,8 @@ from .nonsbumolecule import NonSbuMolecule
 
 
 class NonSbuMoleculeCollection:
-    """Class to handle collections of molecules, e.g. bound solvents and non-bound solvents"""
+    """Class to handle collections of molecules,
+    e.g. bound solvents and non-bound solvents"""
 
     def __init__(self, non_sbu_molecules=List[NonSbuMolecule]):
         self.molecules = non_sbu_molecules
@@ -39,5 +41,5 @@ class NonSbuMoleculeCollection:
         return self._composition
 
     @property
-    def composition(self):
+    def composition(self) -> str:
         return self._get_composition()
