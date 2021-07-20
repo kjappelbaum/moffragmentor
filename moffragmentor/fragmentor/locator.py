@@ -353,7 +353,7 @@ def create_node_collection(
 
 
 def _pick_linker_indices(
-    idxs: List[List[int]], centers, all_node_branching_indices
+    idxs: List[List[int]], centers, coordinates, all_node_branching_indices
 ) -> Tuple[List[int], List[int]]:
     """Trying to have a more reasonable way to filter out linkers
     (of multiple versions of the linker that might be wrapped across a unit cell)"""
@@ -362,12 +362,12 @@ def _pick_linker_indices(
     unique_branching_sites_indices = {}
     counter = 0
     has_branch_point = []
-    for idx, center in zip(idxs, centers):
+    for idx, center, coords in zip(idxs, centers, coordinates):
         intersection = set(idx) & all_node_branching_indices
         if len(intersection) >= 2:
             has_branch_point.append(counter)
             intersection = tuple(sorted(tuple(intersection)))
-            norm = np.linalg.norm(center)
+            norm = np.linalg.norm(coords - center)
             if intersection in unique_branching_site_centers.keys():
                 if unique_branching_site_centers[intersection] > norm:
                     unique_branching_site_centers[intersection] = norm
@@ -494,12 +494,14 @@ def _get_connected_linkers(
     be bound to are periodic images of the ones in the cell"""
     linked_to = []
     for i, branching_coordinate in enumerate(branching_coordinates):
+        # this here is the stupid part. Why do i check with the branching coordinate
         frac_a = mof.lattice.get_fractional_coords(branching_coordinate)
         for j, linker in enumerate(linker_collection):
             for coord in linker.branching_coords:
                 frac_b = mof.lattice.get_fractional_coords(coord)
 
                 distance, image = mof.lattice.get_distance_and_image(frac_a, frac_b)
+
                 if distance < 0.001:
                     center_frac = mof.lattice.get_fractional_coords(linker.center)
 
@@ -549,7 +551,7 @@ def _create_linkers_from_node_location_result(
     )
 
     linker_indices, _ = _pick_linker_indices(
-        idxs, centers, node_location_result.branching_indices
+        idxs, centers, coordinates, node_location_result.branching_indices
     )
 
     for i, (mol, graph, idx, center) in enumerate(zip(mols, graphs, idxs, centers)):

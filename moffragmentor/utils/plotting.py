@@ -3,7 +3,9 @@ import plotly as py
 import plotly.graph_objs as go
 
 
-def ploty_plot_structure_graph(structure_graph):
+def ploty_plot_structure_graph(
+    structure_graph, show_edges: bool = True, show_nodes: bool = True
+):
     node_x = []
     node_y = []
     node_z = []
@@ -80,6 +82,12 @@ def ploty_plot_structure_graph(structure_graph):
         hovermode="closest",
     )
 
-    data = [trace1, trace2]
+    data = []
+
+    if show_nodes:
+        data.append(trace2)
+    if show_edges:
+        data.append(trace1)
+
     fig = go.Figure(data=data, layout=layout)
     return fig
