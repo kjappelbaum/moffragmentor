@@ -2,8 +2,10 @@
 """Testing the splitting module of the fragmentor subpackage"""
 from collections import Counter
 
-from moffragmentor.fragmentor.splitter import (get_floating_solvent_molecules,
-                                               get_subgraphs_as_molecules)
+from moffragmentor.fragmentor.splitter import (
+    get_floating_solvent_molecules,
+    get_subgraphs_as_molecules,
+)
 
 
 def test_unbound_solvent_identification(get_p_linker_with_floating):

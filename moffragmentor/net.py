@@ -10,12 +10,13 @@ from pymatgen.core import Lattice, Structure
 from .sbu import LinkerCollection, NodeCollection
 from .utils import is_tool
 from .utils.errors import JavaNotFoundError
-from .utils.periodic_graph import (_draw_net_structure_graph,
-                                   _get_pmg_structure_graph_for_net,
-                                   _simplify_structure_graph)
+from .utils.periodic_graph import (
+    _draw_net_structure_graph,
+    _get_pmg_structure_graph_for_net,
+    _simplify_structure_graph,
+)
 from .utils.plotting import ploty_plot_structure_graph
-from .utils.systre import (_get_systre_input_from_pmg_structure_graph,
-                           run_systre)
+from .utils.systre import _get_systre_input_from_pmg_structure_graph, run_systre
 
 __all__ = ["NetEmbedding"]
 

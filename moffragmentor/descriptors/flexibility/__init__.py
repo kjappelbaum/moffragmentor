@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Methods for describing the flexibility of molecules"""
-from rdkit.Chem import (Descriptors, Descriptors3D, GraphDescriptors,
-                        rdMolDescriptors)
+from rdkit.Chem import Descriptors, Descriptors3D, GraphDescriptors, rdMolDescriptors
 
 from .nconf20 import calc_nconf20
 

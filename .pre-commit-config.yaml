@@ -35,6 +35,16 @@ repos:
   #       exclude: (versioneer.py|_version.py|^docs/)
 
 
+  -   repo: https://github.com/pre-commit/mirrors-isort
+      rev: 'v5.6.4'  # Use the revision sha / tag you want to point at
+      hooks:
+      -   id: isort
+          name: isort
+          language: system
+          exclude: versioneer.py|moffragmentor/_version.py|^docs/
+          types: [python]
+          entry: isort
+
   -   repo: https://github.com/psf/black
       rev: 20.8b1
       hooks:
@@ -45,15 +55,6 @@ repos:
           entry: black
           types: [python]
 
-  -   repo: https://github.com/pre-commit/mirrors-isort
-      rev: 'v5.6.4'  # Use the revision sha / tag you want to point at
-      hooks:
-      -   id: isort
-          name: isort
-          language: system
-          exclude: versioneer.py|moffragmentor/_version.py|^docs/
-          types: [python]
-          entry: isort
 
   - repo: local
     hooks:

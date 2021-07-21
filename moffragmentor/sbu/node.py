@@ -5,8 +5,11 @@ from typing import Set
 import numpy as np
 from pymatgen.analysis.graphs import MoleculeGraph
 
-from ..utils import (_not_relevant_structure_indices,
-                     connected_mol_from_indices, get_edge_dict)
+from ..utils import (
+    _not_relevant_structure_indices,
+    connected_mol_from_indices,
+    get_edge_dict,
+)
 from .sbu import SBU
 
 

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-from moffragmentor.analyzer.sbu_dimensionality import \
-    _get_structure_graph_dimensionality
+from moffragmentor.analyzer.sbu_dimensionality import (
+    _get_structure_graph_dimensionality,
+)
 
 
 def test__get_structure_graph_dimensionality(get_0d_node_graph, get_1d_node_graph):
