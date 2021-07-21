@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-from moffragmentor.fragmentor.filter import (
-    _creates_new_connected_components,
-    _filter_branch_points,
-    _filter_isolated_node_candidates,
-)
+from moffragmentor.fragmentor.filter import (_creates_new_connected_components,
+                                             _filter_branch_points,
+                                             _filter_isolated_node_candidates)
 
 
 def test__filter_branching_points(get_dicarboxy_biphenyl_graph):

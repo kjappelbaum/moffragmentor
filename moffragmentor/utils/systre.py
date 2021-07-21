@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Methods for running systre"""
 import os
 import re
 import subprocess

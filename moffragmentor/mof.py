@@ -81,9 +81,11 @@ class MOF:  # pylint:disable=too-many-instance-attributes
 
     @classmethod
     def from_cif(cls, cif: Union[str, os.PathLike]):
-        s = Structure.from_file(cif)
-        sg = StructureGraph.with_local_env_strategy(s, VestaCutoffDictNN)
-        return cls(s, sg)
+        structure = Structure.from_file(cif)
+        structure_graph = StructureGraph.with_local_env_strategy(
+            structure, VestaCutoffDictNN
+        )
+        return cls(structure, structure_graph)
 
     def _is_branch_point(self, index: int, allow_metal: bool = False) -> bool:
         """The branch point definition is key for splitting MOFs

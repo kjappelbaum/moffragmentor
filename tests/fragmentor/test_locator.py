@@ -5,10 +5,8 @@ from pymatgen.core import Structure
 
 from moffragmentor.fragmentor.locator import (
     _create_linkers_from_node_location_result,
-    _get_solvent_molecules_bound_to_node,
-    find_node_clusters,
-    get_all_bound_solvent_molecules,
-)
+    _get_solvent_molecules_bound_to_node, find_node_clusters,
+    get_all_bound_solvent_molecules)
 from moffragmentor.molecule import NonSbuMoleculeCollection
 
 
