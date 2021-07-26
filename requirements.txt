@@ -1,3 +1,4 @@
 pymatgen
 ase
 click
+rdkit

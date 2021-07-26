@@ -7,7 +7,7 @@ from pymatgen.analysis.graphs import MoleculeGraph
 
 from ..utils import (
     _not_relevant_structure_indices,
-    connected_mol_from_indices,
+    connected_mol_and_graph_from_indices,
     get_edge_dict,
 )
 from .sbu import SBU
@@ -26,8 +26,12 @@ class Node(SBU):
         to_delete = _not_relevant_structure_indices(mof.structure, node_indices)
         graph_.remove_nodes(to_delete)
 
-        mol = connected_mol_from_indices(mof, node_indices)
-        graph = MoleculeGraph.with_edges(mol, get_edge_dict(graph_))
+        (
+            mol,
+            graph,
+            hidden_indices,
+            presistent_bridged,
+        ) = connected_mol_and_graph_from_indices(mof, node_indices)
 
         center = np.mean(mol.cart_coords, axis=0)
 

@@ -50,6 +50,10 @@ class SBU:
         )
         self._indices = original_indices
 
+    def get_neighbor_indices(self, site: int) -> List[int]:
+        """Get list of indices of neighboring sites"""
+        return [site.index for site in self.molecule_graph.get_connected_sites(site)]
+
     @property
     def indices(self):
         return self._indices
@@ -177,26 +181,6 @@ class SBU:
         for i in self.connection_indices:
             sites.append(s[i])
         return Structure.from_sites(sites)
-
-    def _get_tobacco_string(self):
-        s = self._get_boxed_structure()
-        return write_cif(
-            s,
-            self.molecule_graph,
-            self.connection_indices,
-            molecule=self.molecule,
-            write_bonding_mode=True,
-        )
-
-    def write_tobacco_file(self, filename=None):
-        """To create a database of building blocks it is practical to be able to
-        write Tobacco input file.
-        We need to only place the X for sites with property binding=True
-        """
-
-        cif_string = self._get_tobacco_string()
-        if filename is None:
-            return cif_string
 
 
 def _get_max_sep(coordinates):

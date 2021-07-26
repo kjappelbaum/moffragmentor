@@ -75,7 +75,7 @@ class MOF:  # pylint:disable=too-many-instance-attributes
     def cart_coords(self) -> np.ndarray:
         return self.structure.cart_coords
 
-    @property
+    @cached_property
     def frac_coords(self) -> np.ndarray:
         return self.structure.frac_coords
 
