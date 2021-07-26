@@ -83,7 +83,7 @@ class NetEmbedding:
 
     @property
     def density(self) -> float:
-        return len(self) / (self.lattice.volume)
+        return len(self) / self.lattice.volume
 
     @property
     def lattice(self):

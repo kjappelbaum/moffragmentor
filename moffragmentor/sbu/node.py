@@ -60,7 +60,7 @@ def node_from_mof_and_indices(
     closest_branching_index_in_molecule = []
 
     all_edges = dict(sites_and_indices.edges)
-    all_edges.update(_revert_dict(all_edges))
+    all_edges.update(revert_dict(all_edges))
     for branching_index in branching_indices:
         if branching_index not in relevant_indices:
             # now we need to find the closest neighbor in the set of vertices that are in the molecule

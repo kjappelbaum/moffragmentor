@@ -25,6 +25,7 @@ __all__ = [
     "create_node_collection",
     "get_all_bound_solvent_molecules",
     "create_linker_collection",
+    "Nodelocation_Result",
 ]
 
 Nodelocation_Result = namedtuple(
@@ -71,7 +72,7 @@ def recursive_dfs_until_terminal(
     """
     if (start not in path) and (start not in skip_list):
         path.append(start)
-        if mof._is_terminal(start):
+        if mof._is_terminal(start):  # pylint:disable=protected-access
             return path
 
         for neighbour in mof.get_neighbor_indices(start):
@@ -370,6 +371,7 @@ def _pick_linker_indices(
             norm = np.linalg.norm(coords - center)
             if intersection in unique_branching_site_centers.keys():
                 if unique_branching_site_centers[intersection] > norm:
+                    print(norm, center)
                     unique_branching_site_centers[intersection] = norm
                     unique_branching_sites_indices[intersection] = counter
             else:
@@ -380,113 +382,6 @@ def _pick_linker_indices(
     return unique_branching_sites_indices.values(), has_branch_point
 
 
-def _get_exploded_node_neighbors_dict(
-    node_collection: NodeCollection, idxs: List[int], centers: List[np.ndarray]
-) -> Dict[int, dict]:
-    """The purpose of this function is to create an edge dictionary of the form
-    {node_index: {
-        (branching_indices): [Linker, Linker]
-    }}
-    Where branching_indices is a sorted tuple of the indices which connect the node and linker and
-    linker is a tuple with the linker index and the cartesian coordinates of the center
-    The linkers here are unfiltered in the sense that if the len(list)>1 we also have periodic images.
-    A subsequent function will pick on setting and find out what image the other one is.
-
-    We need to go trough all these steps to have a clean net representation, which one then could
-    also use for topological analysis.
-
-    Args:
-        node_collection (NodeCollection): nodes found in the MOF
-        idxs (List[int]): Linker indices found after subgraph extraction
-        centers (List[np.ndarray]): Linker centers in cartesian cooordinates
-
-    Returns:
-        Dict[int, dict]: Linkers neighboring a given edge
-    """
-    counter = 0
-    node_neighbors = {}
-    for i, node in enumerate(node_collection):
-        exploded_edge_dict = defaultdict(list)
-        for j, (idx, center) in enumerate(zip(idxs, centers)):
-            overlap_w_branch_points = node.original_branching_indices & set(idx)
-            if overlap_w_branch_points:
-                exploded_edge_dict[
-                    tuple(sorted(tuple(overlap_w_branch_points)))
-                ].append((j, center))
-                counter += 1
-            node_neighbors[i] = exploded_edge_dict
-    return node_neighbors
-
-
-def _get_new_edge_dict(
-    exploded_edge_dict: Dict[Tuple[int, int], List[Tuple[int, np.ndarray]]],
-    mof: object,
-    linker_indices: List[int],
-) -> Dict[Tuple[int, int], List[Tuple[int, np.ndarray, np.ndarray]]]:
-    """This function works on the neighbors of one node after we picked linker images we want to keep in the cell.
-    That is, if for one branching point we currently have more than one linker center the other ones are periodic images.
-    We will figure out what images we deal with and write a new edge dictionary
-
-    Args:
-        exploded_edge_dict (Dict[Tuple[int, int], List[Tuple[int, np.ndarray]]]): The neighbors of one node
-        mof (MOF): An instance of the MOF class, we need it to get the lattice
-        linker_indices (List[int]): List of linker indices (from the list of all linkers) we selected to be in the cell
-
-    Returns:
-        Dict[Tuple[int, int], List[Tuple[int, np.ndarray, np.ndarray]]]: Updated edge dict for one node.
-        The elements of the tuple are the linker index, the image (if it is in the cell the image will be [0,0,0]),
-         and the center (in Cartesian coordinates)
-    """
-    new_edge_dict = {}
-    for key, value in exploded_edge_dict.items():
-        new_list = []
-        relevant_subindex = None
-        for counter, (idx, center) in enumerate(value):
-            if idx in linker_indices:
-                relevant_subindex = counter
-                break
-
-        linker_index = [j for j, i in enumerate(linker_indices) if i == idx][0]
-
-        selected_center = mof.lattice.get_fractional_coords(value[relevant_subindex][1])
-
-        for counter, (idx, center) in enumerate(value):
-            frac_coords_1 = mof.lattice.get_fractional_coords(center)
-
-            _, image = mof.lattice.get_distance_and_image(
-                selected_center, frac_coords_1
-            )
-            new_list.append((linker_index, image, center))
-        new_edge_dict[key] = new_list
-
-    return new_edge_dict
-
-
-def _compress_node_neighbors_dict(
-    node_neighbors: Dict[int, dict], mof: object, linker_indices: List[int]
-) -> Dict[int, dict]:
-    """The purpose of this function is to loop over all nodes and clean up the edge dict using the information
-    which linkers we selected to be in the cell. The other ones will be indicated as periodic images.
-
-    Args:
-        node_neighbors (Dict[int, dict]): Linkers neighboring a given edge
-        mof (MOF): Instance of the MOF class
-        linker_indices (List[int]): linkers selected to be in the cell
-
-    Returns:
-        Dict[int, dict]: Updated node_neighbors dict. Note that the tuples for the linkers are now one element
-            longer since they also contain the image
-    """
-    new_node_neighbors_dict = {}
-
-    for node_index, node_edges in node_neighbors.items():
-        new_node_neighbors_dict[node_index] = _get_new_edge_dict(
-            node_edges, mof, linker_indices
-        )
-
-    return new_node_neighbors_dict
-
-
 def _get_connected_linkers(
     mof, branching_coordinates: List[np.array], linker_collection
 ) -> List[Tuple[int, np.array, np.array]]:
@@ -494,7 +389,6 @@ def _get_connected_linkers(
     be bound to are periodic images of the ones in the cell"""
     linked_to = []
     for i, branching_coordinate in enumerate(branching_coordinates):
-        # this here is the stupid part. Why do i check with the branching coordinate
         frac_a = mof.lattice.get_fractional_coords(branching_coordinate)
         for j, linker in enumerate(linker_collection):
             for coord in linker.branching_coords:
@@ -556,6 +450,9 @@ def _create_linkers_from_node_location_result(
 
     graph_ = deepcopy(mof.structure_graph)
     graph_.remove_nodes(not_linker_indices)
+
+    # Second step: extract the connected components
+    # return all as molecules
     mols, graphs, idxs, centers, coordinates = get_subgraphs_as_molecules(
         graph_,
         return_unique=False,
@@ -563,10 +460,13 @@ def _create_linkers_from_node_location_result(
         disable_boundary_crossing_check=True,
     )
 
+    # Third: pick those molecules that are closest to the UC
+    # ToDo: we should be able to skip this
     linker_indices, _ = _pick_linker_indices(
         idxs, centers, coordinates, node_location_result.branching_indices
     )
 
+    # Fourth: collect all linkers in a linker collection
     for i, (mol, graph, idx, center) in enumerate(zip(mols, graphs, idxs, centers)):
         idxs = set(idx)
         branching_indices = node_location_result.branching_indices & idxs
@@ -584,6 +484,8 @@ def _create_linkers_from_node_location_result(
             linkers.append(linker)
 
     linker_collection = LinkerCollection(linkers)
+
+    # Fith: the edge dict describes the connections between metal clusters and linkers
     edge_dict = _get_edge_dict(mof, node_collection, linker_collection)
     return linker_collection, edge_dict
 

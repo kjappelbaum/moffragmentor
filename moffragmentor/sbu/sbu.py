@@ -6,7 +6,7 @@ import networkx as nx
 import numpy as np
 from openbabel import pybel as pb
 from pymatgen.analysis.graphs import MoleculeGraph
-from pymatgen.core import Molecule, Structure
+from pymatgen.core import Molecule
 from pymatgen.io.babel import BabelMolAdaptor
 from rdkit import Chem
 from scipy.spatial.distance import pdist
