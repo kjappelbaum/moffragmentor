@@ -371,7 +371,6 @@ def _pick_linker_indices(
             norm = np.linalg.norm(coords - center)
             if intersection in unique_branching_site_centers.keys():
                 if unique_branching_site_centers[intersection] > norm:
-                    print(norm, center)
                     unique_branching_site_centers[intersection] = norm
                     unique_branching_sites_indices[intersection] = counter
             else:
@@ -389,6 +388,7 @@ def _get_connected_linkers(
     be bound to are periodic images of the ones in the cell"""
     linked_to = []
     for i, branching_coordinate in enumerate(branching_coordinates):
+
         frac_a = mof.lattice.get_fractional_coords(branching_coordinate)
         for j, linker in enumerate(linker_collection):
             for coord in linker.branching_coords:
@@ -398,7 +398,6 @@ def _get_connected_linkers(
 
                 if distance < 0.001:
                     center_frac = mof.lattice.get_fractional_coords(linker.center)
-
                     linked_to.append(
                         (
                             j,
@@ -459,13 +458,11 @@ def _create_linkers_from_node_location_result(
         filter_in_cell=False,
         disable_boundary_crossing_check=True,
     )
-
     # Third: pick those molecules that are closest to the UC
     # ToDo: we should be able to skip this
     linker_indices, _ = _pick_linker_indices(
         idxs, centers, coordinates, node_location_result.branching_indices
     )
-
     # Fourth: collect all linkers in a linker collection
     for i, (mol, graph, idx, center) in enumerate(zip(mols, graphs, idxs, centers)):
         idxs = set(idx)

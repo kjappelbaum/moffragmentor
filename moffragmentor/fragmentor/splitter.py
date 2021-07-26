@@ -23,13 +23,6 @@ from ..utils import (
 __all__ = ["get_subgraphs_as_molecules"]
 
 
-def _connected_component_subgraph(graph, component):
-    # Doing it this way to keep the indices
-    g_ = deepcopy(graph)
-    g_.remove_nodes_from([n for n in g_ if n not in set(component)])
-    return g_
-
-
 def _select_parts_in_cell(
     molecules: List[Molecule],
     graphs: List[MoleculeGraph],
@@ -259,10 +252,13 @@ def _sites_and_classified_indices_from_indices(
     Given the indices that we identified to belong to the group
     1) Build a molecule from the structure, handling the periodic images
     2) Build the molecule graph from the structure graph, handling the periodic images
-    3) Flag vertices in the graph that we call "hidden". Those have only one neighbor in the molecule but multiple in the structure.
-    This happens, for example, in MOF-74 where the "connecting site" is not on the carboxy carbon given that one of the carboxy Os is not connected to the metal cluster
+    3) Flag vertices in the graph that we call "hidden". Those have only one neighbor
+        in the molecule but multiple in the structure.
+    This happens, for example, in MOF-74 where the "connecting site" is not on the carboxy carbon
+        given that one of the carboxy Os is not connected to the metal cluster
     To get reasonable nodes/linkers we will remove these from the node.
-    We also flag indices that are connected via a bridge that is also a bridge in the original graph. This is, for example, the case for one carboxy O in MOF-74
+    We also flag indices that are connected via a bridge that is also a bridge in the original graph.
+        This is, for example, the case for one carboxy O in MOF-74
     """
     new_positions = []
     persistent_non_metal_bridged_components = []
