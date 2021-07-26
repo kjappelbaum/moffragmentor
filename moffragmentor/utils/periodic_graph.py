@@ -120,7 +120,7 @@ def _simplify_structure_graph(structure_graph: StructureGraph) -> StructureGraph
     # and collect the nodes to delete
     for i, site in enumerate(structure_graph.structure):
         if structure_graph.get_coordination_of_site(i) == 2:
-            if not (str(structure_graph.structure[i].specie) == "Si"):
+            if str(structure_graph.structure[i].specie) != "Si":
                 indices = []
                 images = []
                 for neighbor in structure_graph.get_connected_sites(i):

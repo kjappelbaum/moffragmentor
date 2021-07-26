@@ -14,7 +14,7 @@ class SBUCollection:
         self._composition = None
         self._unique_sbus = None
         self._centers = [sbu.center for sbu in self.sbus]
-        self._indices = [sbu.indices for sbu in self.sbus]
+        self._indices = [sbu.get_indices() for sbu in self.sbus]
 
         assert len(self._indices) == len(self.sbus)
         assert len(self._indices) == len(self.sbus)

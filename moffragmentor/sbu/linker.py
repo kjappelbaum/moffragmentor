@@ -36,7 +36,7 @@ def _get_edge_dict_from_rdkit_mol(mol):
 def _make_mol_from_rdkit_mol(mol):
     """Takes the first conformer"""
     molecule = deepcopy(mol)
-    AllChem.EmbedMolecule(m)
+    AllChem.EmbedMolecule(molecule)
     conf = molecule.GetConformers()
     positions = conf[0].GetPositions()
     symbols = [atom.GetSymbol() for atom in mol.GetAtoms()]

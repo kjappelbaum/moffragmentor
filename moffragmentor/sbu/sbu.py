@@ -11,22 +11,34 @@ from pymatgen.io.babel import BabelMolAdaptor
 from rdkit import Chem
 from scipy.spatial.distance import pdist
 
-from ..utils import pickle_dump, write_cif
+from ..utils import pickle_dump
 
 __all__ = ["SBU"]
 
 
 class SBU:
-    """Representation for a secondary building block"""
+    """Representation for a secondary building block.
+    It also acts as container for site indices:
+
+    - graph_branching_indices: are the branching indices according to the graph-based definition. They might not be part of the molecule.
+    - closest_branching_index_in_molecule: those are always part of the molecule. In case the branching index is part of the molecule, they are equal to to the graph_branching_indices. Otherwise they are obtained as the closest vertex of the original branching vertex that is part of the molecule.
+    - binding_indices: are the indices of the sites between the branching index and metal
+    - original_indices: complete original set of indices that has been selected for this building blocks
+    - persistent_non_metal_bridged: components that are connected via a bridge both in the MOF structure and building block molecule. No metal is part of the edge, i.e., bound solvents are not included in this set
+    - terminal_in_mol_not_terminal_in_struct: indices that are terminal in the molecule but not terminal in the structure
+    """
 
     def __init__(
         self,
         molecule: Molecule,
         molecule_graph: MoleculeGraph,
         center: np.ndarray,
-        branching_indices: List[int],
-        binding_indices: List[int],
+        graph_branching_indices: Collection[int],
+        closest_branching_index_in_molecule: Collection[int],
+        binding_indices: Collection[int],
         original_indices: Collection[int],
+        persistent_non_metal_bridged=None,
+        terminal_in_mol_not_terminal_in_struct=None,
     ):
         self.molecule = molecule
         self.center = center
@@ -35,13 +47,20 @@ class SBU:
         self._rdkit_mol = None
         self._original_indices = original_indices
         self.molecule_graph = molecule_graph
-        self._original_branching_indices = branching_indices
+        self._original_graph_branching_indices = graph_branching_indices
+        self._original_closest_branching_index_in_molecule = (
+            closest_branching_index_in_molecule
+        )
+
+        self._persistent_non_metal_bridged = persistent_non_metal_bridged
+        self._terminal_in_mol_not_terminal_in_struct = (
+            terminal_in_mol_not_terminal_in_struct
+        )
+
         self._original_binding_indices = binding_indices
         self._descriptors = None
         self.meta = {}
         self._nx_graph = None
-        self._netlsd_heat = None
-        self._netlsd_wave = None
         self.mapping_from_original_indices = dict(
             zip(original_indices, range(len(molecule)))
         )
@@ -54,8 +73,8 @@ class SBU:
         """Get list of indices of neighboring sites"""
         return [site.index for site in self.molecule_graph.get_connected_sites(site)]
 
-    @property
-    def indices(self):
+    # make this function so we can have different flavors
+    def get_indices(self):
         return self._indices
 
     def __len__(self):
@@ -89,22 +108,22 @@ class SBU:
 
     @property
     def coordination(self):
-        return len(self.original_branching_indices)
+        return len(self.original_graph_branching_indices)
 
     @property
-    def original_branching_indices(self):
-        return self._original_branching_indices
+    def original_graph_branching_indices(self):
+        return self._original_graph_branching_indices
 
     @property
-    def branching_indices(self):
+    def graph_branching_indices(self):
         return [
             self.mapping_from_original_indices[i]
-            for i in self.original_branching_indices
+            for i in self.original_graph_branching_indices
         ]
 
     @property
     def branching_coords(self):
-        return self.cart_coords[self.branching_indices]
+        return self.cart_coords[self.graph_branching_indices]
 
     @property
     def original_binding_indices(self):
@@ -174,13 +193,6 @@ class SBU:
         if not self._descriptors:
             self._descriptors = self._get_descriptors()
         return self._descriptors
-
-    def _get_connected_sites_structure(self):
-        sites = []
-        s = self._get_boxed_structure()
-        for i in self.connection_indices:
-            sites.append(s[i])
-        return Structure.from_sites(sites)
 
 
 def _get_max_sep(coordinates):

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """This module focusses on the extraction of pymatgen Molecules from a structure for which we know the branching points / node/linker indices"""
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 from copy import deepcopy
 from typing import List, Tuple
 
@@ -10,7 +10,15 @@ from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 from pymatgen.core import Molecule
 
 from ..molecule import NonSbuMolecule, NonSbuMoleculeCollection
-from ..utils import _is_any_atom_in_cell
+from ..utils import (
+    _get_cartesian_coords,
+    _get_molecule_edge_label,
+    _get_vertices_of_smaller_component_upon_edge_break,
+    _is_any_atom_in_cell,
+    _metal_in_edge,
+    _reindex_list_of_tuple,
+    revert_dict,
+)
 
 __all__ = ["get_subgraphs_as_molecules"]
 
@@ -102,7 +110,7 @@ def get_subgraphs_as_molecules(
             molecule_subgraphs.append(nx.MultiDiGraph(subgraph))
         else:
             intersects_boundary = any(
-                [d["to_jimage"] != (0, 0, 0) for u, v, d in subgraph.edges(data=True)]
+                (d["to_jimage"] != (0, 0, 0) for u, v, d in subgraph.edges(data=True))
             )
             if not intersects_boundary:
                 molecule_subgraphs.append(nx.MultiDiGraph(subgraph))
@@ -229,3 +237,102 @@ def get_floating_solvent_molecules(mof) -> NonSbuMoleculeCollection:
         molecules.append(NonSbuMolecule(mol, graph, id))
 
     return NonSbuMoleculeCollection(molecules)
+
+
+_SitesAndIndicesOutput = namedtuple(
+    "SitesAndIndicesOutput",
+    [
+        "cartesian_coordinates",
+        "species",
+        "edges",
+        "index_mapping",
+        "hidden_vertices",
+        "persistent_non_metal_bridged_components",
+    ],
+)
+
+
+def _sites_and_classified_indices_from_indices(
+    mof, indices: set
+) -> Tuple[Molecule, List[int], List[int]]:
+    """
+    Given the indices that we identified to belong to the group
+    1) Build a molecule from the structure, handling the periodic images
+    2) Build the molecule graph from the structure graph, handling the periodic images
+    3) Flag vertices in the graph that we call "hidden". Those have only one neighbor in the molecule but multiple in the structure.
+    This happens, for example, in MOF-74 where the "connecting site" is not on the carboxy carbon given that one of the carboxy Os is not connected to the metal cluster
+    To get reasonable nodes/linkers we will remove these from the node.
+    We also flag indices that are connected via a bridge that is also a bridge in the original graph. This is, for example, the case for one carboxy O in MOF-74
+    """
+    new_positions = []
+    persistent_non_metal_bridged_components = []
+    hidden_vertices = []
+    # we store edges as list of tuples as we can
+    # do a cleaner loop for reindexing
+    edges = []
+    index_mapping = {}
+
+    # cast set to list, so we can loop
+    indices = list(indices)
+    species = []
+    for new_idx, idx in enumerate(indices):
+        new_positions.append(_get_cartesian_coords(mof, indices[0], idx))
+        index_mapping[idx] = new_idx
+        # This will fail for alloys/fractional occupancy
+        # ToDo: check early if this might be an issue
+        species.append(str(mof.structure[idx].specie))
+        neighbors = mof.structure_graph.get_connected_sites(idx)
+        # counter for the number of neighbors that are also part
+        # of the molecule, i.e., in `indices`
+        num_neighbors_in_molecule = 0
+        for neighbor in neighbors:
+            # we also identified the neighbor to be part of the molecule
+            if neighbor.index in indices:
+                edges.append(_get_molecule_edge_label(idx, neighbor.index))
+                num_neighbors_in_molecule += 1
+        if (num_neighbors_in_molecule == 1) and len(neighbors) > 1:
+            hidden_vertices.append(idx)
+
+    reindexed_edges = _reindex_list_of_tuple(edges, index_mapping)
+    edge_dict = dict(zip(reindexed_edges, [None] * len(reindexed_edges)))
+
+    mol = Molecule(species, new_positions)
+    graph = MoleculeGraph.with_edges(mol, edge_dict)
+
+    new_bridges = set(nx.bridges(nx.Graph(graph.graph.to_undirected())))
+    new_index_to_old_index = revert_dict(index_mapping)
+    new_bridges_w_old_indices = _reindex_list_of_tuple(
+        new_bridges, new_index_to_old_index
+    )
+
+    relevant_bridges = []
+
+    for new_index_bridge, old_index_bridge in zip(
+        new_bridges, new_bridges_w_old_indices
+    ):
+        if not _metal_in_edge(mol, new_index_bridge):
+            if mof._leads_to_terminal(  # pylint:disable=protected-access
+                old_index_bridge
+            ):
+                relevant_bridges.append(new_index_bridge)
+
+    for bridge in relevant_bridges:
+        persistent_non_metal_bridged_components.append(
+            _get_vertices_of_smaller_component_upon_edge_break(
+                graph.graph.to_undirected(), bridge
+            )
+        )
+
+    persistent_non_metal_bridged_components_old_idx = []
+    for subset in persistent_non_metal_bridged_components:
+        indices = [new_index_to_old_index[i] for i in subset]
+        persistent_non_metal_bridged_components_old_idx.append(indices)
+
+    return _SitesAndIndicesOutput(
+        new_positions,
+        species,
+        edges,
+        index_mapping,
+        hidden_vertices,
+        persistent_non_metal_bridged_components_old_idx,
+    )

@@ -520,7 +520,9 @@ def _get_edge_dict(mof, node_collection, linker_collection):
     edge_dict = {}
     for i, node in enumerate(node_collection):
         edge_dict[i] = _get_connected_linkers(
-            mof, node.branching_coords, linker_collection
+            mof,
+            mof.cart_coords[list(node.original_graph_branching_indices)],
+            linker_collection,
         )
 
     return edge_dict
@@ -531,14 +533,25 @@ def _create_linkers_from_node_location_result(
 ) -> Tuple[LinkerCollection, dict]:
     linkers = []
 
+    # First step: remove everything that is node or unbound solvent
+    # bound solvent is part of the node by default
     all_node_indices = set()
+    all_persistent_non_metal_bridges = set()
     for node_indices in node_location_result.nodes:
         all_node_indices.update(node_indices)
+
+    for node in node_collection:
+        all_persistent_non_metal_bridges.update(
+            _flatten_list_of_sets(
+                node._persistent_non_metal_bridged  # pylint:disable=protected-access
+            )
+        )
 
     not_linker_indices = (
         all_node_indices
         - node_location_result.connecting_paths
         - node_location_result.branching_indices
+        - all_persistent_non_metal_bridges
     ) | set(unbound_solvent.indices)
 
     graph_ = deepcopy(mof.structure_graph)
@@ -556,13 +569,15 @@ def _create_linkers_from_node_location_result(
 
     for i, (mol, graph, idx, center) in enumerate(zip(mols, graphs, idxs, centers)):
         idxs = set(idx)
+        branching_indices = node_location_result.branching_indices & idxs
         linker = Linker(
-            mol,
-            graph,
-            center,
-            node_location_result.branching_indices & idxs,
-            node_location_result.connecting_paths & idxs,
-            idx,
+            molecule=mol,
+            molecule_graph=graph,
+            center=center,
+            graph_branching_indices=branching_indices,
+            closest_branching_index_in_molecule=branching_indices,
+            binding_indices=node_location_result.connecting_paths & idxs,
+            original_indices=idx,
         )
 
         if i in linker_indices:
