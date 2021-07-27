@@ -21,12 +21,12 @@ def _pick_linker_indices(
     unique_branching_site_centers = {}
     unique_branching_sites_indices = {}
     has_branch_point = []
-    for idx, center, _ in zip(idxs, centers, coordinates):
+    for idx, center, coords in zip(idxs, centers, coordinates):
         intersection = set(idx) & all_node_branching_indices
         if len(intersection) >= 2:
             has_branch_point.append(counter)
             intersection = tuple(sorted(tuple(intersection)))
-            norm = np.linalg.norm(center)
+            norm = np.linalg.norm(coords - center)
             if intersection in unique_branching_site_centers.keys():
                 if unique_branching_site_centers[intersection] > norm:
                     unique_branching_site_centers[intersection] = norm
@@ -118,7 +118,7 @@ def _create_linkers_from_node_location_result(
     mols, graphs, idxs, centers, coordinates = get_subgraphs_as_molecules(
         graph_,
         return_unique=False,
-        filter_in_cell=True,
+        filter_in_cell=False,
         disable_boundary_crossing_check=True,
     )
     # Third: pick those molecules that are closest to the UC

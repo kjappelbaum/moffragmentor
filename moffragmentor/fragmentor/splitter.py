@@ -82,36 +82,23 @@ def _sites_and_classified_indices_from_indices(
 
     new_bridges = set(nx.bridges(nx.Graph(graph.graph.to_undirected())))
     new_index_to_old_index = revert_dict(index_mapping)
-    # new_bridges_w_old_indices = _reindex_list_of_tuple(
-    #     new_bridges, new_index_to_old_index
-    # )
 
+    solvent = _locate_bound_solvent(mof, indices)
+    any_bound_solvent_index = set(sum(solvent["solvent_indices"], []))
     # Here we now need to get the bound solvent components to make sure we can exlude them
     # ToDo: we can then export this result and skip the calculation in the fragment function
-    solvent = _locate_bound_solvent(mof, indices)
-
-    # relevant_bridges = []
-
-    # for new_index_bridge, old_index_bridge in zip(
-    #     new_bridges, new_bridges_w_old_indices
-    # ):
-    #     if not _metal_in_edge(mol, new_index_bridge):
-    #         if mof._leads_to_terminal(  # pylint:disable=protected-access
-    #             old_index_bridge
-    #         ):
-    #             relevant_bridges.append(new_index_bridge)
 
     for bridge in new_bridges:
         component = _get_vertices_of_smaller_component_upon_edge_break(
             graph.graph.to_undirected(), bridge
         )
-        if not any(component in solvent["solvent_indices"]):
-            persistent_non_metal_bridged_components.append(component)
+        indices = [new_index_to_old_index[i] for i in component]
+        if not set(indices) & any_bound_solvent_index:
+            persistent_non_metal_bridged_components.append(indices)
 
     persistent_non_metal_bridged_components_old_idx = []
     for subset in persistent_non_metal_bridged_components:
-        indices = [new_index_to_old_index[i] for i in subset]
-        persistent_non_metal_bridged_components_old_idx.append(indices)
+        persistent_non_metal_bridged_components_old_idx.append(subset)
 
     return _SitesAndIndicesOutput(
         np.array(new_positions),

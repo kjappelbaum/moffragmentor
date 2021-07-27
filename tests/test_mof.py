@@ -34,12 +34,3 @@ def test_fragmentation(get_cuiiibtc_mof):
     # topocryst.com fails here, mofid gives mtf as does our clustering
     assert fragments.net_embedding.rscr_code == "mtf"
     assert fragments.net_embedding.space_group == "p4mm"
-
-
-# test nyzig where paper says flu and mofid says kdg, topcryst all nodes also gives flu
-def test_fragmentation(get_cuiiibtc_mof):
-    mof = get_cuiiibtc_mof
-    fragments = mof.fragment()
-    # topocryst fails here, mofid gives mtf as does our clustering
-    assert fragments.net_embedding.rscr_code == "mtf"
-    assert fragments.net_embedding.space_group == "p4mm"
