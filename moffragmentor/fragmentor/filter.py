@@ -5,10 +5,9 @@ from typing import List, Tuple
 
 import networkx as nx
 from pymatgen.analysis.graphs import StructureGraph
-from pymatgen.core import Molecule
 
+from ..utils import _get_metal_sublists
 from ..utils.periodic_graph import _get_number_of_leaf_nodes
-from .utils import _get_metal_sublists
 
 
 def _filter_branch_points(
@@ -127,30 +126,3 @@ def _creates_new_connected_components(indices: list, graph: nx.Graph) -> bool:
     my_graph = deepcopy(graph)
     my_graph.remove_nodes_from(indices)
     return len(list(nx.connected_components(my_graph.to_undirected()))) > 1
-
-
-def is_valid_linker(linker_molecule: Molecule) -> bool:
-    """A valid linker has more than one atom and at least two
-    connection points
-
-    Args:
-        linker_molecule (Molecule): pymatgen molecule instance
-
-    Returns:
-        bool: true if the linker is a valid linker according to
-            this definition
-    """
-    if len(linker_molecule) < 2:
-        return False
-
-    number_connection_sites = 0
-
-    for linker_index in range(len(linker_molecule)):
-        if linker_molecule[linker_index].properties == {"binding": True}:
-            number_connection_sites += 1
-
-    return number_connection_sites >= 2
-
-
-def is_valid_node(node_molecule):
-    return True

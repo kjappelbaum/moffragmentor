@@ -3,13 +3,12 @@
 from collections import namedtuple
 
 from ..net import NetEmbedding
-from .locator import (
-    create_linker_collection,
-    create_node_collection,
-    find_node_clusters,
+from .linkerlocator import create_linker_collection
+from .nodelocator import create_node_collection, find_node_clusters
+from .solventlocator import (
     get_all_bound_solvent_molecules,
+    get_floating_solvent_molecules,
 )
-from .splitter import get_floating_solvent_molecules
 
 __all__ = ["FragmentationResult"]
 
