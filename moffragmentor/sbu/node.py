@@ -79,12 +79,20 @@ def node_from_mof_and_indices(
         original_indices=node_indices,
         persistent_non_metal_bridged=sites_and_indices.persistent_non_metal_bridged_components,
         terminal_in_mol_not_terminal_in_struct=sites_and_indices.hidden_vertices,
+        graph_branching_coords=sites_and_indices.cartesian_coordinates[
+            [sites_and_indices.index_mapping[i] for i in graph_branching_indices]
+        ],
     )
 
     return node
 
 
 class Node(SBU):
+    """Container for metal cluster building blocks.
+    Will typically automatically be constructured
+    by the fragmentor.
+    """
+
     @classmethod
     def from_mof_and_indices(
         cls,

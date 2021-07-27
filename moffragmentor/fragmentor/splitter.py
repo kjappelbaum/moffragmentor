@@ -325,7 +325,7 @@ def _sites_and_classified_indices_from_indices(
         persistent_non_metal_bridged_components_old_idx.append(indices)
 
     return _SitesAndIndicesOutput(
-        new_positions,
+        np.array(new_positions),
         species,
         edges,
         index_mapping,

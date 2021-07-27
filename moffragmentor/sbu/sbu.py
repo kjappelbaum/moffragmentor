@@ -39,6 +39,7 @@ class SBU:
         original_indices: Collection[int],
         persistent_non_metal_bridged=None,
         terminal_in_mol_not_terminal_in_struct=None,
+        graph_branching_coords=None,
     ):
         self.molecule = molecule
         self.center = center
@@ -56,6 +57,7 @@ class SBU:
         self._terminal_in_mol_not_terminal_in_struct = (
             terminal_in_mol_not_terminal_in_struct
         )
+        self.graph_branching_coords = graph_branching_coords
 
         self._original_binding_indices = binding_indices
         self._descriptors = None
@@ -123,7 +125,11 @@ class SBU:
 
     @property
     def branching_coords(self):
-        return self.cart_coords[self.graph_branching_indices]
+        if self.graph_branching_coords is not None:
+            return self.graph_branching_coords
+        # ToDo: add here also a try capture for the case that the graph branching indices are not part of the molecule
+        else:
+            return self.cart_coords[self.graph_branching_indices]
 
     @property
     def original_binding_indices(self):

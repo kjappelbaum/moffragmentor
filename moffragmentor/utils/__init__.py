@@ -266,7 +266,7 @@ def _flatten_list_of_sets(parts):
 
 
 def _is_in_cell(frac_coords):
-    return all(frac_coords <= 1)
+    return (frac_coords <= 1).all()
 
 
 def _is_any_atom_in_cell(frac_coords):

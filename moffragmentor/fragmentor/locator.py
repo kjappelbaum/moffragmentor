@@ -5,9 +5,9 @@ Node classification techniques described in https://pubs.acs.org/doi/pdf/10.1021
 Note that we currently only place one vertex for every linker which might loose some
 information about isomers
 """
-from collections import OrderedDict, defaultdict, namedtuple
+from collections import OrderedDict, namedtuple
 from copy import deepcopy
-from typing import Dict, List, Set, Tuple
+from typing import List, Set, Tuple
 
 import networkx as nx
 import numpy as np
@@ -15,7 +15,6 @@ import numpy as np
 from ..molecule import NonSbuMolecule, NonSbuMoleculeCollection
 from ..sbu import Linker, LinkerCollection, Node, NodeCollection
 from ..utils import _flatten_list_of_sets
-from ..utils.errors import NoMetalError
 from .filter import filter_nodes
 from .splitter import get_subgraphs_as_molecules
 from .utils import _get_metal_sublist
@@ -49,10 +48,10 @@ def _has_path_to_any_other_metal(mof, index: int, this_metal_index: int) -> bool
     """
     metal_indices = deepcopy(mof.metal_indices)
     metal_indices.remove(this_metal_index)
-    g = deepcopy(mof.nx_graph)
-    g.remove_node(this_metal_index)
+    graph = deepcopy(mof.nx_graph)
+    graph.remove_node(this_metal_index)
     for metal_index in metal_indices:
-        if nx.has_path(g, index, metal_index):
+        if nx.has_path(graph, index, metal_index):
             return True
     return False
 
@@ -387,7 +386,7 @@ def _get_connected_linkers(
     """The insight of this function is that the branching indices outside the cell a node might
     be bound to are periodic images of the ones in the cell"""
     linked_to = []
-    for i, branching_coordinate in enumerate(branching_coordinates):
+    for branching_coordinate in branching_coordinates:
 
         frac_a = mof.lattice.get_fractional_coords(branching_coordinate)
         for j, linker in enumerate(linker_collection):
@@ -411,10 +410,15 @@ def _get_connected_linkers(
 
 def _get_edge_dict(mof, node_collection, linker_collection):
     edge_dict = {}
+    branching_coordinates = []
+
+    for node in node_collection:
+        branching_coordinates.append(node.branching_coords)
+
     for i, node in enumerate(node_collection):
         edge_dict[i] = _get_connected_linkers(
             mof,
-            mof.cart_coords[list(node.original_graph_branching_indices)],
+            branching_coordinates[i],
             linker_collection,
         )
 
