@@ -6,9 +6,7 @@ import pickle
 from collections import defaultdict
 from copy import deepcopy
 from shutil import which
-
-# -*- coding: utf-8 -*-
-from typing import Collection, Dict, List, Tuple, Union
+from typing import Collection, Dict, List, Union
 
 import networkx as nx
 import numpy as np
@@ -62,11 +60,11 @@ def _get_metal_sublists(
     return output_list
 
 
-def revert_dict(d):
+def revert_dict(dictionary):
     new_d = {}
 
-    for k, v in d.items():
-        new_d[v] = k
+    for key, value in dictionary.items():
+        new_d[value] = key
 
     return new_d
 

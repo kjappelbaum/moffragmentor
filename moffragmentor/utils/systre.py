@@ -8,7 +8,6 @@ from contextlib import contextmanager
 from tempfile import NamedTemporaryFile
 from typing import List, Tuple
 
-import numpy as np
 from pymatgen.analysis.graphs import StructureGraph
 from pymatgen.core import Lattice
 
@@ -20,7 +19,7 @@ SYSTRE_JAR = os.path.abspath(os.path.join(THIS_DIR, "..", "Systre-19.6.0.jar"))
 
 
 @contextmanager
-def ClosedNamedTempfile(contents, mode="w", suffix=".cdg"):
+def closed_named_tempfile(contents, mode="w", suffix=".cdg"):
     file = NamedTemporaryFile(delete=False, mode=mode, suffix=suffix)
     try:
         with file:
@@ -31,23 +30,26 @@ def ClosedNamedTempfile(contents, mode="w", suffix=".cdg"):
 
 
 def run_systre(systre_string: str) -> dict:
-    with ClosedNamedTempfile(systre_string, suffix=".cgd", mode="w") as filename:
-        cmd_list = [
-            "java",
-            "-cp",
-            str(SYSTRE_JAR),
-            "org.gavrog.apps.systre.SystreCmdline",
-            filename,
-        ]
-        out = subprocess.run(
-            cmd_list,
-            universal_newlines=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        systre_result = _parse_systre_lines(out.stdout.split("\n"))
+    try:
+        with closed_named_tempfile(systre_string, suffix=".cgd", mode="w") as filename:
+            cmd_list = [
+                "java",
+                "-cp",
+                str(SYSTRE_JAR),
+                "org.gavrog.apps.systre.SystreCmdline",
+                filename,
+            ]
+            out = subprocess.run(
+                cmd_list,
+                universal_newlines=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            systre_result = _parse_systre_lines(out.stdout.split("\n"))
 
-        return systre_result
+            return systre_result
+    except Exception as e:
+        return ""
 
 
 def _parse_systre_lines(lines: List[str]) -> dict:
