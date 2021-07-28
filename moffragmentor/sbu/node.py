@@ -68,6 +68,8 @@ def node_from_mof_and_indices(
             # next partner then already is in the molecule,
             # we could recursively call or get all the paths and then get the shortest
             closest_branching_index_in_molecule.append(all_edges[branching_index])
+        else:
+            closest_branching_index_in_molecule.append(branching_index)
 
     node = cls(
         molecule=molecule,

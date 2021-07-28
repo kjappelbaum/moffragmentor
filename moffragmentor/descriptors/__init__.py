@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from pymatgen.analysis.local_env import LocalStructOrderParams
 from pymatgen.core import Element
-from rdkit.Chem import Descriptors, rdMolDescriptors
+from rdkit.Chem import Descriptors, GraphDescriptors, rdMolDescriptors
 from rdkit_utils import conformers
 
 from .flexibility import kier_molecular_flexibility, n_conf20
@@ -74,6 +74,10 @@ def rdkit_descriptors(rdkit_mol, three_dimensional: bool = True):
         "kier_molecular_flexibility": try_except_nan(
             rdkit_mol, kier_molecular_flexibility
         ),
+        "bertz_ct": try_except_nan(rdkit_mol, GraphDescriptors.BertzCT),
+        "kappa_1": try_except_nan(rdkit_mol, GraphDescriptors.Kappa1),
+        "kappa_2": try_except_nan(rdkit_mol, GraphDescriptors.Kappa2),
+        "kappa_3": try_except_nan(rdkit_mol, GraphDescriptors.Kappa3),
     }
 
     if three_dimensional:

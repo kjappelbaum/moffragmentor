@@ -1,19 +1,52 @@
 # -*- coding: utf-8 -*-
 """Representation for a secondary building block"""
+import warnings
 from typing import Collection, List
 
 import networkx as nx
 import numpy as np
+from backports.cached_property import cached_property
 from openbabel import pybel as pb
 from pymatgen.analysis.graphs import MoleculeGraph
-from pymatgen.core import Molecule
+from pymatgen.core import Molecule, Structure
 from pymatgen.io.babel import BabelMolAdaptor
 from rdkit import Chem
 from scipy.spatial.distance import pdist
 
+from ..descriptors import (
+    chemistry_descriptors,
+    distance_descriptors,
+    get_lsop,
+    rdkit_descriptors,
+)
 from ..utils import pickle_dump
 
+
+def ob_mol_without_metals(obmol):
+    import openbabel as ob
+
+    mol = obmol.clone
+    for atom in ob.OBMolAtomIter(mol.OBMol):
+        if atom.IsMetal():
+            mol.OBMol.DeleteAtom(atom)
+
+    return mol
+
+
 __all__ = ["SBU"]
+
+
+def obmol_to_rdkit_mol(obmol):
+
+    smiles = obmol.write("can").strip()
+    mol = Chem.MolFromSmiles(smiles, sanitize=True)
+    if mol is None:
+        warnings.warn("Attempting to remove metals to generate RDKit molecule")
+        new_obmol = ob_mol_without_metals(obmol)
+        smiles = new_obmol.write("can").strip()
+        mol = Chem.MolFromSmiles(smiles, sanitize=True)
+
+    return mol
 
 
 class SBU:
@@ -43,9 +76,6 @@ class SBU:
     ):
         self.molecule = molecule
         self.center = center
-        self._ob_mol = None
-        self._smiles = None
-        self._rdkit_mol = None
         self._original_indices = original_indices
         self.molecule_graph = molecule_graph
         self._original_graph_branching_indices = graph_branching_indices
@@ -123,7 +153,7 @@ class SBU:
             for i in self.original_graph_branching_indices
         ]
 
-    @property
+    @cached_property
     def branching_coords(self):
         if self.graph_branching_coords is not None:
             return self.graph_branching_coords
@@ -131,24 +161,24 @@ class SBU:
         else:
             return self.cart_coords[self.graph_branching_indices]
 
+    @cached_property
+    def connecting_indices(self):
+        return [
+            self.mapping_from_original_indices[i]
+            for i in self._original_closest_branching_index_in_molecule
+        ]
+
     @property
     def original_binding_indices(self):
         return self._original_binding_indices
 
-    @property
+    @cached_property
     def rdkit_mol(self):
-        if self._rdkit_mol is not None:
-            return self._rdkit_mol
-        else:
-            self._rdkit_mol = Chem.MolFromSmiles(self.smiles, sanitize=False)
-            return self.rdkit_mol
+        return obmol_to_rdkit_mol(self.openbabel_mol)
 
-    @property
+    @cached_property
     def openbabel_mol(self):
-        if self._ob_mol is not None:
-            return self._ob_mol
-        else:
-            return self.get_openbabel_mol()
+        return self.get_openbabel_mol()
 
     def get_openbabel_mol(self):
         a = BabelMolAdaptor(self.molecule)
@@ -164,11 +194,11 @@ class SBU:
     def to(self, fmt: str, filename: str):
         return self.molecule.to(fmt, filename)
 
-    @property
+    @cached_property
     def smiles(self):
         mol = self.openbabel_mol
-        self._smiles = mol.write("can").strip()
-        return self._smiles
+        smiles = mol.write("can").strip()
+        return smiles
 
     def _get_boxed_structure(self):
         max_size = _get_max_sep(self.molecule.cart_coords)
@@ -179,6 +209,13 @@ class SBU:
             reorder=False,
         )
         return s
+
+    def _get_connected_sites_structure(self):
+        sites = []
+        s = self._get_boxed_structure()
+        for i in self.connecting_indices:
+            sites.append(s[i])
+        return Structure.from_sites(sites)
 
     def _get_descriptors(self):
         s = self._get_connected_sites_structure()
@@ -195,10 +232,9 @@ class SBU:
             **descriptors_distance,
         }
 
-    def get_descriptors(self):
-        if not self._descriptors:
-            self._descriptors = self._get_descriptors()
-        return self._descriptors
+    @cached_property
+    def descriptors(self):
+        return self._get_descriptors()
 
 
 def _get_max_sep(coordinates):
