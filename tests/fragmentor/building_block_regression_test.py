@@ -29,5 +29,15 @@ def test_net_detection():
     # only works after "standardization of crystal data" in VESTA
     assert get_rscr_code("LASYOU.cif") == "nbo"
     assert get_rscr_code("OFOCUI_clean.cif") == "nbo"
-    assert get_rscr_code("PUBSOV_clean.cif") == "ssb"
+    # disordered
+    # assert get_rscr_code("PUBSOV_clean.cif") == "ssb"
     assert get_rscr_code("WETPES_clean.cif") == "ssa"
+    assert get_rscr_code("XAFFAN_clean.cif") == "lvt"
+    assert get_rscr_code("MUDLON_clean.cif") == "lvt"
+    assert get_rscr_code("CEKHIL_clean.cif") == "lon"
+    assert get_rscr_code("RIDCEN_clean.cif") == "soc"
+    assert get_rscr_code("ADUWIH_clean.cif") == "pcu"
+    assert get_rscr_code("RAYMIP_clean.cif") == "nia"
+    assert get_rscr_code("ONIXOZ_clean.cif") == "stp"
+    assert get_rscr_code("VEJHEZ_clean.cif") == "the"
+    assert get_rscr_code("bcs_v1-litcic_1B_4H_Ch_opt_charge.cif") == "bcs"
