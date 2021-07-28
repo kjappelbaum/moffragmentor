@@ -140,7 +140,7 @@ class SBU:
         if self._rdkit_mol is not None:
             return self._rdkit_mol
         else:
-            self._rdkit_mol = Chem.MolFromSmiles(self.smiles)
+            self._rdkit_mol = Chem.MolFromSmiles(self.smiles, sanitize=False)
             return self.rdkit_mol
 
     @property
