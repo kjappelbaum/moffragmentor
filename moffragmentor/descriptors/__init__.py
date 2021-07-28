@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 """Collection of descriptor methods"""
+from functools import lru_cache
+
 import numpy as np
 import pandas as pd
 from pymatgen.analysis.local_env import LocalStructOrderParams
 from pymatgen.core import Element
 from rdkit.Chem import Descriptors, rdMolDescriptors
 from rdkit_utils import conformers
+
+from .flexibility import kier_molecular_flexibility, n_conf20
 
 __all__ = [
     "get_lsop",
@@ -53,28 +57,52 @@ ALL_LSOP = [
 ]
 
 
+def try_except_nan(mol, calculator):
+    try:
+        value = calculator(mol)
+    except Exception:
+        value = np.nan
+    return value
+
+
+@lru_cache
 def rdkit_descriptors(rdkit_mol, three_dimensional: bool = True):
     descriptors = {
-        "min_partial_charge": Descriptors.MinPartialCharge(rdkit_mol),
-        "max_partial_charge": Descriptors.MaxPartialCharge(rdkit_mol),
-        "tpsa": rdMolDescriptors.CalcTPSA(rdkit_mol),
+        "min_partial_charge": try_except_nan(rdkit_mol, Descriptors.MinPartialCharge),
+        "max_partial_charge": try_except_nan(rdkit_mol, Descriptors.MaxPartialCharge),
+        "tpsa": try_except_nan(rdkit_mol, rdMolDescriptors.CalcTPSA),
+        "kier_molecular_flexibility": try_except_nan(
+            rdkit_mol, kier_molecular_flexibility
+        ),
     }
 
     if three_dimensional:
-        engine = conformers.ConformerGenerator(max_conformers=20)
-        mol = engine.generate_conformers(rdkit_mol)
-        descriptors["spherocity"] = rdMolDescriptors.CalcSpherocityIndex(mol)
-        descriptors["eccentricity"] = rdMolDescriptors.CalcEccentricity(mol)
-        descriptors["radius_of_gyration"] = rdMolDescriptors.CalcRadiusOfGyration(mol)
-        descriptors["inertial_shape_factor"] = rdMolDescriptors.CalcInertialShapeFactor(
-            mol
+        try:
+            engine = conformers.ConformerGenerator(max_conformers=20)
+            mol = engine.generate_conformers(rdkit_mol)
+        except Exception:
+            mol = rdkit_mol
+        descriptors["spherocity"] = try_except_nan(
+            mol, rdMolDescriptors.CalcSpherocityIndex
         )
-        descriptors["npr1"] = rdMolDescriptors.CalcNPR1(mol)
-        descriptors["npr2"] = rdMolDescriptors.CalcNPR2(mol)
+        descriptors["eccentricity"] = try_except_nan(
+            mol, rdMolDescriptors.CalcEccentricity
+        )
+        descriptors["radius_of_gyration"] = try_except_nan(
+            mol, rdMolDescriptors.CalcRadiusOfGyration
+        )
+        descriptors["inertial_shape_factor"] = try_except_nan(
+            mol, rdMolDescriptors.CalcInertialShapeFactor
+        )
+        descriptors["npr1"] = try_except_nan(mol, rdMolDescriptors.CalcNPR1)
+        descriptors["npr2"] = try_except_nan(mol, rdMolDescriptors.CalcNPR2)
         descriptors["sphericity"] = descriptors["npr1"] + descriptors["npr2"] - 1
+
         descriptors["rod_likeness"] = descriptors["npr2"] - descriptors["npr1"]
+
         descriptors["disc_likeness"] = 2 - 2 * descriptors["npr2"]
-        descriptors["plane_best_fit"] = rdMolDescriptors.CalcPBF(mol)
+        descriptors["plane_best_fit"] = try_except_nan(mol, rdMolDescriptors.CalcPBF)
+        descriptors["n_conf20"] = try_except_nan(mol, n_conf20)
     return descriptors
 
 

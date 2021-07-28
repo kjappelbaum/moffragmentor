@@ -1,12 +1,21 @@
 # -*- coding: utf-8 -*-
 """Methods for describing the flexibility of molecules"""
-from rdkit.Chem import Descriptors, Descriptors3D, GraphDescriptors, rdMolDescriptors
+import numpy as np
+from rdkit.Chem import GraphDescriptors
 
-from .nconf20 import calc_nconf20
+from .nconf20 import n_conf20
 
 
 def calculate_flexibility_descriptors(mol):
-    nconf20 = calc_nconf20(mol)
+    nconf20 = n_conf20(mol)
+    try:
+        kier = kier_molecular_flexibility(mol)
+    except Exception:
+        nconf20 = np.nan
+    return {
+        "nconf20": nconf20,
+        "kier": kier,
+    }
 
 
 def kier_molecular_flexibility(mol):

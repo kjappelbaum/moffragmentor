@@ -2,6 +2,8 @@
 from collections import Counter
 from typing import List
 
+from backports.cached_property import cached_property
+
 from .sbu import SBU
 
 
@@ -36,6 +38,10 @@ class SBUCollection:
     @property
     def centers(self):
         return self._centers
+
+    @cached_property
+    def smiles(self):
+        return [sbu.smiles for sbu in self.sbus]
 
     @property
     def sbu_types(self):
