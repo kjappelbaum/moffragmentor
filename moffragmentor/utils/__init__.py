@@ -69,10 +69,10 @@ def revert_dict(dictionary):
 
 
 def get_smiles_from_pmg_mol(pmg_mol):
-    from openbabel import pybel as pb
+    from openbabel import pybel as pb  # pylint:disable=import-outside-toplevel
 
-    a = BabelMolAdaptor(pmg_mol)
-    pm = pb.Molecule(a.openbabel_mol)
+    adaptor = BabelMolAdaptor(pmg_mol)
+    pm = pb.Molecule(adaptor.openbabel_mol)
     smiles = pm.write("can").strip()
     return smiles
 

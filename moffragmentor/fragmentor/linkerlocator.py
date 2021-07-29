@@ -42,7 +42,8 @@ def _pick_linker_indices(
 def _get_connected_linkers(
     mof, branching_coordinates: List[np.array], linker_collection
 ) -> List[Tuple[int, np.array, np.array]]:
-    """The insight of this function is that the branching indices outside the cell a node might
+    """The insight of this function is that the branching
+    indices outside the cell a node might
     be bound to are periodic images of the ones in the cell"""
     linked_to = []
     for branching_coordinate in branching_coordinates:
@@ -84,7 +85,7 @@ def _get_edge_dict(mof, node_collection, linker_collection):
     return edge_dict
 
 
-def _create_linkers_from_node_location_result(
+def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
     mof, node_location_result, node_collection, unbound_solvent
 ) -> Tuple[LinkerCollection, dict]:
     linkers = []

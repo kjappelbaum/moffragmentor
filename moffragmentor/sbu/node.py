@@ -63,7 +63,8 @@ def node_from_mof_and_indices(
     all_edges.update(revert_dict(all_edges))
     for branching_index in branching_indices:
         if branching_index not in relevant_indices:
-            # now we need to find the closest neighbor in the set of vertices that are in the molecule
+            # now we need to find the closest neighbor in the
+            # set of vertices that are in the molecule
             # ToDo: this is currently an assumption that it is terminal and the
             # next partner then already is in the molecule,
             # we could recursively call or get all the paths and then get the shortest

@@ -18,10 +18,10 @@ logging.basicConfig(
 LOGGER = logging.getLogger(__name__)
 
 
-def sbu_descriptors(sbu, type="linker", topology=""):
+def sbu_descriptors(sbu, bb_type="linker", topology=""):
     descriptors = sbu.get_descriptors()
     descriptors["smiles"] = sbu.smiles
-    descriptors["type"] = type
+    descriptors["type"] = bb_type
     descriptors["topology"] = topology
 
     return {**descriptors, **sbu.meta}
@@ -47,12 +47,12 @@ class Harvester:
             if self.outdir is not None:
                 linker.dump(os.path.join(self.outdir, f"linker_{i}.pkl"))
             descriptors.append(
-                sbu_descriptors(linker, type="linker", topology=topology)
+                sbu_descriptors(linker, bb_type="linker", topology=topology)
             )
         for i, node in enumerate(nodes):
             if self.outdir is not None:
                 node.dump(os.path.join(self.outdir, f"node_{i}.pkl"))
-            descriptors.append(sbu_descriptors(node, type="node", topology=topology))
+            descriptors.append(sbu_descriptors(node, bb_type="node", topology=topology))
 
         df = pd.DataFrame(descriptors)
         if self.outdir is not None:

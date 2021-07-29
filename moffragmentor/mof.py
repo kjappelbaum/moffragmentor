@@ -4,7 +4,6 @@ import os
 from collections import defaultdict
 from typing import List, Union
 
-import matplotlib.pylab as plt
 import networkx as nx
 import numpy as np
 import yaml
@@ -136,8 +135,8 @@ class MOF:  # pylint:disable=too-many-instance-attributes
     def _leads_to_terminal(self, edge):
         sorted_edge = sorted(edge)
         try:
-            r = self.bridges[sorted_edge[0]]
-            return sorted_edge[1] in r
+            bridge_edge = self.bridges[sorted_edge[0]]
+            return sorted_edge[1] in bridge_edge
         except KeyError:
             return False
 
@@ -169,6 +168,8 @@ class MOF:  # pylint:disable=too-many-instance-attributes
 
     def show_adjacency_matrix(self, highlight_metals=False):
         """Plot structure graph as adjaceny matrix"""
+        import matplotlib.pylab as plt  # pylint:disable=import-outside-toplevel
+
         matrix = self.adjaceny_matrix.todense()
         if highlight_metals:
             cols = np.nonzero(matrix[self.metal_indices, :])
@@ -199,7 +200,7 @@ class MOF:  # pylint:disable=too-many-instance-attributes
 
     def show_structure(self):
         """Visualize structure using nglview"""
-        import nglview
+        import nglview  # pylint:disable=import-outside-toplevel
 
         return nglview.show_pymatgen(self.structure)
 

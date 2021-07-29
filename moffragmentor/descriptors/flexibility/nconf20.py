@@ -37,7 +37,8 @@ def _generate_conformers(mol, num_confs):
 
     # Remove H atoms to speed up substructure matching
     molecule = AllChem.RemoveHs(molecule)
-    # Find all substructure matches of the molecule with itself , to account for symmetry
+    # Find all substructure matches of the molecule with itself,
+    # to account for symmetry
     matches = molecule.GetSubstructMatches(molecule, uniquify=False)
     maps = [list(enumerate(match)) for match in matches]
     # Loop over conformers other than the lowest energy one
@@ -59,7 +60,7 @@ def _generate_conformers(mol, num_confs):
     sorted_dictionary = OrderedDict(
         sorted(final_conformers_to_use.items(), key=lambda t: t[1])
     )
-    energies = [val for val in sorted_dictionary.values()]
+    energies = list(sorted_dictionary.values())
 
     return energies
 

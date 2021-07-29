@@ -10,7 +10,7 @@ def calculate_flexibility_descriptors(mol):
     nconf20 = n_conf20(mol)
     try:
         kier = kier_molecular_flexibility(mol)
-    except Exception:
+    except Exception:  # pylint: disable=broad-except
         nconf20 = np.nan
     return {
         "nconf20": nconf20,
@@ -25,6 +25,6 @@ def kier_molecular_flexibility(mol):
     """
     kappa1 = GraphDescriptors.Kappa1(mol)
     kappa2 = GraphDescriptors.Kappa2(mol)
-    A = mol.GetNumHeavyAtoms()
-    phi = kappa1 * kappa2 / (A + 0.0)
+    a = mol.GetNumHeavyAtoms()  # pylint: disable=invalid-name
+    phi = kappa1 * kappa2 / (a + 0.0)
     return phi

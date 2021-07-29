@@ -53,11 +53,15 @@ class SBU:
     """Representation for a secondary building block.
     It also acts as container for site indices:
 
-    - graph_branching_indices: are the branching indices according to the graph-based definition. They might not be part of the molecule.
-    - closest_branching_index_in_molecule: those are always part of the molecule. In case the branching index is part of the molecule, they are equal to to the graph_branching_indices. Otherwise they are obtained as the closest vertex of the original branching vertex that is part of the molecule.
+    - graph_branching_indices: are the branching indices according
+      to the graph-based definition. They might not be part of the molecule.
+    - closest_branching_index_in_molecule: those are always part of the molecule.
+      In case the branching index is part of the molecule, they are equal to to the graph_branching_indices.
+      Otherwise they are obtained as the closest vertex of the original branching vertex that is part of the molecule.
     - binding_indices: are the indices of the sites between the branching index and metal
     - original_indices: complete original set of indices that has been selected for this building blocks
-    - persistent_non_metal_bridged: components that are connected via a bridge both in the MOF structure and building block molecule. No metal is part of the edge, i.e., bound solvents are not included in this set
+    - persistent_non_metal_bridged: components that are connected via a bridge both in the MOF structure
+      and building block molecule. No metal is part of the edge, i.e., bound solvents are not included in this set
     - terminal_in_mol_not_terminal_in_struct: indices that are terminal in the molecule but not terminal in the structure
     """
 
@@ -90,9 +94,7 @@ class SBU:
         self.graph_branching_coords = graph_branching_coords
 
         self._original_binding_indices = binding_indices
-        self._descriptors = None
         self.meta = {}
-        self._nx_graph = None
         self.mapping_from_original_indices = dict(
             zip(original_indices, range(len(molecule)))
         )
@@ -122,11 +124,9 @@ class SBU:
         pickle_dump(self, path)
 
     def _get_nx_graph(self):
-        if self._nx_graph is None:
-            self._nx_graph = nx.Graph(self.molecule_graph.graph.to_undirected())
-        return self._nx_graph
+        return nx.Graph(self.molecule_graph.graph.to_undirected())
 
-    @property
+    @cached_property
     def nx_graph(self):
         return self._get_nx_graph()
 
@@ -157,9 +157,9 @@ class SBU:
     def branching_coords(self):
         if self.graph_branching_coords is not None:
             return self.graph_branching_coords
-        # ToDo: add here also a try capture for the case that the graph branching indices are not part of the molecule
-        else:
-            return self.cart_coords[self.graph_branching_indices]
+        # ToDo: add here also a try capture for the case that the graph
+        # branching indices are not part of the molecule
+        return self.cart_coords[self.graph_branching_indices]
 
     @cached_property
     def connecting_indices(self):
@@ -207,13 +207,13 @@ class SBU:
 
     def _get_boxed_structure(self):
         max_size = _get_max_sep(self.molecule.cart_coords)
-        s = self.molecule.get_boxed_structure(
+        structure = self.molecule.get_boxed_structure(
             max_size + 0.1 * max_size,
             max_size + 0.1 * max_size,
             max_size + 0.1 * max_size,
             reorder=False,
         )
-        return s
+        return structure
 
     def _get_connected_sites_structure(self):
         sites = []

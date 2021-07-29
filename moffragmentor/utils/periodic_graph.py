@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 """Methods on structure graphs"""
 import warnings
-from collections import defaultdict
 from copy import deepcopy
-from typing import Dict, List, Tuple
+from typing import List
 
 import networkx as nx
 from pymatgen.analysis.graphs import StructureGraph
@@ -42,9 +41,9 @@ def _get_colormap_for_net_sg(net: "NetEmbeding"):
 
 def _draw_net_structure_graph(net: "NetEmbeding"):
     color_map = _get_colormap_for_net_sg(net)
-    g = net.structure_graph.graph.to_undirected()
+    graph = net.structure_graph.graph.to_undirected()
     return nx.draw(
-        g,
+        graph,
         node_color=color_map,
         with_labels=True,
     )
@@ -52,8 +51,10 @@ def _draw_net_structure_graph(net: "NetEmbeding"):
 
 def _get_pmg_structure_graph_for_net(net: "NetEmbeding") -> StructureGraph:
     edge_dict = _get_pmg_edge_dict_from_net(net)
-    sg = StructureGraph.with_edges(net._get_dummy_structure(), edge_dict)
-    return sg
+    structure_graph = StructureGraph.with_edges(
+        net._get_dummy_structure(), edge_dict  # pylint: disable=protected-access
+    )
+    return structure_graph
 
 
 def _simplify_structure_graph(structure_graph: StructureGraph) -> StructureGraph:

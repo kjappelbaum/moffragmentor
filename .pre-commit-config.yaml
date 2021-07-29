@@ -61,6 +61,6 @@ repos:
       - id: pylint
         language: system
         types: [file, python]
-        exclude: versioneer.py|moffragmentor/_version.py|^docs|
+        exclude: versioneer.py|moffragmentor/_version.py|^docs/
         name: pylint
         entry: pylint
