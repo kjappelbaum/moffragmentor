@@ -35,3 +35,7 @@ def test_fragmentation():
     assert hkust_parts.linkers[0].smiles == "[O]C(=O)c1cc(cc(c1)C(=O)[O])C(=O)[O]"
 
     assert hkust_parts.nodes[0].smiles == "[C]1O[Cu]234[Cu](O1)(O[C]O4)(O[C]O3)O[C]O2"
+
+    two_dimensional_mof_parts = fragment("2Dmof.cif")
+    assert len(two_dimensional_mof_parts.linkers.unique_sbus) == 1
+    assert len(two_dimensional_mof_parts.nodes.unique_sbus) == 1

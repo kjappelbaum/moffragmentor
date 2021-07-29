@@ -6,7 +6,6 @@ from typing import List, Union
 
 import matplotlib.pylab as plt
 import networkx as nx
-import nglview
 import numpy as np
 import yaml
 from backports.cached_property import cached_property
@@ -14,12 +13,13 @@ from pymatgen.analysis.graphs import StructureGraph
 from pymatgen.analysis.local_env import CutOffDictNN
 from pymatgen.core import Lattice, Structure
 
+from .descriptors.sbu_dimensionality import get_structure_graph_dimensionality
 from .fragmentor import run_fragmentation
 from .utils import pickle_dump, write_cif
 
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 
-with open(os.path.join(THIS_DIR, "utils", "tuned_vesta.yml"), "r") as handle:
+with open(os.path.join(THIS_DIR, "utils", "data", "tuned_vesta.yml"), "r") as handle:
     VESTA_CUTOFFS = yaml.load(handle, Loader=yaml.UnsafeLoader)
 
 VestaCutoffDictNN = CutOffDictNN(cut_off_dict=VESTA_CUTOFFS)
@@ -62,6 +62,10 @@ class MOF:  # pylint:disable=too-many-instance-attributes
 
     def __len__(self) -> str:
         return len(self.structure)
+
+    @cached_property
+    def dimensionality(self):
+        return get_structure_graph_dimensionality(self.structure_graph)
 
     @property
     def lattice(self) -> Lattice:
@@ -195,6 +199,8 @@ class MOF:  # pylint:disable=too-many-instance-attributes
 
     def show_structure(self):
         """Visualize structure using nglview"""
+        import nglview
+
         return nglview.show_pymatgen(self.structure)
 
     def _fragment(self):

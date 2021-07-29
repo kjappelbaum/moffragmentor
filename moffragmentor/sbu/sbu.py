@@ -23,7 +23,7 @@ from ..utils import pickle_dump
 
 
 def ob_mol_without_metals(obmol):
-    import openbabel as ob
+    import openbabel as ob  # pylint: disable=import-outside-toplevel
 
     mol = obmol.clone
     for atom in ob.OBMolAtomIter(mol.OBMol):
@@ -183,11 +183,10 @@ class SBU:
     def get_openbabel_mol(self):
         a = BabelMolAdaptor(self.molecule)
         pm = pb.Molecule(a.openbabel_mol)
-        self._ob_mol = pm
         return pm
 
     def show_molecule(self):
-        import nglview
+        import nglview  # pylint:disable=import-outside-toplevel
 
         return nglview.show_pymatgen(self.molecule)
 
@@ -195,10 +194,16 @@ class SBU:
         return self.molecule.to(fmt, filename)
 
     @cached_property
-    def smiles(self):
+    def smiles(self) -> str:
+        """Return canonical SMILES.
+        Using openbabel to compute the SMILES, but then get the
+        canonical version with RDKit as we observed sometimes the same
+        molecule ends up as different canonical SMILES for openbabel
+        """
         mol = self.openbabel_mol
         smiles = mol.write("can").strip()
-        return smiles
+        canonical = Chem.CanonSmiles(smiles)
+        return canonical
 
     def _get_boxed_structure(self):
         max_size = _get_max_sep(self.molecule.cart_coords)
@@ -218,12 +223,12 @@ class SBU:
         return Structure.from_sites(sites)
 
     def _get_descriptors(self):
-        s = self._get_connected_sites_structure()
+        structure = self._get_connected_sites_structure()
 
-        descriptors_lsop = get_lsop(s)
+        descriptors_lsop = get_lsop(structure)
         descriptors_rdkit = rdkit_descriptors(self.rdkit_mol)
-        descriptors_chemistry = chemistry_descriptors(s)
-        descriptors_distance = distance_descriptors(s)
+        descriptors_chemistry = chemistry_descriptors(structure)
+        descriptors_distance = distance_descriptors(structure)
 
         return {
             **descriptors_lsop,

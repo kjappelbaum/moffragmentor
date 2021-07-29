@@ -8,5 +8,5 @@ from pymatgen.analysis.dimensionality import get_dimensionality_larsen
 from pymatgen.analysis.graphs import StructureGraph
 
 
-def _get_structure_graph_dimensionality(structure_graph: StructureGraph) -> int:
+def get_structure_graph_dimensionality(structure_graph: StructureGraph) -> int:
     return get_dimensionality_larsen(structure_graph)

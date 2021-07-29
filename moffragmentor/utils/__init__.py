@@ -10,7 +10,6 @@ from typing import Collection, Dict, List, Union
 
 import networkx as nx
 import numpy as np
-from openbabel import pybel as pb
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 from pymatgen.core import Molecule, Structure
 from pymatgen.io.babel import BabelMolAdaptor
@@ -70,6 +69,8 @@ def revert_dict(dictionary):
 
 
 def get_smiles_from_pmg_mol(pmg_mol):
+    from openbabel import pybel as pb
+
     a = BabelMolAdaptor(pmg_mol)
     pm = pb.Molecule(a.openbabel_mol)
     smiles = pm.write("can").strip()

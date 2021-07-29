@@ -69,18 +69,6 @@ class NetEmbedding:
         """Number of building blocks"""
         return len(self.node_collection) + len(self.linker_collection)
 
-    @cached_property
-    def q(self):  # pylint: disable=invalid-name
-        """Number of vertices"""
-        return len(self.simplified_structure_graph.types_of_coordination_environments())
-
-    @property
-    def pq(self):  # pylint: disable=invalid-name
-        """Returns the pq symbol: Number of vertex and edge types.
-        These are the first two symbols of the transistivty pqrs.
-        r(faces) and (s) are only defined if there is a tiling"""
-        raise NotImplementedError
-
     @property
     def density(self) -> float:
         return len(self) / self.lattice.volume

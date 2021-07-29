@@ -4,6 +4,7 @@ from functools import lru_cache
 
 import numpy as np
 import pandas as pd
+from EFGs import mol2frag
 from pymatgen.analysis.local_env import LocalStructOrderParams
 from pymatgen.core import Element
 from rdkit.Chem import Descriptors, GraphDescriptors, rdMolDescriptors
@@ -57,11 +58,11 @@ ALL_LSOP = [
 ]
 
 
-def try_except_nan(mol, calculator):
+def try_except_nan(mol, calculator, exception_value=np.nan):
     try:
         value = calculator(mol)
     except Exception:
-        value = np.nan
+        value = exception_value
     return value
 
 
@@ -78,6 +79,7 @@ def rdkit_descriptors(rdkit_mol, three_dimensional: bool = True):
         "kappa_1": try_except_nan(rdkit_mol, GraphDescriptors.Kappa1),
         "kappa_2": try_except_nan(rdkit_mol, GraphDescriptors.Kappa2),
         "kappa_3": try_except_nan(rdkit_mol, GraphDescriptors.Kappa3),
+        "fragments": try_except_nan(rdkit_mol, get_fragments, []),
     }
 
     if three_dimensional:
@@ -190,3 +192,8 @@ def distance_descriptors(structure):
             "median_distance": 0,
             "std_distance": 0,
         }
+
+
+def get_fragments(rdkit_mol):
+    frag_a, frag_b = mol2frag(rdkit_mol)
+    return frag_a + frag_b

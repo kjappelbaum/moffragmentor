@@ -1,4 +1,6 @@
 pymatgen
-ase
 click
 rdkit
+EFGs
+backports.cached_property
+networkx

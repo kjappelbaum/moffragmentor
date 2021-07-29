@@ -126,11 +126,11 @@ def _parse_systre_lines(lines: List[str]) -> dict:
 
 
 def _line_to_coords(line: str) -> List[float]:
-    return [float(i) for i in re.findall("\d+.\d+", line)]
+    return [float(i) for i in re.findall(r"\d+.\d+", line)]
 
 
 def _parse_node_line(line: str) -> Tuple[int, List[float]]:
-    node_number = int(re.findall("Node\s(\d+):", line)[0])
+    node_number = int(re.findall(r"Node\s(\d+):", line)[0])
     coords = _line_to_coords(line)
 
     return node_number, coords
