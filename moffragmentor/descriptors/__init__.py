@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Collection of descriptor methods"""
+import warnings
 from functools import lru_cache
 
 import numpy as np
@@ -8,7 +9,6 @@ from EFGs import mol2frag
 from pymatgen.analysis.local_env import LocalStructOrderParams
 from pymatgen.core import Element
 from rdkit.Chem import Descriptors, GraphDescriptors, rdMolDescriptors
-from rdkit_utils import conformers
 
 from .flexibility import kier_molecular_flexibility, n_conf20
 
@@ -84,8 +84,14 @@ def rdkit_descriptors(rdkit_mol, three_dimensional: bool = True):
 
     if three_dimensional:
         try:
+            from rdkit_utils import conformers
+
             engine = conformers.ConformerGenerator(max_conformers=20)
             mol = engine.generate_conformers(rdkit_mol)
+        except ImportError:
+            warnings.warn(
+                "rdkit_utils is required to create conformers for 3D descriptor calculation."
+            )
         except Exception:
             mol = rdkit_mol
         descriptors["spherocity"] = try_except_nan(
