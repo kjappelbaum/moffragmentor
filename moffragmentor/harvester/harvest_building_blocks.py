@@ -95,7 +95,7 @@ def harvest_cif(cif, dumpdir=None):
         df = harvester.run_harvest()
         return df
     except Exception as e:
-        LOGGER.warning(f"Exception occured for {cif}. Exception: {e}.")
+        LOGGER.exception(f"Exception occured for {cif}. Exception: {e}.")
         return None
 
 
