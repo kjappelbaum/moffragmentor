@@ -10,7 +10,13 @@ from pymatgen.analysis.graphs import MoleculeGraph
 from pymatgen.core import Molecule
 
 from ..fragmentor.splitter import _sites_and_classified_indices_from_indices
-from ..utils import _not_relevant_structure_indices, _reindex_list_of_tuple, revert_dict
+from ..utils import (
+    _not_relevant_structure_indices,
+    _reindex_list_of_tuple,
+    get_neighbors_from_nx_graph,
+    get_nx_graph_from_edge_tuples,
+    revert_dict,
+)
 from .sbu import SBU
 
 __all__ = ["Node"]
@@ -59,8 +65,7 @@ def node_from_mof_and_indices(
     graph_branching_indices = branching_indices & node_indices
     closest_branching_index_in_molecule = []
 
-    all_edges = dict(sites_and_indices.edges)
-    all_edges.update(revert_dict(all_edges))
+    graph = get_nx_graph_from_edge_tuples(sites_and_indices.edges)
     for branching_index in branching_indices:
         if branching_index not in relevant_indices:
             # now we need to find the closest neighbor in the
@@ -68,7 +73,9 @@ def node_from_mof_and_indices(
             # ToDo: this is currently an assumption that it is terminal and the
             # next partner then already is in the molecule,
             # we could recursively call or get all the paths and then get the shortest
-            closest_branching_index_in_molecule.append(all_edges[branching_index])
+            closest_branching_index_in_molecule.append(
+                get_neighbors_from_nx_graph(graph, branching_index)[0]
+            )
         else:
             closest_branching_index_in_molecule.append(branching_index)
 

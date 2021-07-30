@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 """Defines the Python representation of the embedding of the reticular
 building blocks on a net"""
+import warnings
 from logging import warn
 from typing import Dict
 
 import numpy as np
 from backports.cached_property import cached_property
 from pymatgen.core import Lattice, Structure
-import warnings
+
 from .sbu import LinkerCollection, NodeCollection
 from .utils import is_tool
 from .utils.errors import JavaNotFoundError
@@ -202,4 +203,4 @@ class NetEmbedding:
             self._rcsr_code = systre_output["rcsr_code"]
             self._space_group = systre_output["space_group"]
         except Exception as e:
-             warnings.warn(f'Systre run failed due to {e}')
+            warnings.warn(f"Systre run failed due to {e}")

@@ -371,3 +371,13 @@ def get_linker_connectivity(edge_dict):
         num_neighbors[linker] = len(neighbors)
 
     return num_neighbors
+
+
+def get_neighbors_from_nx_graph(graph, node_idx):
+    return list(nx.neighbors(graph, node_idx))
+
+
+def get_nx_graph_from_edge_tuples(edge_tuples):
+    graph = nx.Graph()
+    graph.add_edges_from(edge_tuples)
+    return graph
