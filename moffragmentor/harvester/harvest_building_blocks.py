@@ -7,10 +7,11 @@ from functools import partial
 from glob import glob
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 from ..mof import MOF
-from ..utils import make_if_not_exists
+from ..utils import get_linker_connectivity, make_if_not_exists
 
 logging.basicConfig(
     format="[%(levelname)s]:%(lineno)s - %(message)s", level=logging.INFO
@@ -18,12 +19,16 @@ logging.basicConfig(
 LOGGER = logging.getLogger(__name__)
 
 
-def sbu_descriptors(sbu, bb_type="linker", topology=""):
-    descriptors = sbu.get_descriptors()
+def sbu_descriptors(
+    sbu, bb_type="linker", topology="", dimensionality=np.nan, connectivity=np.nan
+):
+    descriptors = sbu.descriptors
     descriptors["smiles"] = sbu.smiles
     descriptors["type"] = bb_type
     descriptors["topology"] = topology
-
+    descriptors["mof_dimensionality"] = dimensionality
+    descriptors["coordination"] = sbu.coordination
+    descriptors["connectivity"] = connectivity
     return {**descriptors, **sbu.meta}
 
 
@@ -41,18 +46,37 @@ class Harvester:
         if self.outdir is not None:
             self.mof.dump(os.path.join(self.outdir, "mof.pkl"))
         descriptors = []
-        topology = self.mof.topology
-        linkers, nodes = self.mof.fragment()
-        for i, linker in enumerate(linkers):
+
+        parts = self.mof.fragment()
+        topology = parts.net_embedding.rcsr_code
+        dimensionality = self.mof.dimensionality
+        edge_dict = parts.net_embedding.edge_dict
+        linker_connectivity = get_linker_connectivity(edge_dict)
+        # descriptors.append({"dimensionality", self.mof.dimensionality})
+        for i, linker in enumerate(parts.linkers):
             if self.outdir is not None:
                 linker.dump(os.path.join(self.outdir, f"linker_{i}.pkl"))
             descriptors.append(
-                sbu_descriptors(linker, bb_type="linker", topology=topology)
+                sbu_descriptors(
+                    linker,
+                    bb_type="linker",
+                    topology=topology,
+                    dimensionality=dimensionality,
+                    connectivity=linker_connectivity[i],
+                )
             )
-        for i, node in enumerate(nodes):
+        for i, node in enumerate(parts.nodes):
             if self.outdir is not None:
                 node.dump(os.path.join(self.outdir, f"node_{i}.pkl"))
-            descriptors.append(sbu_descriptors(node, bb_type="node", topology=topology))
+            descriptors.append(
+                sbu_descriptors(
+                    node,
+                    bb_type="node",
+                    topology=topology,
+                    dimensionality=dimensionality,
+                    connectivity=len(edge_dict[i]),
+                )
+            )
 
         df = pd.DataFrame(descriptors)
         if self.outdir is not None:

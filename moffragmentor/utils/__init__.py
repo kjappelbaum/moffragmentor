@@ -359,3 +359,15 @@ def get_edge_dict(structure_graph: StructureGraph) -> dict:
         label = get_label(u, v)
         types[tuple(label)] = None
     return dict(types)
+
+
+def get_linker_connectivity(edge_dict):
+    linker_connectivity = defaultdict(set)
+    for node, linkers in edge_dict.items():
+        for linker_tuple in linkers:
+            linker_connectivity[linker_tuple[0]].add(node)
+    num_neighbors = {}
+    for linker, neighbors in linker_connectivity.items():
+        num_neighbors[linker] = len(neighbors)
+
+    return num_neighbors
