@@ -94,7 +94,7 @@ class SBU:
         self.graph_branching_coords = graph_branching_coords
 
         self._original_binding_indices = binding_indices
-        self.meta = {}
+
         self.mapping_from_original_indices = dict(
             zip(original_indices, range(len(molecule)))
         )
@@ -116,9 +116,6 @@ class SBU:
 
     def __str__(self):
         return self.smiles
-
-    def set_meta(self, key, value):
-        self.meta[key] = value
 
     def dump(self, path):
         pickle_dump(self, path)
