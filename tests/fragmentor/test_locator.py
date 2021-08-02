@@ -3,10 +3,15 @@ from collections import Counter
 
 from pymatgen.core import Structure
 
-from moffragmentor.fragmentor.locator import (
+from moffragmentor.fragmentor.linkerlocator import (
     _create_linkers_from_node_location_result,
-    _get_solvent_molecules_bound_to_node,
+)
+from moffragmentor.fragmentor.nodelocator import (
     find_node_clusters,
+    create_node_collection,
+)
+from moffragmentor.fragmentor.solventlocator import (
+    _get_solvent_molecules_bound_to_node,
     get_all_bound_solvent_molecules,
 )
 from moffragmentor.molecule import NonSbuMoleculeCollection
@@ -337,8 +342,9 @@ def test__create_linkers_from_node_location_result(get_hkust_mof):
     mof = get_hkust_mof
     unbound_solvent = NonSbuMoleculeCollection([])
     node_location_result = find_node_clusters(mof)
+    node_collection = create_node_collection(mof, node_location_result)
     linkers = _create_linkers_from_node_location_result(
-        mof, node_location_result, unbound_solvent
+        mof, node_location_result, node_collection, unbound_solvent
     )
     assert len(linkers) == 32
     linker_lengths = [len(l) for l in linkers]
