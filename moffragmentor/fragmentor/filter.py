@@ -66,7 +66,6 @@ def filter_nodes(
     filtered_nodes, original_indices = _filter_isolated_node_candidates(
         metal_sublist, graph.graph
     )
-
     filtered_nodes = [node_candidate_indices[i] for i in original_indices]
     return filtered_nodes
 
@@ -94,7 +93,9 @@ def _filter_isolated_node_candidates(
     good_indices = []
 
     for i, index in enumerate(indices):
-        if _creates_new_leaf_nodes(index, graph):
+        if _creates_new_leaf_nodes(index, graph) or _creates_new_connected_components(
+            index, graph
+        ):
             good_node_candidates.append(index)
             good_indices.append(i)
 

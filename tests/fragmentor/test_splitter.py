@@ -28,7 +28,6 @@ def test_unbound_solvent_identification(get_p_linker_with_floating):
     assert len(mols) == 48
     compositions = [str(mol.composition.alphabetical_formula) for mol in mols]
     composition_counter = Counter(compositions)
-    print(composition_counter)
     assert composition_counter["C4 H10 N1"] == 8
     assert composition_counter["H2 O1"] == 8 * 4
 
