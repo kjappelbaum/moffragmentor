@@ -99,20 +99,29 @@ def harvest_cif(cif, dumpdir=None):
         return None
 
 
-def harvest_directory(directory, njobs=1, outdir=None):
+def harvest_directory(directory, njobs=1, outdir=None, skip_existing=True):
     all_cifs = glob(os.path.join(directory, "*.cif"))
     if outdir is not None:
         make_if_not_exists(outdir)
 
     harvest_partial = partial(harvest_cif, dumpdir=outdir)
 
+    if skip_existing:
+        existing_stems = [Path(p).stem for p in glob(os.path.join(outdir, "*"))]
+        filtered_all_cifs = []
+        for cif in all_cifs:
+            if Path(cif).stem not in existing_stems:
+                filtered_all_cifs.append(cif)
+    else:
+        filtered_all_cifs = all_cifs
+
     all_res = []
     with concurrent.futures.ProcessPoolExecutor(max_workers=njobs) as exec:
-        for i, res in enumerate(exec.map(harvest_partial, all_cifs)):
+        for i, res in enumerate(exec.map(harvest_partial, filtered_all_cifs)):
             if res is not None:
                 all_res.append(res)
             else:
-                LOGGER.error(f"Failed for {all_cifs[i]}")
+                LOGGER.error(f"Failed for {filtered_all_cifs[i]}")
 
     df = pd.concat(all_res)
     if outdir is None:
