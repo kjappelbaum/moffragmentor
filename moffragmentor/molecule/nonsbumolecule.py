@@ -5,7 +5,7 @@ from typing import List
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 from pymatgen.core import Molecule
 
-from ..utils import get_edge_dict
+from ..utils import get_edge_dict, remove_all_nodes_not_in_indices
 
 
 class NonSbuMolecule:
@@ -51,8 +51,7 @@ class NonSbuMolecule:
             NonSbuMolecule: Instance of NonSbuMolecule
         """
         my_graph = deepcopy(structure_graph)
-        to_delete = [i for i in range(len(structure_graph)) if i not in indices]
-        my_graph.remove_nodes(to_delete)
+        remove_all_nodes_not_in_indices(structure_graph, indices)
         structure = my_graph.structure
         sites = []
         for site in structure:
@@ -62,6 +61,6 @@ class NonSbuMolecule:
         return cls(mol, molecule_graph, indices)
 
     def show_molecule(self):
-        import nglview  # pre-commit:disable=import-outside-toplevel
+        import nglview  # pylint:disable=import-outside-toplevel
 
         return nglview.show_pymatgen(self.molecule)

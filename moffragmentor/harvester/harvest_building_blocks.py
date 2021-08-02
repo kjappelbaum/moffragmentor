@@ -10,6 +10,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from ..descriptors.sbu_dimensionality import get_sbu_dimensionality
 from ..mof import MOF
 from ..utils import get_linker_connectivity, make_if_not_exists
 
@@ -20,7 +21,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 def sbu_descriptors(
-    sbu, bb_type="linker", topology="", dimensionality=np.nan, connectivity=np.nan
+    sbu, mof, bb_type="linker", topology="", dimensionality=np.nan, connectivity=np.nan
 ):
     descriptors = sbu.descriptors
     descriptors["smiles"] = sbu.smiles
@@ -29,6 +30,9 @@ def sbu_descriptors(
     descriptors["mof_dimensionality"] = dimensionality
     descriptors["coordination"] = sbu.coordination
     descriptors["connectivity"] = connectivity
+    descriptors["dimensionality"] = get_sbu_dimensionality(
+        mof, sbu._original_indices
+    )  # pylint:disable=protected-access
     return {**descriptors, **sbu.meta}
 
 
@@ -59,6 +63,7 @@ class Harvester:
             descriptors.append(
                 sbu_descriptors(
                     linker,
+                    self.mof,
                     bb_type="linker",
                     topology=topology,
                     dimensionality=dimensionality,
@@ -71,6 +76,7 @@ class Harvester:
             descriptors.append(
                 sbu_descriptors(
                     node,
+                    self.mof,
                     bb_type="node",
                     topology=topology,
                     dimensionality=dimensionality,

@@ -355,7 +355,7 @@ def get_edge_dict(structure_graph: StructureGraph) -> dict:
         return sorted((u, v))
 
     types = defaultdict(list)
-    for u, v, d in structure_graph.graph.edges(data=True):
+    for u, v, _ in structure_graph.graph.edges(data=True):
         label = get_label(u, v)
         types[tuple(label)] = None
     return dict(types)
@@ -381,3 +381,8 @@ def get_nx_graph_from_edge_tuples(edge_tuples):
     graph = nx.Graph()
     graph.add_edges_from(edge_tuples)
     return graph
+
+
+def remove_all_nodes_not_in_indices(graph: nx.Graph, indices) -> nx.Graph:
+    to_delete = [i for i in range(len(graph)) if i not in indices]
+    graph.remove_nodes(to_delete)
