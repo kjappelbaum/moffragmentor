@@ -33,7 +33,7 @@ def sbu_descriptors(
     descriptors["dimensionality"] = get_sbu_dimensionality(
         mof, sbu._original_indices
     )  # pylint:disable=protected-access
-    return {**descriptors, **sbu.meta}
+    return {**descriptors}
 
 
 class Harvester:

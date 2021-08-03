@@ -7,8 +7,8 @@ from moffragmentor.fragmentor.linkerlocator import (
     _create_linkers_from_node_location_result,
 )
 from moffragmentor.fragmentor.nodelocator import (
-    find_node_clusters,
     create_node_collection,
+    find_node_clusters,
 )
 from moffragmentor.fragmentor.solventlocator import (
     _get_solvent_molecules_bound_to_node,
