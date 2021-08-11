@@ -4,6 +4,7 @@ from copy import deepcopy
 from typing import List, Tuple
 
 import numpy as np
+from pymatgen.core import Structure
 
 from ..sbu import Linker, LinkerCollection
 from ..utils import _flatten_list_of_sets
@@ -112,6 +113,7 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
     ) | set(unbound_solvent.indices)
 
     graph_ = deepcopy(mof.structure_graph)
+    graph_.structure = Structure.from_sites(graph_.structure.sites)
     graph_.remove_nodes(not_linker_indices)
 
     # Second step: extract the connected components

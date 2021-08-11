@@ -109,6 +109,7 @@ def _locate_bound_solvent(mof, node_atoms: Set[int]) -> OrderedDict:
     good_connections = set()
 
     metal_subset = _get_metal_sublist(node_atoms, mof.metal_indices)
+
     for metal_index in metal_subset:
         metal_neighbors = mof.get_neighbor_indices(metal_index)
 

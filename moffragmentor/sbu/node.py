@@ -7,7 +7,7 @@ from typing import Set
 
 import numpy as np
 from pymatgen.analysis.graphs import MoleculeGraph
-from pymatgen.core import Molecule
+from pymatgen.core import Molecule, Structure
 
 from ..fragmentor.splitter import _sites_and_classified_indices_from_indices
 from ..utils import (
@@ -26,6 +26,7 @@ def node_from_mof_and_indices(
     cls, mof, node_indices, branching_indices, binding_indices
 ):
     graph_ = deepcopy(mof.structure_graph)
+    graph_.structure = Structure.from_sites(graph_.structure.sites)
     to_delete = _not_relevant_structure_indices(mof.structure, node_indices)
     graph_.remove_nodes(to_delete)
 
@@ -73,9 +74,8 @@ def node_from_mof_and_indices(
             # ToDo: this is currently an assumption that it is terminal and the
             # next partner then already is in the molecule,
             # we could recursively call or get all the paths and then get the shortest
-            closest_branching_index_in_molecule.append(
-                get_neighbors_from_nx_graph(graph, branching_index)[0]
-            )
+            new_candidates = get_neighbors_from_nx_graph(graph, branching_index)[0]
+            closest_branching_index_in_molecule.append(new_candidates)
         else:
             closest_branching_index_in_molecule.append(branching_index)
 
@@ -86,7 +86,7 @@ def node_from_mof_and_indices(
         graph_branching_indices=graph_branching_indices,
         closest_branching_index_in_molecule=closest_branching_index_in_molecule,
         binding_indices=binding_indices,
-        original_indices=node_indices,
+        original_indices=node_indices & relevant_indices,
         persistent_non_metal_bridged=sites_and_indices.persistent_non_metal_bridged_components,
         terminal_in_mol_not_terminal_in_struct=sites_and_indices.hidden_vertices,
         graph_branching_coords=sites_and_indices.cartesian_coordinates[

@@ -60,18 +60,19 @@ def filter_nodes(
     node_candidate_indices: List[List[int]],
     graph: StructureGraph,
     metal_indices: List[int],
+    terminal_indices: List[int],
 ) -> List[List[int]]:
     metal_sublist = _get_metal_sublists(node_candidate_indices, metal_indices)
 
     filtered_nodes, original_indices = _filter_isolated_node_candidates(
-        metal_sublist, graph.graph
+        metal_sublist, graph.graph, terminal_indices
     )
     filtered_nodes = [node_candidate_indices[i] for i in original_indices]
     return filtered_nodes
 
 
 def _filter_isolated_node_candidates(
-    indices: List[List[int]], graph: nx.Graph
+    indices: List[List[int]], graph: nx.Graph, terminal_indices
 ) -> Tuple[List[List[int]], List[int]]:
     """Just looking at the intermediate coordination
     environment the metal in ZIFs and prophyrins seem quite similar.
@@ -84,6 +85,7 @@ def _filter_isolated_node_candidates(
         indices (List[List[int]]): Indices for which the test is performed.
             Typically, one would consider the metal indices of MOF nodes
         graph (nx.Graph): structure graph on which the analysis is performed
+        terminal_indices (List[int])
 
     Returns:
         Tuple[List[List[int]], List[int]]: Filtered nodes,
@@ -93,17 +95,20 @@ def _filter_isolated_node_candidates(
     good_indices = []
 
     for i, index in enumerate(indices):
-        if _creates_new_leaf_nodes(index, graph) or _creates_new_connected_components(
-            index, graph
-        ):
+        if _creates_new_leaf_nodes(
+            index, graph, terminal_indices
+        ) or _creates_new_connected_components(index, graph, terminal_indices):
             good_node_candidates.append(index)
             good_indices.append(i)
 
     return good_node_candidates, good_indices
 
 
-def _creates_new_leaf_nodes(indices: List[int], graph: nx.Graph) -> bool:
+def _creates_new_leaf_nodes(
+    indices: List[int], graph: nx.Graph, terminal_indices: List[int]
+) -> bool:
     my_graph = deepcopy(graph)
+    my_graph.remove_nodes_from(terminal_indices)
     current_leaf_nodes = _get_number_of_leaf_nodes(my_graph)
     my_graph.remove_nodes_from(indices)
     new_leaf_nodes = _get_number_of_leaf_nodes(my_graph)
@@ -111,7 +116,9 @@ def _creates_new_leaf_nodes(indices: List[int], graph: nx.Graph) -> bool:
     return new_leaf_nodes > current_leaf_nodes
 
 
-def _creates_new_connected_components(indices: list, graph: nx.Graph) -> bool:
+def _creates_new_connected_components(
+    indices: list, graph: nx.Graph, terminal_indices
+) -> bool:
     """This function tests if the removal of the nodes index by indices
     creates new connected components. Simply put, we want to understand if
     the removal of this part of the framework creates new "floating" components.
@@ -119,11 +126,11 @@ def _creates_new_connected_components(indices: list, graph: nx.Graph) -> bool:
     Args:
         indices (list): node indices to test
         graph (nx.Graph): graph on which the test is performed
-
+        terminal_indices (List[int])
     Returns:
         bool: True if there are more than 1 connected component after deletion
             of the nodes indexed by indices
     """
     my_graph = deepcopy(graph)
-    my_graph.remove_nodes_from(indices)
+    my_graph.remove_nodes_from(indices + terminal_indices)
     return len(list(nx.connected_components(my_graph.to_undirected()))) > 1

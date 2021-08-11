@@ -385,4 +385,5 @@ def get_nx_graph_from_edge_tuples(edge_tuples):
 
 def remove_all_nodes_not_in_indices(graph: nx.Graph, indices) -> nx.Graph:
     to_delete = [i for i in range(len(graph)) if i not in indices]
+    graph.structure = Structure.from_sites(graph.structure.sites)
     graph.remove_nodes(to_delete)

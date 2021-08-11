@@ -51,7 +51,7 @@ class NonSbuMolecule:
             NonSbuMolecule: Instance of NonSbuMolecule
         """
         my_graph = deepcopy(structure_graph)
-        remove_all_nodes_not_in_indices(structure_graph, indices)
+        remove_all_nodes_not_in_indices(my_graph, indices)
         structure = my_graph.structure
         sites = []
         for site in structure:

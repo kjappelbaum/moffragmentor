@@ -10,7 +10,7 @@ import yaml
 from backports.cached_property import cached_property
 from pymatgen.analysis.graphs import StructureGraph
 from pymatgen.analysis.local_env import CutOffDictNN
-from pymatgen.core import Lattice, Structure
+from pymatgen.core import IStructure, Lattice, Structure
 
 from .descriptors.sbu_dimensionality import get_structure_graph_dimensionality
 from .fragmentor import run_fragmentation
@@ -30,8 +30,8 @@ class MOF:  # pylint:disable=too-many-instance-attributes
     """Main representation for a MOF structure"""
 
     def __init__(self, structure: Structure, structure_graph: StructureGraph):
-        self.structure = structure
-        self.structure_graph = structure_graph
+        self._structure = structure
+        self._structure_graph = structure_graph
         self._node_indices = None
         self._linker_indices = None
         self._bridges = None
@@ -41,7 +41,7 @@ class MOF:  # pylint:disable=too-many-instance-attributes
         self._branching_indices = None
         self._nx_graph = None
         nx.set_node_attributes(
-            self.structure_graph.graph,
+            self._structure_graph.graph,
             name="idx",
             values=dict(zip(range(len(structure_graph)), range(len(structure_graph)))),
         )
@@ -61,6 +61,16 @@ class MOF:  # pylint:disable=too-many-instance-attributes
 
     def __len__(self) -> str:
         return len(self.structure)
+
+    # we should not be able to write this
+    @property
+    def structure(self):
+        return self._structure
+
+    # we should not be able to write this
+    @property
+    def structure_graph(self):
+        return self._structure_graph
 
     @cached_property
     def dimensionality(self):
@@ -84,7 +94,8 @@ class MOF:  # pylint:disable=too-many-instance-attributes
 
     @classmethod
     def from_cif(cls, cif: Union[str, os.PathLike]):
-        structure = Structure.from_file(cif)
+        # using the IStructure avoids bugs where somehow the structure changes
+        structure = IStructure.from_file(cif)
         structure_graph = StructureGraph.with_local_env_strategy(
             structure, VestaCutoffDictNN
         )
@@ -126,6 +137,10 @@ class MOF:  # pylint:disable=too-many-instance-attributes
 
     def _is_terminal(self, index):
         return len(self.get_neighbor_indices(index)) == 1
+
+    @cached_property
+    def terminal_indices(self):
+        return [i for i in range(len(self.structure)) if self._is_terminal(i)]
 
     def _get_nx_graph(self):
         if self._nx_graph is None:
