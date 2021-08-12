@@ -47,14 +47,17 @@ def run_fragmentation(mof) -> FragmentationResult:
             for linker in linker_collection:
                 if point_in_mol_coords(
                     mof.cart_coords[metal_in_node[0]],
-                    mof.cart_coords[linker._original_indices],
+                    mof.cart_coords[
+                        linker._original_indices  # pylint:disable=protected-access
+                    ],
                     mof.lattice,
                 ):
-                    print(f"{i} in hull")
                     if (
                         len(
                             set(mof.get_neighbor_indices(metal_in_node[0]))
-                            & set(linker._original_indices)
+                            & set(
+                                linker._original_indices  # pylint:disable=protected-access
+                            )
                         )
                         > 1
                     ):
