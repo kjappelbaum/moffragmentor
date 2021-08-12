@@ -62,9 +62,9 @@ def find_node_clusters(mof) -> NodelocationResult:
 
     # filter out "node" candidates that are not actual nodes.
     # in practice this is relevant for ligands with metals in them (e.g., porphyrins)
-    nodes = filter_nodes(
-        nodes, mof.structure_graph, mof.metal_indices, mof.terminal_indices
-    )
+    # nodes = filter_nodes(
+    #     nodes, mof.structure_graph, mof.metal_indices, mof.terminal_indices
+    # )
 
     bs = set(sum(branch_sites, []))
 

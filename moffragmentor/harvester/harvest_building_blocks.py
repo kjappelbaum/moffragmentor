@@ -12,7 +12,7 @@ import pandas as pd
 
 from ..descriptors.sbu_dimensionality import get_sbu_dimensionality
 from ..mof import MOF
-from ..utils import get_linker_connectivity, make_if_not_exists
+from ..utils import get_linker_connectivity, make_if_not_exists, remove_edge_duplicates
 
 logging.basicConfig(
     format="[%(levelname)s]:%(lineno)s - %(message)s", level=logging.INFO
@@ -80,7 +80,7 @@ class Harvester:
                     bb_type="node",
                     topology=topology,
                     dimensionality=dimensionality,
-                    connectivity=len(edge_dict[i]),
+                    connectivity=len(remove_edge_duplicates(edge_dict[i])),
                 )
             )
 

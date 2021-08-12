@@ -4,10 +4,37 @@ from copy import deepcopy
 from typing import List, Tuple
 
 import networkx as nx
+import numpy as np
 from pymatgen.analysis.graphs import StructureGraph
+from pymatgen.core import Structure
 
-from ..utils import _get_metal_sublists
+from ..utils import _get_metal_sublists, unwrap
 from ..utils.periodic_graph import _get_number_of_leaf_nodes
+from .molfromgraph import get_subgraphs_as_molecules
+
+
+def point_in_mol_coords(point, points, lattice):
+    new_coords = unwrap(np.append(points, [point], axis=0), lattice)
+    return in_hull(new_coords[-1], new_coords[:-1])
+
+
+def in_hull(p, hull):
+    """
+    Test if points in `p` are in `hull`b
+
+    `p` should be a `NxK` coordinates of `N` points in `K` dimensions
+    `hull` is either a scipy.spatial.Delaunay object or the `MxK` array of the
+    coordinates of `M` points in `K`dimensions for which Delaunay triangulation
+    will be computed
+
+    https://stackoverflow.com/a/16898636
+    """
+    from scipy.spatial import Delaunay
+
+    if not isinstance(hull, Delaunay):
+        hull = Delaunay(hull)
+
+    return hull.find_simplex(p) >= 0
 
 
 def _filter_branch_points(
@@ -65,14 +92,14 @@ def filter_nodes(
     metal_sublist = _get_metal_sublists(node_candidate_indices, metal_indices)
 
     filtered_nodes, original_indices = _filter_isolated_node_candidates(
-        metal_sublist, graph.graph, terminal_indices
+        metal_sublist, graph, terminal_indices
     )
     filtered_nodes = [node_candidate_indices[i] for i in original_indices]
     return filtered_nodes
 
 
 def _filter_isolated_node_candidates(
-    indices: List[List[int]], graph: nx.Graph, terminal_indices
+    indices: List[List[int]], graph: StructureGraph, terminal_indices
 ) -> Tuple[List[List[int]], List[int]]:
     """Just looking at the intermediate coordination
     environment the metal in ZIFs and prophyrins seem quite similar.
@@ -95,12 +122,15 @@ def _filter_isolated_node_candidates(
     good_indices = []
 
     for i, index in enumerate(indices):
-        if _creates_new_leaf_nodes(
-            index, graph, terminal_indices
-        ) or _creates_new_connected_components(index, graph, terminal_indices):
-            good_node_candidates.append(index)
+        if len(index) == 1:
+            if _creates_new_leaf_nodes(
+                index, graph.graph, terminal_indices
+            ) or _creates_new_connected_components(index, graph, terminal_indices):
+                good_node_candidates.append(index)
+                good_indices.append(i)
+        else:
             good_indices.append(i)
-
+            good_node_candidates.append(index)
     return good_node_candidates, good_indices
 
 
@@ -117,7 +147,7 @@ def _creates_new_leaf_nodes(
 
 
 def _creates_new_connected_components(
-    indices: list, graph: nx.Graph, terminal_indices
+    indices: list, graph: StructureGraph, terminal_indices
 ) -> bool:
     """This function tests if the removal of the nodes index by indices
     creates new connected components. Simply put, we want to understand if
@@ -125,12 +155,26 @@ def _creates_new_connected_components(
 
     Args:
         indices (list): node indices to test
-        graph (nx.Graph): graph on which the test is performed
+        graph (StructureGraph): graph on which the test is performed
         terminal_indices (List[int])
     Returns:
         bool: True if there are more than 1 connected component after deletion
             of the nodes indexed by indices
     """
     my_graph = deepcopy(graph)
-    my_graph.remove_nodes_from(indices + terminal_indices)
-    return len(list(nx.connected_components(my_graph.to_undirected()))) > 1
+    my_graph.structure = Structure.from_sites(my_graph.structure.sites)
+    mol_before, _, _, _, _ = get_subgraphs_as_molecules(
+        graph,
+        filter_in_cell=False,
+        return_unique=False,
+        disable_boundary_crossing_check=True,
+    )
+    my_graph.remove_nodes(indices + terminal_indices)
+
+    mol, _, _, _, _ = get_subgraphs_as_molecules(
+        graph,
+        filter_in_cell=False,
+        return_unique=False,
+        disable_boundary_crossing_check=True,
+    )
+    return len(mol) > 1 & len(mol) > len(mol_before)
