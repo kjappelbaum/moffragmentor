@@ -195,12 +195,17 @@ class SBU:
         """Return canonical SMILES.
         Using openbabel to compute the SMILES, but then get the
         canonical version with RDKit as we observed sometimes the same
-        molecule ends up as different canonical SMILES for openbabel
+        molecule ends up as different canonical SMILES for openbabel.
+        If RDKit cannot make a canonical SMILES (can happen with organometallics)
+        we simply use the openbabel version.
         """
         mol = self.openbabel_mol
         smiles = mol.write("can").strip()
-        canonical = Chem.CanonSmiles(smiles)
-        return canonical
+        try:
+            canonical = Chem.CanonSmiles(smiles)
+            return canonical
+        except Exception:
+            return smiles
 
     def _get_boxed_structure(self):
         max_size = _get_max_sep(self.molecule.cart_coords)

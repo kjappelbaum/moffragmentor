@@ -113,7 +113,10 @@ def harvest_directory(directory, njobs=1, outdir=None, skip_existing=True):
     harvest_partial = partial(harvest_cif, dumpdir=outdir)
 
     if skip_existing:
-        existing_stems = [Path(p).parents[0] for p in glob(os.path.join(outdir, "*", "descriptors.csv"))]
+        existing_stems = [
+            Path(p).parents[0]
+            for p in glob(os.path.join(outdir, "*", "descriptors.csv"))
+        ]
         filtered_all_cifs = []
         for cif in all_cifs:
             if Path(cif).stem not in existing_stems:
