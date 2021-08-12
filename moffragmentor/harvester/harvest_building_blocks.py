@@ -36,6 +36,9 @@ def sbu_descriptors(
     return {**descriptors}
 
 
+MAX_ATOMS = 3000
+
+
 class Harvester:
     def __init__(self, mof, outdir=None):
         self.mof = mof
@@ -44,6 +47,8 @@ class Harvester:
     @classmethod
     def from_cif(cls, cif, outdir=None):
         mof = MOF.from_cif(cif)
+        if len(mof.structure) > MAX_ATOMS:
+            raise ValueError("Structure too large")
         return cls(mof, outdir)
 
     def run_harvest(self):
