@@ -45,8 +45,8 @@ class Harvester:
         self.mof = mof
         self.outdir = outdir
 
-    @timeout_decorator.timeout(200)
     @classmethod
+    @timeout_decorator.timeout(200)
     def from_cif(cls, cif, outdir=None):
         mof = MOF.from_cif(cif)
         if len(mof.structure) > MAX_ATOMS:
