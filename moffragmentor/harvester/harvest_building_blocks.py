@@ -9,13 +9,11 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import timeout_decorator
 
 from ..descriptors.sbu_dimensionality import get_sbu_dimensionality
 from ..mof import MOF
 from ..utils import get_linker_connectivity, make_if_not_exists, remove_edge_duplicates
-import timeout_decorator
-
-
 
 logging.basicConfig(
     format="[%(levelname)s]:%(lineno)s - %(message)s", level=logging.INFO
@@ -47,6 +45,7 @@ class Harvester:
         self.mof = mof
         self.outdir = outdir
 
+    @timeout_decorator.timeout(200)
     @classmethod
     def from_cif(cls, cif, outdir=None):
         mof = MOF.from_cif(cif)
@@ -97,7 +96,8 @@ class Harvester:
             df.to_csv(os.path.join(self.outdir, "descriptors.csv"), index=False)
         return df
 
-@timeout_decorator.timeout(200)
+
+
 def harvest_cif(cif, dumpdir=None):
     try:
         stem = Path(cif).stem
