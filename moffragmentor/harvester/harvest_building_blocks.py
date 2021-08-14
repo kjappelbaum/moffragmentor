@@ -145,10 +145,13 @@ def harvest_directory(
     all_res = []
     with concurrent.futures.ProcessPoolExecutor(max_workers=njobs) as exec:
         for i, res in enumerate(exec.map(harvest_partial, filtered_all_cifs)):
-            if res is not None:
-                all_res.append(res)
-            else:
-                LOGGER.error(f"Failed for {filtered_all_cifs[i]}")
+            try:
+                if res is not None:
+                    all_res.append(res)
+                else:
+                    LOGGER.error(f"Failed for {filtered_all_cifs[i]}")
+            except concurrent.futures.process.BrokenProcessPool as ex:
+                LOGGER.error("Broken process pool")
 
     df = pd.concat(all_res)
     if outdir is None:
