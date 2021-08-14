@@ -46,7 +46,6 @@ class Harvester:
         self.outdir = outdir
 
     @classmethod
-    @timeout_decorator.timeout(200)
     def from_cif(cls, cif, outdir=None):
         mof = MOF.from_cif(cif)
         if len(mof.structure) > MAX_ATOMS:
@@ -97,7 +96,15 @@ class Harvester:
         return df
 
 
+def harvest_w_timeout(cif, dumpdir=None):
+    try:
+        return harvest_cif(cif, dumpdir=dumpdir)
+    except Exception as e:
+        LOGGER.exception(f"Exception occured for {cif}. Exception: {e}.")
+        return None
 
+
+@timeout_decorator.timeout(200)
 def harvest_cif(cif, dumpdir=None):
     try:
         stem = Path(cif).stem
@@ -120,7 +127,7 @@ def harvest_directory(
     if outdir is not None:
         make_if_not_exists(outdir)
 
-    harvest_partial = partial(harvest_cif, dumpdir=outdir)
+    harvest_partial = partial(harvest_w_timeout, dumpdir=outdir)
 
     if skip_existing:
         existing_stems = [
