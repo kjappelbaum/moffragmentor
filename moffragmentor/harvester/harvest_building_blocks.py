@@ -121,7 +121,7 @@ def harvest_cif(cif, dumpdir=None):
 
 
 def harvest_directory(
-    directory, njobs=1, outdir=None, skip_existing=True, reverse=False
+    directory, njobs=1, outdir=None, skip_existing=True, reverse=False, offset: int = 0
 ):
     all_cifs = glob(os.path.join(directory, "*.cif"))
     if outdir is not None:
@@ -144,7 +144,7 @@ def harvest_directory(
     filtered_all_cifs = sorted(filtered_all_cifs, reverse=reverse)
     all_res = []
     with concurrent.futures.ProcessPoolExecutor(max_workers=njobs) as exec:
-        for i, res in enumerate(exec.map(harvest_partial, filtered_all_cifs)):
+        for i, res in enumerate(exec.map(harvest_partial, filtered_all_cifs[offset:])):
             try:
                 if res is not None:
                     all_res.append(res)
