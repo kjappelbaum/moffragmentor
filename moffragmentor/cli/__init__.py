@@ -10,4 +10,4 @@ from ..harvester.harvest_building_blocks import harvest_directory
 @click.option("--njobs", "-n", default=1, type=int)
 @click.option("--reverse", is_flag=True)
 def run_harvest(indir, dumpdir, njobs, reverse):
-    harvest_directory(indir, njobs, dumpdir, reverse)
+    harvest_directory(indir, njobs, dumpdir, reverse=reverse)
