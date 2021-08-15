@@ -131,12 +131,12 @@ def harvest_directory(
 
     if skip_existing:
         existing_stems = [
-            Path(p).parents[0]
+            Path(p).parents[0].split("_")[0]
             for p in glob(os.path.join(outdir, "*", "descriptors.csv"))
         ]
         filtered_all_cifs = []
         for cif in all_cifs:
-            if Path(cif).stem not in existing_stems:
+            if Path(cif).stem.split("_")[0] not in existing_stems:
                 filtered_all_cifs.append(cif)
     else:
         filtered_all_cifs = all_cifs
