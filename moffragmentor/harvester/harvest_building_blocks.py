@@ -121,7 +121,13 @@ def harvest_cif(cif, dumpdir=None):
 
 
 def harvest_directory(
-    directory, njobs=1, outdir=None, skip_existing=True, reverse=False, offset: int = 0
+    directory,
+    njobs=1,
+    outdir=None,
+    skip_existing=True,
+    reverse=False,
+    offset: int = 0,
+    qmof: bool = True,
 ):
     all_cifs = glob(os.path.join(directory, "*.cif"))
     if outdir is not None:
@@ -137,7 +143,12 @@ def harvest_directory(
         filtered_all_cifs = []
         for cif in all_cifs:
             if str(Path(cif).stem).split("_")[0] not in existing_stems:
-                filtered_all_cifs.append(cif)
+                if qmof:
+                    if "FSR" in cif:
+                        filtered_all_cifs.append(cif)
+                else:
+                    filtered_all_cifs.append(cif)
+
     else:
         filtered_all_cifs = all_cifs
 
