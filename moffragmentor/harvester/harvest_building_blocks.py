@@ -16,7 +16,11 @@ from ..mof import MOF
 from ..utils import get_linker_connectivity, make_if_not_exists, remove_edge_duplicates
 
 logging.basicConfig(
-    format="[%(levelname)s]:%(lineno)s - %(message)s", level=logging.INFO
+    filename="harvester_log.log",
+    filemode="a",
+    format="%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s",
+    datefmt="%H:%M:%S",
+    level=logging.DEBUG,
 )
 LOGGER = logging.getLogger(__name__)
 
@@ -100,7 +104,7 @@ def harvest_w_timeout(cif, dumpdir=None):
     try:
         return harvest_cif(cif, dumpdir=dumpdir)
     except Exception as e:
-        LOGGER.exception(f"Exception occured for {cif}. Exception: {e}.")
+        LOGGER.exception(f"{cif}. Exception: {e}.")
         return None
 
 
@@ -116,7 +120,7 @@ def harvest_cif(cif, dumpdir=None):
         df = harvester.run_harvest()
         return df
     except Exception as e:
-        LOGGER.exception(f"Exception occured for {cif}. Exception: {e}.")
+        LOGGER.exception(f"{cif}. Exception: {e}.")
         return None
 
 
