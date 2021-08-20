@@ -3,6 +3,7 @@
 import concurrent.futures
 import logging
 import os
+import pickle
 from functools import partial
 from glob import glob
 from pathlib import Path
@@ -23,6 +24,15 @@ logging.basicConfig(
     level=logging.DEBUG,
 )
 LOGGER = logging.getLogger(__name__)
+
+
+def load_failed():
+    try:
+        with open("failed_cifs.pkl", "rb") as handle:
+            failed_cifs = pickle.load(handle)
+            return failed_cifs
+    except Exception:
+        return set()
 
 
 def sbu_descriptors(
@@ -140,10 +150,13 @@ def harvest_directory(
     harvest_partial = partial(harvest_w_timeout, dumpdir=outdir)
 
     if skip_existing:
-        existing_stems = [
-            str(Path(p).parents[0]).split("_")[0]
-            for p in glob(os.path.join(outdir, "*", "descriptors.csv"))
-        ]
+        existing_stems = set(
+            [
+                str(Path(p).parents[0]).split("_")[0]
+                for p in glob(os.path.join(outdir, "*", "descriptors.csv"))
+            ]
+        )
+        existing_stems.update(load_failed())
         filtered_all_cifs = []
         for cif in all_cifs:
             if str(Path(cif).stem).split("_")[0] not in existing_stems:
