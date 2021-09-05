@@ -31,6 +31,6 @@ def test__leads_to_terminal(get_cuiiibtc_mof):
 def test_fragmentation(get_cuiiibtc_mof):
     mof = get_cuiiibtc_mof
     fragments = mof.fragment()
-    # topocryst.com fails here, mofid gives mtf as does our clustering
-    assert fragments.net_embedding.rscr_code == "mtf"
-    assert fragments.net_embedding.space_group == "p4mm"
+    # topocryst.com fails here
+    assert fragments.net_embedding.rcsr_code == "mmm"
+    assert fragments.net_embedding.space_group == "P4/nmm"

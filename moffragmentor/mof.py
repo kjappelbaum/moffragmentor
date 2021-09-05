@@ -10,11 +10,11 @@ import yaml
 from backports.cached_property import cached_property
 from pymatgen.analysis.graphs import StructureGraph
 from pymatgen.analysis.local_env import CutOffDictNN
-from pymatgen.core import IStructure, Lattice, Structure
+from pymatgen.core import Lattice, Structure
 
 from .descriptors.sbu_dimensionality import get_structure_graph_dimensionality
 from .fragmentor import run_fragmentation
-from .utils import pickle_dump, write_cif
+from .utils import pickle_dump, write_cif, IStructure
 
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 

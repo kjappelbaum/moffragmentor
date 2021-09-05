@@ -7,7 +7,9 @@ from collections import defaultdict
 from copy import deepcopy
 from shutil import which
 from typing import Collection, Dict, List, Union
-
+import json 
+from functools import cached_property
+import pymatgen
 import networkx as nx
 import numpy as np
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
@@ -414,3 +416,27 @@ def remove_all_nodes_not_in_indices(graph: nx.Graph, indices) -> nx.Graph:
     to_delete = [i for i in range(len(graph)) if i not in indices]
     graph.structure = Structure.from_sites(graph.structure.sites)
     graph.remove_nodes(to_delete)
+
+
+class IStructure(pymatgen.core.structure.IStructure):
+    """pymatgen IStructure with faster equality comparison.
+    This dramatically speeds up lookups in the LRU cache when an object
+    with the same __hash__ is already in the cache.
+    """
+
+    __hash__ = pymatgen.core.structure.IStructure.__hash__
+
+    def __eq__(self, other):
+        """Use specific, yet performant hash for equality comparison."""
+        return self._dict_hash == other._dict_hash
+
+    @cached_property
+    def _dict_hash(self):
+        """Specific, yet performant hash."""
+        return hash(json.dumps(self.as_dict(), sort_keys=True))
+
+
+def remove_site(structure: Union[Structure, IStructure]) -> None: 
+    if isinstance(structure, IStructure):
+        structure = Structure.from_sites(structure.sites)
+    

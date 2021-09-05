@@ -586,6 +586,7 @@ def get_1d_node_graph():
     ]
     mof = MOF.from_cif(os.path.join(THIS_DIR, "test_files", "c3cc49684h3.cif"))
     graph = mof.structure_graph
+    graph.structure = Structure.from_sites(graph.structure.sites)
     graph.remove_nodes(not_node)
     return graph
 
@@ -1206,6 +1207,7 @@ def get_0d_node_graph():
     ]
     mof = MOF.from_cif(os.path.join(THIS_DIR, "test_files", "HKUST-1.cif"))
     graph = mof.structure_graph
+    graph.structure = Structure.from_sites(graph.structure.sites)
     graph.remove_nodes(not_node)
     return graph
 
