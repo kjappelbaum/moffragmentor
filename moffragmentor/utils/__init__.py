@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 """Helper functions"""
 import datetime
+import json
 import os
 import pickle
 from collections import defaultdict
 from copy import deepcopy
+from functools import cached_property
 from shutil import which
 from typing import Collection, Dict, List, Union
-import json 
-from functools import cached_property
-import pymatgen
+
 import networkx as nx
 import numpy as np
+import pymatgen
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 from pymatgen.core import Molecule, Structure
 from pymatgen.io.babel import BabelMolAdaptor
@@ -436,7 +437,6 @@ class IStructure(pymatgen.core.structure.IStructure):
         return hash(json.dumps(self.as_dict(), sort_keys=True))
 
 
-def remove_site(structure: Union[Structure, IStructure]) -> None: 
+def remove_site(structure: Union[Structure, IStructure]) -> None:
     if isinstance(structure, IStructure):
         structure = Structure.from_sites(structure.sites)
-    

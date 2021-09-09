@@ -14,7 +14,7 @@ from pymatgen.core import Lattice, Structure
 
 from .descriptors.sbu_dimensionality import get_structure_graph_dimensionality
 from .fragmentor import run_fragmentation
-from .utils import pickle_dump, write_cif, IStructure
+from .utils import IStructure, pickle_dump, write_cif
 
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 
