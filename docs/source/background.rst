@@ -58,6 +58,8 @@ SBU descriptors
 
 One key intuition MOF chemists have is that the shape of the building blocks dictates which MOF will form. This is discussed in great detail in [Kalmutzki2018]_. Also, chemists know that it can be difficult to form MOFs with highly flexible linkers [Lin2014]_. In other contexts, it already has been shown that flexibility is associated with a molecules tendency to form crystals [Wicker2015]_.
 
+.. image:: _static/descriptor_fragments.png
+    :alt: Different sets of binding/connecting indices
 
 Chemical descriptors
 .......................

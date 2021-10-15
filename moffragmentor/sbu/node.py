@@ -56,7 +56,6 @@ def node_from_mof_and_indices(
                     selected_edge_indices.append(edge_idx)
 
     index_map = dict(zip(relevant_indices, range(len(relevant_indices))))
-
     molecule = Molecule(selected_species, selected_positions)
     selected_edges = [sites_and_indices.edges[i] for i in selected_edge_indices]
     selected_edges = _reindex_list_of_tuple(selected_edges, index_map)
@@ -86,7 +85,7 @@ def node_from_mof_and_indices(
         graph_branching_indices=graph_branching_indices,
         closest_branching_index_in_molecule=closest_branching_index_in_molecule,
         binding_indices=binding_indices,
-        original_indices=node_indices & relevant_indices,
+        original_indices=[i for i in relevant_indices if i in node_indices],
         persistent_non_metal_bridged=sites_and_indices.persistent_non_metal_bridged_components,
         terminal_in_mol_not_terminal_in_struct=sites_and_indices.hidden_vertices,
         graph_branching_coords=sites_and_indices.cartesian_coordinates[
@@ -111,6 +110,8 @@ class Node(SBU):
         branching_indices: Set[int],
         binding_indices: Set[int],
     ):
+        """Build a node object from a MOF and some
+        intermediate outputs of the fragmentation"""
         return node_from_mof_and_indices(
             cls, mof, node_indices, branching_indices, binding_indices
         )

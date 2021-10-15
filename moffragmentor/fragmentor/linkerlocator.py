@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Based on the node location, locate the linkers"""
+import ast
 from copy import deepcopy
 from typing import List, Tuple
 
@@ -10,7 +11,7 @@ from ..sbu import Linker, LinkerCollection
 from ..utils import _flatten_list_of_sets
 from .molfromgraph import get_subgraphs_as_molecules
 
-__all__ = ["create_linker_collection"]
+__all__ = ["create_linker_collection", "identify_linker_binding_indices"]
 
 
 def _pick_linker_indices(
@@ -106,11 +107,16 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
         )
 
     not_linker_indices = (
-        all_node_indices
-        - node_location_result.connecting_paths
-        - node_location_result.branching_indices
-        - all_persistent_non_metal_bridges
-    ) | set(unbound_solvent.indices)
+        (
+            all_node_indices
+            - node_location_result.connecting_paths
+            - node_location_result.branching_indices
+            - all_persistent_non_metal_bridges
+        )
+        | set(unbound_solvent.indices)
+        | set(mof.metal_indices)
+        & all_node_indices  # some metals might also be in the linker, e.g., in porphyrins
+    )
 
     graph_ = deepcopy(mof.structure_graph)
     graph_.structure = Structure.from_sites(graph_.structure.sites)
@@ -139,7 +145,12 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
             center=center,
             graph_branching_indices=branching_indices,
             closest_branching_index_in_molecule=branching_indices,
-            binding_indices=node_location_result.connecting_paths & idxs,
+            binding_indices=identify_linker_binding_indices(
+                mof.structure_graph,
+                node_location_result.connecting_paths,
+                idx,
+                branching_indices,
+            ),
             original_indices=idx,
         )
 
@@ -164,3 +175,48 @@ def create_linker_collection(
         mof, node_location_result, node_collection, unbound_solvents
     )
     return linker_collection, edge_dict
+
+
+def identify_linker_binding_indices(
+    structure_graph, connecting_paths, indices, connecting_indices
+):
+    relevant_indices = connecting_paths & set(indices)
+    my_new_graph = deepcopy(structure_graph)
+    my_new_graph.structure = Structure.from_sites(my_new_graph.structure.sites)
+    my_new_graph.remove_nodes(
+        [i for i in range(len(my_new_graph.structure)) if i not in relevant_indices]
+    )
+
+    _, mg, idx, _, _ = get_subgraphs_as_molecules(
+        my_new_graph,
+        filter_in_cell=True,
+        return_unique=False,
+        disable_boundary_crossing_check=False,
+    )
+
+    idx = {str(sorted(i)): mg for i, mg in zip(idx, mg)}
+
+    # Now, we need to filter these index sets.
+    # If they are of length 1 there is nothing we need to do
+    # If they are longer, however, we need to do some reasoning
+    filtered_indices = []
+
+    for index_set, mg in idx.items():
+        index_set = ast.literal_eval(index_set)
+        if len(index_set) == 1:
+            filtered_indices.append(index_set)
+        else:
+            potential_nodes = []
+
+            for i in range(len(mg)):
+                # The reasoning is quite simple. We care only about degree 1 nodes
+                # In some cases we might have a graph A-B with two nodes, each degree one
+                # In that case we need to make sure that we do not take an atom that we
+                # already denote as "connecting site"
+                if len(mg.get_connected_sites(i)) == 1:
+                    if mg.graph.nodes()[i]["idx"] not in connecting_indices:
+                        potential_nodes.append(mg.graph.nodes()[i]["idx"])
+
+            filtered_indices.append(potential_nodes)
+
+    return sum(filtered_indices, [])

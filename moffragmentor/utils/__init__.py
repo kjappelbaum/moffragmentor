@@ -440,3 +440,7 @@ class IStructure(pymatgen.core.structure.IStructure):
 def remove_site(structure: Union[Structure, IStructure]) -> None:
     if isinstance(structure, IStructure):
         structure = Structure.from_sites(structure.sites)
+
+
+def add_suffix_to_dict_keys(dictionary: dict, suffix: str) -> dict:
+    return {f"{k}_{suffix}": v for k, v in dictionary.items()}

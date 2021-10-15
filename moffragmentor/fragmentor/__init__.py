@@ -23,9 +23,10 @@ FragmentationResult = namedtuple(
 
 
 def run_fragmentation(mof) -> FragmentationResult:
+    """Take a MOF and split it into building blocks"""
     unbound_solvent = get_floating_solvent_molecules(mof)
     # Find nodes
-    node_result = find_node_clusters(mof)
+    node_result = find_node_clusters(mof, unbound_solvent.indices)
     node_collection = create_node_collection(mof, node_result)
     # Find bound solvent
     bound_solvent = get_all_bound_solvent_molecules(mof, node_result.nodes)
@@ -38,6 +39,7 @@ def run_fragmentation(mof) -> FragmentationResult:
     ok_node = []
     need_rerun = False
 
+    # ToDo: factor this out into its own function
     for i, node in enumerate(node_result.nodes):
         metal_in_node = _get_metal_sublist(node, mof.metal_indices)
         node_ok = True

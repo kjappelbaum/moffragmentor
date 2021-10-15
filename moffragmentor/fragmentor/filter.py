@@ -83,55 +83,55 @@ def _shortest_path_to_metal(branch_index, metal_indices, graph):
     return shortest_path[1:]
 
 
-def filter_nodes(
-    node_candidate_indices: List[List[int]],
-    graph: StructureGraph,
-    metal_indices: List[int],
-    terminal_indices: List[int],
-) -> List[List[int]]:
-    metal_sublist = _get_metal_sublists(node_candidate_indices, metal_indices)
+# def filter_nodes(
+#     node_candidate_indices: List[List[int]],
+#     graph: StructureGraph,
+#     metal_indices: List[int],
+#     terminal_indices: List[int],
+# ) -> List[List[int]]:
+#     metal_sublist = _get_metal_sublists(node_candidate_indices, metal_indices)
 
-    filtered_nodes, original_indices = _filter_isolated_node_candidates(
-        metal_sublist, graph, terminal_indices
-    )
-    filtered_nodes = [node_candidate_indices[i] for i in original_indices]
-    return filtered_nodes
+#     filtered_nodes, original_indices = _filter_isolated_node_candidates(
+#         metal_sublist, graph, terminal_indices
+#     )
+#     filtered_nodes = [node_candidate_indices[i] for i in original_indices]
+#     return filtered_nodes
 
 
-def _filter_isolated_node_candidates(
-    indices: List[List[int]], graph: StructureGraph, terminal_indices
-) -> Tuple[List[List[int]], List[int]]:
-    """Just looking at the intermediate coordination
-    environment the metal in ZIFs and prophyrins seem quite similar.
-    The difference though is that when we delete the isolated metal
-    in the case of ZIFs we will increase the number of leaf nodes.
-    On the other hand, in the case of prophyrins, we won't change anything
-    (since the metal is part of a ring system).
+# def _filter_isolated_node_candidates(
+#     indices: List[List[int]], graph: StructureGraph, terminal_indices
+# ) -> Tuple[List[List[int]], List[int]]:
+#     """Just looking at the intermediate coordination
+#     environment the metal in ZIFs and prophyrins seem quite similar.
+#     The difference though is that when we delete the isolated metal
+#     in the case of ZIFs we will increase the number of leaf nodes.
+#     On the other hand, in the case of prophyrins, we won't change anything
+#     (since the metal is part of a ring system).
 
-    Args:
-        indices (List[List[int]]): Indices for which the test is performed.
-            Typically, one would consider the metal indices of MOF nodes
-        graph (nx.Graph): structure graph on which the analysis is performed
-        terminal_indices (List[int])
+#     Args:
+#         indices (List[List[int]]): Indices for which the test is performed.
+#             Typically, one would consider the metal indices of MOF nodes
+#         graph (nx.Graph): structure graph on which the analysis is performed
+#         terminal_indices (List[int])
 
-    Returns:
-        Tuple[List[List[int]], List[int]]: Filtered nodes,
-            indices from original list that "survived" the filtering process
-    """
-    good_node_candidates = []
-    good_indices = []
+#     Returns:
+#         Tuple[List[List[int]], List[int]]: Filtered nodes,
+#             indices from original list that "survived" the filtering process
+#     """
+#     good_node_candidates = []
+#     good_indices = []
 
-    for i, index in enumerate(indices):
-        if len(index) == 1:
-            if _creates_new_leaf_nodes(
-                index, graph.graph, terminal_indices
-            ) or _creates_new_connected_components(index, graph, terminal_indices):
-                good_node_candidates.append(index)
-                good_indices.append(i)
-        else:
-            good_indices.append(i)
-            good_node_candidates.append(index)
-    return good_node_candidates, good_indices
+#     for i, index in enumerate(indices):
+#         if len(index) == 1:
+#             if _creates_new_leaf_nodes(
+#                 index, graph.graph, terminal_indices
+#             ) or _creates_new_connected_components(index, graph, terminal_indices):
+#                 good_node_candidates.append(index)
+#                 good_indices.append(i)
+#         else:
+#             good_indices.append(i)
+#             good_node_candidates.append(index)
+#     return good_node_candidates, good_indices
 
 
 def _creates_new_leaf_nodes(
@@ -146,35 +146,35 @@ def _creates_new_leaf_nodes(
     return new_leaf_nodes > current_leaf_nodes
 
 
-def _creates_new_connected_components(
-    indices: list, graph: StructureGraph, terminal_indices
-) -> bool:
-    """This function tests if the removal of the nodes index by indices
-    creates new connected components. Simply put, we want to understand if
-    the removal of this part of the framework creates new "floating" components.
+# def _creates_new_connected_components(
+#     indices: list, graph: StructureGraph, terminal_indices
+# ) -> bool:
+#     """This function tests if the removal of the nodes index by indices
+#     creates new connected components. Simply put, we want to understand if
+#     the removal of this part of the framework creates new "floating" components.
 
-    Args:
-        indices (list): node indices to test
-        graph (StructureGraph): graph on which the test is performed
-        terminal_indices (List[int])
-    Returns:
-        bool: True if there are more than 1 connected component after deletion
-            of the nodes indexed by indices
-    """
-    my_graph = deepcopy(graph)
-    my_graph.structure = Structure.from_sites(my_graph.structure.sites)
-    mol_before, _, _, _, _ = get_subgraphs_as_molecules(
-        graph,
-        filter_in_cell=False,
-        return_unique=False,
-        disable_boundary_crossing_check=True,
-    )
-    my_graph.remove_nodes(indices + terminal_indices)
+#     Args:
+#         indices (list): node indices to test
+#         graph (StructureGraph): graph on which the test is performed
+#         terminal_indices (List[int])
+#     Returns:
+#         bool: True if there are more than 1 connected component after deletion
+#             of the nodes indexed by indices
+#     """
+#     my_graph = deepcopy(graph)
+#     my_graph.structure = Structure.from_sites(my_graph.structure.sites)
+#     mol_before, _, _, _, _ = get_subgraphs_as_molecules(
+#         graph,
+#         filter_in_cell=False,
+#         return_unique=False,
+#         disable_boundary_crossing_check=True,
+#     )
+#     my_graph.remove_nodes(indices + terminal_indices)
 
-    mol, _, _, _, _ = get_subgraphs_as_molecules(
-        graph,
-        filter_in_cell=False,
-        return_unique=False,
-        disable_boundary_crossing_check=True,
-    )
-    return len(mol) > 1 & len(mol) > len(mol_before)
+#     mol, _, _, _, _ = get_subgraphs_as_molecules(
+#         graph,
+#         filter_in_cell=False,
+#         return_unique=False,
+#         disable_boundary_crossing_check=True,
+#     )
+#     return len(mol) > 1 & len(mol) > len(mol_before)

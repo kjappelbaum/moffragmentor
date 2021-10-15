@@ -19,7 +19,7 @@ from ..descriptors import (
     get_lsop,
     rdkit_descriptors,
 )
-from ..utils import pickle_dump
+from ..utils import add_suffix_to_dict_keys, pickle_dump
 
 
 def ob_mol_without_metals(obmol):
@@ -170,6 +170,12 @@ class SBU:
         return self._original_binding_indices
 
     @cached_property
+    def binding_indices(self):
+        return [
+            self.mapping_from_original_indices[i] for i in self.original_binding_indices
+        ]
+
+    @cached_property
     def rdkit_mol(self):
         return obmol_to_rdkit_mol(self.openbabel_mol)
 
@@ -186,6 +192,16 @@ class SBU:
         import nglview  # pylint:disable=import-outside-toplevel
 
         return nglview.show_pymatgen(self.molecule)
+
+    def show_connecting_structure(self):
+        import nglview  # pylint:disable=import-outside-toplevel
+
+        return nglview.show_pymatgen(self._get_connected_sites_structure())
+
+    def show_binding_structure(self):
+        import nglview  # pylint:disable=import-outside-toplevel
+
+        return nglview.show_pymatgen(self._get_binding_sites_structure())
 
     def to(self, fmt: str, filename: str):
         return self.molecule.to(fmt, filename)
@@ -224,13 +240,22 @@ class SBU:
             sites.append(s[i])
         return Structure.from_sites(sites)
 
-    def _get_descriptors(self):
-        structure = self._get_connected_sites_structure()
+    def _get_binding_sites_structure(self):
+        sites = []
+        s = self._get_boxed_structure()
+        for i in self.binding_indices:
+            sites.append(s[i])
+        return Structure.from_sites(sites)
 
-        descriptors_lsop = get_lsop(structure)
+    def _get_descriptors(self):
+        branching_sites_structure = self._get_connected_sites_structure()
+        full_structure = self._get_boxed_structure()
+        connecting_sites_structure = self._get_binding_sites_structure()
+
+        descriptors_lsop = get_lsop(branching_sites_structure)
         descriptors_rdkit = rdkit_descriptors(self.rdkit_mol)
-        descriptors_chemistry = chemistry_descriptors(structure)
-        descriptors_distance = distance_descriptors(structure)
+        descriptors_chemistry = chemistry_descriptors(branching_sites_structure)
+        descriptors_distance = distance_descriptors(branching_sites_structure)
 
         return {
             **descriptors_lsop,

@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 """Some pure functions that are used to perform the node identification
-Node classification techniques described in https://pubs.acs.org/doi/pdf/10.1021/acs.cgd.8b00126.
+Node classification techniques described in \https://pubs.acs.org/doi/pdf/10.1021/acs.cgd.8b00126.
 
 Note that we currently only place one vertex for every linker which might loose some
 information about isomers
 """
 from collections import namedtuple
+from typing import List
 
 import networkx as nx
 
 from ..sbu import Node, NodeCollection
 from ._graphsearch import _complete_graph, _to_graph, recursive_dfs_until_branch
-from .filter import filter_nodes
 
 __all__ = [
     "find_node_clusters",
@@ -24,7 +24,7 @@ NodelocationResult = namedtuple(
 )
 
 
-def find_node_clusters(mof) -> NodelocationResult:
+def find_node_clusters(mof, unbound_solvent_indices=None) -> NodelocationResult:
     """This function locates the branchin indices, and node clusters in MOFs.
     Starting from the metal indices it performs depth first search on the structure
     graph up to branching points.
@@ -45,12 +45,15 @@ def find_node_clusters(mof) -> NodelocationResult:
 
     connecting_paths_ = set()
 
+    if unbound_solvent_indices is None:
+        unbound_solvent_indices = []
     # From every metal index in the structure perform DFS up to a
     # branch point
     for metal_index in mof.metal_indices:
-        p, b = recursive_dfs_until_branch(mof, metal_index, [], [])
-        paths.append(p)
-        branch_sites.append(b)
+        if metal_index not in unbound_solvent_indices:
+            p, b = recursive_dfs_until_branch(mof, metal_index, [], [])
+            paths.append(p)
+            branch_sites.append(b)
 
     # The complete_graph will add the "capping sites" like bridging OH
     # or capping formate
@@ -79,8 +82,9 @@ def find_node_clusters(mof) -> NodelocationResult:
                     connecting_paths_.update(p)
 
     # from the connecting paths we remove the metal indices and the branching indices
+    # we need to remove the metal indices as otherwise the fragmentation breaks
     connecting_paths_ -= set(mof.metal_indices)
-    connecting_paths_ -= bs
+    # connecting_paths_ -= bs
 
     res = NodelocationResult(nodes, bs, connecting_paths_)
     return res
@@ -91,14 +95,40 @@ def create_node_collection(
 ) -> NodeCollection:
     # ToDo: This is a bit indirect, it would be better if we would have a list of dicts to loop over
     nodes = []
-    for i in range(len(node_location_result.nodes)):
+    for i, _ in enumerate(node_location_result.nodes):
         node_indices = node_location_result.nodes[i]
         node = Node.from_mof_and_indices(
             mof,
             node_indices,
             node_location_result.branching_indices & node_indices,
-            node_location_result.connecting_paths & node_indices,
+            identify_node_binding_indices(
+                mof,
+                node_indices,
+                node_location_result.connecting_paths,
+                node_location_result.branching_indices,
+            ),
         )
         nodes.append(node)
 
     return NodeCollection(nodes)
+
+
+def identify_node_binding_indices(
+    mof, indices, connecting_paths, binding_indices
+) -> List[int]:
+    """For the metal clusters, our rule for binding indices is quite simple.
+    We simply take the metal that is part of the connecting path.
+    We then additionally filter based on the constraint that
+    the nodes we want to identify need to bee bound to what
+    we have in the connecting path
+    """
+    filtered = []
+    candidates = set(mof.metal_indices) & set(indices)
+    for candidate in candidates:
+        if len(
+            set(mof.get_neighbor_indices(candidate)) & connecting_paths
+            | binding_indices
+        ):
+            filtered.append(candidate)
+
+    return filtered

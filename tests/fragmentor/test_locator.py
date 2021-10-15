@@ -37,8 +37,11 @@ def test_find_porphyrin_mof_clusters(get_porphryin_mof):
     """Looking for the porphyrin MOF clusters, here we should only find two nodes in the unit cell"""
     mof = get_porphryin_mof
     node_location_result = find_node_clusters(mof)
+    fragments = mof.fragment()
     assert len(node_location_result) == 3
-    assert len(node_location_result.nodes) == 2
+    assert len(node_location_result.nodes) == 4
+    assert len(fragments.nodes) == 2
+    assert len(fragments.linkers) == 2
     assert len(node_location_result.branching_indices) == 8 * 2
 
 
@@ -343,7 +346,7 @@ def test__create_linkers_from_node_location_result(get_hkust_mof):
     unbound_solvent = NonSbuMoleculeCollection([])
     node_location_result = find_node_clusters(mof)
     node_collection = create_node_collection(mof, node_location_result)
-    linkers = _create_linkers_from_node_location_result(
+    linkers, _ = _create_linkers_from_node_location_result(
         mof, node_location_result, node_collection, unbound_solvent
     )
     assert len(linkers) == 32
