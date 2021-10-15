@@ -118,7 +118,7 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
         & all_node_indices  # some metals might also be in the linker, e.g., in porphyrins
     )
 
-    graph_ = deepcopy(mof.structure_graph)
+    graph_ = mof.structure_graph.__copy__()
     graph_.structure = Structure.from_sites(graph_.structure.sites)
     graph_.remove_nodes(not_linker_indices)
 
@@ -146,7 +146,7 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
             graph_branching_indices=branching_indices,
             closest_branching_index_in_molecule=branching_indices,
             binding_indices=identify_linker_binding_indices(
-                mof.structure_graph,
+                mof,
                 node_location_result.connecting_paths,
                 idx,
                 branching_indices,
@@ -177,46 +177,35 @@ def create_linker_collection(
     return linker_collection, edge_dict
 
 
-def identify_linker_binding_indices(
-    structure_graph, connecting_paths, indices, connecting_indices
-):
+def identify_linker_binding_indices(mof, connecting_paths, indices, connecting_indices):
     relevant_indices = connecting_paths & set(indices)
-    my_new_graph = deepcopy(structure_graph)
-    my_new_graph.structure = Structure.from_sites(my_new_graph.structure.sites)
-    my_new_graph.remove_nodes(
-        [i for i in range(len(my_new_graph.structure)) if i not in relevant_indices]
-    )
 
-    _, mg, idx, _, _ = get_subgraphs_as_molecules(
-        my_new_graph,
-        filter_in_cell=True,
-        return_unique=False,
-        disable_boundary_crossing_check=False,
-    )
+    # ToDo: this step is currently time limiting.
+    # We should be able to skip it
+    # my_new_graph = structure_graph.__copy__()
+    # my_new_graph.structure = Structure.from_sites(my_new_graph.structure.sites)
+    # my_new_graph.remove_nodes(
+    #     [i for i in range(len(my_new_graph.structure)) if i not in relevant_indices]
+    # )
 
-    idx = {str(sorted(i)): mg for i, mg in zip(idx, mg)}
+    # _, mg, idx, _, _ = get_subgraphs_as_molecules(
+    #     my_new_graph,
+    #     filter_in_cell=True,
+    #     return_unique=False,
+    #     disable_boundary_crossing_check=False,
+    # )
+
+    # idx = {str(sorted(i)): mg for i, mg in zip(idx, mg)}
 
     # Now, we need to filter these index sets.
     # If they are of length 1 there is nothing we need to do
     # If they are longer, however, we need to do some reasoning
     filtered_indices = []
 
-    for index_set, mg in idx.items():
-        index_set = ast.literal_eval(index_set)
-        if len(index_set) == 1:
-            filtered_indices.append(index_set)
-        else:
-            potential_nodes = []
+    metal_indices = set(mof.metal_indices)
+    for idx in relevant_indices:
+        neighbors = mof.get_neighbor_indices(idx)
+        if not metal_indices.isdisjoint(set(neighbors)):
+            filtered_indices.append(idx)
 
-            for i in range(len(mg)):
-                # The reasoning is quite simple. We care only about degree 1 nodes
-                # In some cases we might have a graph A-B with two nodes, each degree one
-                # In that case we need to make sure that we do not take an atom that we
-                # already denote as "connecting site"
-                if len(mg.get_connected_sites(i)) == 1:
-                    if mg.graph.nodes()[i]["idx"] not in connecting_indices:
-                        potential_nodes.append(mg.graph.nodes()[i]["idx"])
-
-            filtered_indices.append(potential_nodes)
-
-    return sum(filtered_indices, [])
+    return filtered_indices

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Methods on structure graphs"""
 import warnings
-from copy import deepcopy
 from typing import List
 
 import networkx as nx
@@ -77,13 +76,13 @@ def _simplify_structure_graph(structure_graph: StructureGraph) -> StructureGraph
         StructureGraph: simplified structure graph, where we removed the
             two-connected nodes.
     """
-    graph_copy = deepcopy(structure_graph)
+    graph_copy = structure_graph.__copy__()
     to_remove = []
     added_edges = set()
 
     # in the first iteration we just add the edge
     # and collect the nodes to delete
-    for i, site in enumerate(structure_graph.structure):
+    for i, _ in enumerate(structure_graph.structure):
         if structure_graph.get_coordination_of_site(i) == 2:
             if str(structure_graph.structure[i].specie) != "Si":
                 indices = []

@@ -20,6 +20,6 @@ def get_structure_graph_dimensionality(structure_graph: StructureGraph) -> int:
 def get_sbu_dimensionality(mof, indices) -> int:
     """Computer the dimensionality of an SBU,
     characterized as a subset of indices of a MOF"""
-    structure_graph = deepcopy(mof.structure_graph)
+    structure_graph = mof.structure_graph.__copy__()
     remove_all_nodes_not_in_indices(structure_graph, indices)
     return get_structure_graph_dimensionality(structure_graph)

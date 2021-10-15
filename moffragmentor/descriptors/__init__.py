@@ -66,7 +66,7 @@ def try_except_nan(mol, calculator, exception_value=np.nan):
     return value
 
 
-@lru_cache
+@lru_cache()
 def rdkit_descriptors(rdkit_mol, three_dimensional: bool = True):
     descriptors = {
         "min_partial_charge": try_except_nan(rdkit_mol, Descriptors.MinPartialCharge),

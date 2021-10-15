@@ -373,7 +373,7 @@ def _metal_in_edge(site_collection, edge):
 
 
 def _get_vertices_of_smaller_component_upon_edge_break(graph, edge):
-    graph_copy = deepcopy(graph)
+    graph_copy = graph.copy()
     graph_copy.remove_edge(edge[0], edge[1])
     connected_components = nx.connected_components(graph_copy)
     smallest_connected_component = min(connected_components, key=len)

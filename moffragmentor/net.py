@@ -2,7 +2,6 @@
 """Defines the Python representation of the embedding of the reticular
 building blocks on a net"""
 import warnings
-from logging import warn
 from typing import Dict
 
 import numpy as np
@@ -71,7 +70,7 @@ class NetEmbedding:
         """Number of building blocks"""
         return len(self.node_collection) + len(self.linker_collection)
 
-    @property
+    @cached_property
     def density(self) -> float:
         return len(self) / self.lattice.volume
 
@@ -86,7 +85,7 @@ class NetEmbedding:
             + self.node_collection.coordination_numbers
         )
 
-    @property
+    @cached_property
     def cart_coords(self):
         """Returns cartesian coordinates for all vertices.
         As for all outputs of this class, linkers are first,

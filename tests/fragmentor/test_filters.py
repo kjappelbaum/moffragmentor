@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 from moffragmentor import MOF
-from moffragmentor.fragmentor.filter import (
-    # _creates_new_connected_components,
+from moffragmentor.fragmentor.filter import (  # _creates_new_connected_components,; _filter_isolated_node_candidates,
     _filter_branch_points,
-    # _filter_isolated_node_candidates,
 )
 
 

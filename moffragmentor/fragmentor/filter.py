@@ -134,16 +134,16 @@ def _shortest_path_to_metal(branch_index, metal_indices, graph):
 #     return good_node_candidates, good_indices
 
 
-def _creates_new_leaf_nodes(
-    indices: List[int], graph: nx.Graph, terminal_indices: List[int]
-) -> bool:
-    my_graph = deepcopy(graph)
-    my_graph.remove_nodes_from(terminal_indices)
-    current_leaf_nodes = _get_number_of_leaf_nodes(my_graph)
-    my_graph.remove_nodes_from(indices)
-    new_leaf_nodes = _get_number_of_leaf_nodes(my_graph)
+# def _creates_new_leaf_nodes(
+#     indices: List[int], graph: nx.Graph, terminal_indices: List[int]
+# ) -> bool:
+#     my_graph = deepcopy(graph)
+#     my_graph.remove_nodes_from(terminal_indices)
+#     current_leaf_nodes = _get_number_of_leaf_nodes(my_graph)
+#     my_graph.remove_nodes_from(indices)
+#     new_leaf_nodes = _get_number_of_leaf_nodes(my_graph)
 
-    return new_leaf_nodes > current_leaf_nodes
+#     return new_leaf_nodes > current_leaf_nodes
 
 
 # def _creates_new_connected_components(

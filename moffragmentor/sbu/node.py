@@ -25,7 +25,7 @@ __all__ = ["Node"]
 def node_from_mof_and_indices(
     cls, mof, node_indices, branching_indices, binding_indices
 ):
-    graph_ = deepcopy(mof.structure_graph)
+    graph_ = mof.structure_graph.__copy__()
     graph_.structure = Structure.from_sites(graph_.structure.sites)
     to_delete = _not_relevant_structure_indices(mof.structure, node_indices)
     graph_.remove_nodes(to_delete)
