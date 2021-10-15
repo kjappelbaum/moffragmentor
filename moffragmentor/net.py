@@ -37,19 +37,26 @@ class NetEmbedding:
         and their connection on a lattice
 
         Args:
-            linker_collection (LinkerCollection): Iterable object in which every item is a Linker,
-                the order is important as the edge dict uses indices to refer to specific linker
-            node_collection (NodeCollection): Iterable object in which every item is a metal node,
-                the order is important as the keys of the edge dict are node indices, refering to
-                the node collection
-            edge_dict (Dict[int, list]): Defining the connection between metal nodes and linkers.
-                The main keys are the node indices. The value is a list of tuples that contain the
+            linker_collection (LinkerCollection):
+                Iterable object in which every item is a Linker,
+                the order is important as the edge dict uses indices
+                to refer to specific linker
+            node_collection (NodeCollection):
+                Iterable object in which every item is a metal node,
+                the order is important as the keys of the edge dict
+                are node indices, refering to the node collection
+            edge_dict (Dict[int, list]):
+                Defining the connection between metal nodes and linkers.
+                The main keys are the node indices.
+                The value is a list of tuples that contain the
                 linker indices, the jimages, and the centers
-            lattice (Lattice): A net is a periodic graph. Hence we need information about
-                the periodicity, i.e., the lattice. For this we use a pymatgen Lattice object.
+            lattice (Lattice): A net is a periodic graph.
+                Hence we need information about the periodicity, i.e.,
+                the lattice. For this we use a pymatgen Lattice object.
                 We use it to convert between cartesian and fractional coordinates and
-                to get the lattice constants. Usually, it can simply be accessed from a pymatgen
-                Structure `s` via `s.lattice`.
+                to get the lattice constants.
+                Usually, it can simply be accessed from a pymatgen Structure `s`
+                via `s.lattice`.
         """
         self.node_collection = node_collection
         self.linker_collection = linker_collection

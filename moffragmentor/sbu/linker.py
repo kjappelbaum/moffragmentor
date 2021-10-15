@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Describing the organic building blocks, i.e., linkers"""
 from copy import deepcopy
 
 from pymatgen.core import Molecule
@@ -21,7 +22,8 @@ def _get_edge_dict_from_rdkit_mol(mol):
 def _make_mol_from_rdkit_mol(mol):
     """Takes the first conformer"""
     molecule = deepcopy(mol)
-    AllChem.EmbedMolecule(molecule)
+    AllChem.EmbedMolecule(molecule)  # pylint:disable=no-member
+    # not clear to me why pylint complains
     conf = molecule.GetConformers()
     positions = conf[0].GetPositions()
     symbols = [atom.GetSymbol() for atom in mol.GetAtoms()]

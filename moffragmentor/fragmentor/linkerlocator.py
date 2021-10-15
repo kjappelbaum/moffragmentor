@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """Based on the node location, locate the linkers"""
-import ast
-from copy import deepcopy
 from typing import List, Tuple
 
 import numpy as np
@@ -149,7 +147,6 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
                 mof,
                 node_location_result.connecting_paths,
                 idx,
-                branching_indices,
             ),
             original_indices=idx,
         )
@@ -177,7 +174,7 @@ def create_linker_collection(
     return linker_collection, edge_dict
 
 
-def identify_linker_binding_indices(mof, connecting_paths, indices, connecting_indices):
+def identify_linker_binding_indices(mof, connecting_paths, indices):
     relevant_indices = connecting_paths & set(indices)
 
     # ToDo: this step is currently time limiting.

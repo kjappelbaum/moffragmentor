@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from copy import deepcopy
 from typing import List
 
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
