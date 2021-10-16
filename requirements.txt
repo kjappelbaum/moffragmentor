@@ -4,3 +4,4 @@ EFGs
 backports.cached_property
 networkx
 pyyaml
+timeout_decorator
