@@ -26,7 +26,7 @@ def ob_mol_without_metals(obmol):
     import openbabel as ob  # pylint: disable=import-outside-toplevel
 
     mol = obmol.clone
-    for atom in ob.OBMolAtomIter(mol.OBMol):
+    for atom in ob.OBMolAtomIter(mol.OBMol):  # pylint:disable=no-member
         if atom.IsMetal():
             mol.OBMol.DeleteAtom(atom)
 
@@ -39,12 +39,12 @@ __all__ = ["SBU"]
 def obmol_to_rdkit_mol(obmol):
 
     smiles = obmol.write("can").strip()
-    mol = Chem.MolFromSmiles(smiles, sanitize=True)
+    mol = Chem.MolFromSmiles(smiles, sanitize=True)  # pylint: disable=no-member
     if mol is None:
         warnings.warn("Attempting to remove metals to generate RDKit molecule")
         new_obmol = ob_mol_without_metals(obmol)
         smiles = new_obmol.write("can").strip()
-        mol = Chem.MolFromSmiles(smiles, sanitize=True)
+        mol = Chem.MolFromSmiles(smiles, sanitize=True)  # pylint: disable=no-member
 
     return mol
 
@@ -56,13 +56,19 @@ class SBU:
     - graph_branching_indices: are the branching indices according
       to the graph-based definition. They might not be part of the molecule.
     - closest_branching_index_in_molecule: those are always part of the molecule.
-      In case the branching index is part of the molecule, they are equal to to the graph_branching_indices.
-      Otherwise they are obtained as the closest vertex of the original branching vertex that is part of the molecule.
+      In case the branching index is part of the molecule,
+      they are equal to to the graph_branching_indices.
+      Otherwise they are obtained as the closest vertex of the original
+      branching vertex that is part of the molecule.
     - binding_indices: are the indices of the sites between the branching index and metal
-    - original_indices: complete original set of indices that has been selected for this building blocks
-    - persistent_non_metal_bridged: components that are connected via a bridge both in the MOF structure
-      and building block molecule. No metal is part of the edge, i.e., bound solvents are not included in this set
-    - terminal_in_mol_not_terminal_in_struct: indices that are terminal in the molecule but not terminal in the structure
+    - original_indices: complete original set of indices that has been selected
+      for this building blocks
+    - persistent_non_metal_bridged: components that are connected
+      via a bridge both in the MOF structure
+      and building block molecule. No metal is part of the edge,
+      i.e., bound solvents are not included in this set
+    - terminal_in_mol_not_terminal_in_struct: indices that are terminal
+       in the molecule but not terminal in the structure
     """
 
     def __init__(

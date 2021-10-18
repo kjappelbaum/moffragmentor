@@ -79,14 +79,18 @@ class NetEmbedding:
 
     @cached_property
     def density(self) -> float:
+        """Density in g/cm^3"""
         return len(self) / self.lattice.volume
 
     @property
     def lattice(self):
+        """Return pymatgen lattice object"""
         return self._lattice
 
     @property
     def coordination_numbers(self):
+        """List of coordination numbers, first linkers,
+        then nodes"""
         return (
             self.linker_collection.coordination_numbers
             + self.node_collection.coordination_numbers
@@ -145,6 +149,7 @@ class NetEmbedding:
 
     @property
     def frac_coords(self) -> np.ndarray:
+        """Fractional coordinates"""
         return self.lattice.get_fractional_coords(self.cart_coords)
 
     @property
@@ -186,12 +191,14 @@ class NetEmbedding:
 
     @property
     def rcsr_code(self) -> str:
+        """Run systre to determine the RCSR code"""
         if self._rcsr_code is None:
             self._run_systre()
         return self._rcsr_code
 
     @property
     def space_group(self):
+        """Run systre to determine the RCSR code"""
         if self._space_group is None:
             self._run_systre()
         return self._space_group
@@ -208,5 +215,5 @@ class NetEmbedding:
             systre_output = run_systre(self._write_systre_file())
             self._rcsr_code = systre_output["rcsr_code"]
             self._space_group = systre_output["space_group"]
-        except Exception as e:
-            warnings.warn(f"Systre run failed due to {e}")
+        except Exception as exception:  # pylint: disable=broad-except
+            warnings.warn(f"Systre run failed due to {exception}")

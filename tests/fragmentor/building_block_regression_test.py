@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+"""Make sure that we have no regression
+in the output of the fragmentation"""
 import os
 
 import pytest

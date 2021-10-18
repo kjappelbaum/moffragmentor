@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""This module focusses on the extraction of pymatgen Molecules from a structure for which we know the branching points / node/linker indices"""
+"""This module focusses on the extraction of pymatgen Molecules
+from a structure for which we know the branching points / node/linker indices"""
 from collections import namedtuple
 from typing import List, Tuple
 
@@ -30,19 +31,22 @@ _SitesAndIndicesOutput = namedtuple(
 )
 
 
-def _sites_and_classified_indices_from_indices(
+def _sites_and_classified_indices_from_indices(  # pylint:disable=too-many-locals
     mof, indices: set
 ) -> Tuple[Molecule, List[int], List[int]]:
     """
     Given the indices that we identified to belong to the group
     1) Build a molecule from the structure, handling the periodic images
-    2) Build the molecule graph from the structure graph, handling the periodic images
+    2) Build the molecule graph from the structure graph,
+        handling the periodic images
     3) Flag vertices in the graph that we call "hidden". Those have only one neighbor
         in the molecule but multiple in the structure.
-    This happens, for example, in MOF-74 where the "connecting site" is not on the carboxy carbon
+    This happens, for example, in MOF-74 where the "connecting site"
+        is not on the carboxy carbon
         given that one of the carboxy Os is not connected to the metal cluster
     To get reasonable nodes/linkers we will remove these from the node.
-    We also flag indices that are connected via a bridge that is also a bridge in the original graph.
+    We also flag indices that are connected via a bridge that
+        is also a bridge in the original graph.
         This is, for example, the case for one carboxy O in MOF-74
     """
     new_positions = []
@@ -85,8 +89,10 @@ def _sites_and_classified_indices_from_indices(
 
     solvent = _locate_bound_solvent(mof, indices)
     any_bound_solvent_index = set(sum(solvent["solvent_indices"], []))
-    # Here we now need to get the bound solvent components to make sure we can exlude them
-    # ToDo: we can then export this result and skip the calculation in the fragment function
+    # Here we now need to get the bound solvent components
+    # to make sure we can exlude them
+    # ToDo: we can then export this result and skip the calculation
+    # in the fragment function
 
     for bridge in new_bridges:
         component = _get_vertices_of_smaller_component_upon_edge_break(

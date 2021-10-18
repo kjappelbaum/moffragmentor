@@ -221,16 +221,12 @@ def write_cif(s, graph, connection_indices, molecule=None, write_bonding_mode=Fa
         if i in connection_indices:
             ind = "X" + str(i)
             loop_content.append(
-                " {} {}  {:.6f}  {:.6f}  {:.6f}  {:.6f}".format(
-                    ind, es, vec[0], vec[1], vec[2], 0
-                )
+                f" {ind} {es}  {vec[0]:.6f}  {vec[1]:.6f}  {vec[2]:.6f}  {0:.6f}"
             )
         else:
             ind = es + str(i)
             loop_content.append(
-                " {} {}  {:.6f}  {:.6f}  {:.6f}  {:.6f}".format(
-                    ind, es, vec[0], vec[1], vec[2], 0
-                )
+                f" {ind} {es}  {vec[0]:.6f}  {vec[1]:.6f}  {vec[2]:.6f}  {0:.6f}"
             )
         site_index[i] = ind
 
@@ -320,7 +316,7 @@ def _not_relevant_structure_indices(
 
 
 def visualize_part(mof, indices: Collection):
-    import nglview
+    import nglview  # pylint:disable=import-outside-toplevel
 
     sites = []
     for index in indices:

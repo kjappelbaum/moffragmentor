@@ -4,8 +4,6 @@ e.g., if they are clusters, if they form rods, or if they form sheets.
 We use the algorithm proposed by Larsen et al.,
 see https://journals.aps.org/prmaterials/pdf/10.1103/PhysRevMaterials.3.034003
 """
-from copy import deepcopy
-
 from pymatgen.analysis.dimensionality import get_dimensionality_larsen
 from pymatgen.analysis.graphs import StructureGraph
 

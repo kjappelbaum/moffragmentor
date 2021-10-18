@@ -15,7 +15,8 @@ def _has_path_to_any_other_metal(mof, index: int, this_metal_index: int) -> bool
         to `this_metal_index`
 
     Args:
-        mof (MOF): A MOF instance that must provide .metal_indices and ._undirected_graph
+        mof (MOF): A MOF instance that must provide
+            .metal_indices and ._undirected_graph
         index (int): Index of the neighbor of interest
         this_metal_index (int): Index of the metal the neighbor is bound to
 
@@ -33,9 +34,13 @@ def _has_path_to_any_other_metal(mof, index: int, this_metal_index: int) -> bool
 
 
 def recursive_dfs_until_terminal(
-    mof, start: int, path: List[int] = [], skip_list: List[int] = []
+    mof,
+    start: int,
+    path: List[int] = [],
+    skip_list: List[int] = [],  # pylint:disable=dangerous-default-value
 ) -> List[int]:
-    """From a given starting point perform depth-first search until leaf nodes are reached
+    """From a given starting point perform depth-first search
+    until leaf nodes are reached
 
     Args:
         mof (MOF): A MOF instance
@@ -82,7 +87,8 @@ def _complete_graph(
     for path in paths:
         subpath = []
         for vertex in path:
-            # ToDo: we can at least leverage the information about the bridges we have and not just brute-force the search for all vertices
+            # ToDo: we can at least leverage the information about the bridges
+            # we have and not just brute-force the search for all vertices
             if vertex not in visited:
                 p = recursive_dfs_until_terminal(mof, vertex, [], branching_nodes)
                 subpath.extend(p)
@@ -91,9 +97,13 @@ def _complete_graph(
 
 
 def recursive_dfs_until_branch(
-    mof, start: int, path: List[int] = [], branching_nodes=[]
+    mof,
+    start: int,
+    path: List[int] = [],
+    branching_nodes=[],  # pylint:disable=dangerous-default-value
 ) -> List[int]:
-    """From a given starting point perform depth-first search until branch nodes are reached
+    """From a given starting point perform depth-first search
+    until branch nodes are reached
 
     Args:
         mof (MOF): A MOF instance
@@ -120,7 +130,7 @@ def recursive_dfs_until_branch(
 
 
 def _to_graph(mof, paths, branch_sites):
-    """https://stackoverflow.com/questions/4842613/merge-lists-that-share-common-elements"""
+    """https://stackoverflow.com/questions/4842613/merge-lists-that-share-common-elements"""  # pylint:disable=line-too-long
     G = nx.Graph()
     for part in paths:
         G.add_nodes_from(part)

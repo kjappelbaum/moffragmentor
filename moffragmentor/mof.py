@@ -18,7 +18,9 @@ from .utils import IStructure, pickle_dump, write_cif
 
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 
-with open(os.path.join(THIS_DIR, "utils", "data", "tuned_vesta.yml"), "r") as handle:
+with open(
+    os.path.join(THIS_DIR, "utils", "data", "tuned_vesta.yml"), "r", encoding="utf8"
+) as handle:
     VESTA_CUTOFFS = yaml.load(handle, Loader=yaml.UnsafeLoader)
 
 VestaCutoffDictNN = CutOffDictNN(cut_off_dict=VESTA_CUTOFFS)
@@ -26,7 +28,7 @@ VestaCutoffDictNN = CutOffDictNN(cut_off_dict=VESTA_CUTOFFS)
 __all__ = ["MOF"]
 
 
-class MOF:  # pylint:disable=too-many-instance-attributes
+class MOF:  # pylint:disable=too-many-instance-attributes, too-many-public-methods
     """Main representation for a MOF structure"""
 
     def __init__(self, structure: Structure, structure_graph: StructureGraph):
@@ -233,5 +235,5 @@ class MOF:  # pylint:disable=too-many-instance-attributes
 
     def write_cif(self, filename) -> None:
         """Writes the structure to a CIF file"""
-        with open(filename, "w") as file_handle:
+        with open(filename, "w", encoding="utf8") as file_handle:
             file_handle.write(self._get_cif_text())

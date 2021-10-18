@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Test locator modules"""
 from collections import Counter
 
 from pymatgen.core import Structure
@@ -34,7 +35,8 @@ def test_find_cu_i_ii_btc_clusters(get_cuiiibtc_mof):
 
 
 def test_find_porphyrin_mof_clusters(get_porphryin_mof):
-    """Looking for the porphyrin MOF clusters, here we should only find two nodes in the unit cell"""
+    """Looking for the porphyrin MOF clusters,
+    here we should only find two nodes in the unit cell"""
     mof = get_porphryin_mof
     node_location_result = find_node_clusters(mof)
     fragments = mof.fragment()
@@ -64,9 +66,9 @@ def test_find_p_linker_floating_mof_clusters(get_p_linker_with_floating):
     assert len(node_location_result.nodes) == 8
     node_lengths = [len(node) for node in node_location_result.nodes]
     assert len(set(node_lengths)) == 1
-    assert (
-        node_lengths[0] == 25
-    )  # ToDo: think more carefully if we want to deal this way with the µ1-carboxy, check if this is correct
+    assert node_lengths[0] == 25
+    # ToDo: think more carefully if we want to
+    # deal this way with the µ1-carboxy, check if this is correct
 
 
 def test_find_li_mof_floating_mof_cluster(get_li_mof_with_floating):
@@ -216,7 +218,8 @@ def test_find_all_bound_solvent_molecules(get_li_mof_with_floating):
 
 
 def test_find_node_cluster_acetate_zr_mof(get_acetate_zr_mof):
-    """Nice (Zr6)2 node, see https://pubs.rsc.org/en/content/articlelanding/2018/CC/C8CC00507A#!divAbstract"""
+    """Nice (Zr6)2 node,
+    see https://pubs.rsc.org/en/content/articlelanding/2018/CC/C8CC00507A#!divAbstract"""
     mof = get_acetate_zr_mof
     node_location_result = find_node_clusters(mof)
     assert len(node_location_result) == 3

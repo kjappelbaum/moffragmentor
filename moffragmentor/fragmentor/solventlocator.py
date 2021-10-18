@@ -65,7 +65,8 @@ def _get_solvent_molecules_bound_to_node(
 def get_all_bound_solvent_molecules(
     mof, node_atom_sets: List[Set[int]]
 ) -> NonSbuMoleculeCollection:
-    """Given a MOF object and a collection of node atoms, identify all bound solvent molecules.
+    """Given a MOF object and a collection of node atoms,
+    identify all bound solvent molecules.
     Bound solvent is defined as being connected via one bridge
     to one metal center.
 

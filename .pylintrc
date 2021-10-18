@@ -4,7 +4,7 @@ ignore_patterns=versioneer.py,*version.py,
 
 
 [MESSAGES CONTROL]
-disable = C0330, C0326, locally-disabled, fixme
+disable = C0330, C0326, locally-disabled, fixme, I1101, C0116
 
 [format]
 max-line-length = 88

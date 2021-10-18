@@ -27,7 +27,7 @@ def _pick_linker_indices(
             has_branch_point.append(counter)
             intersection = tuple(sorted(tuple(intersection)))
             norm = np.linalg.norm(coords - center)
-            if intersection in unique_branching_site_centers.keys():
+            if intersection in unique_branching_site_centers:
                 if unique_branching_site_centers[intersection] > norm:
                     unique_branching_site_centers[intersection] = norm
                     unique_branching_sites_indices[intersection] = counter

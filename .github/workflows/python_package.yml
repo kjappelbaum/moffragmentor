@@ -29,9 +29,6 @@ jobs:
         run: |
           conda install jupyterlab=3 nglview -c conda-forge -y
           conda install openbabel rdkit ase click -c conda-forge
-          pip install "pymatgen>=2021.1,<2022"
-          pip install git+https://github.com/skearnes/rdkit-utils.git
-
           pip install -e .
           pip install pytest pytest-cov
       - name: Test with pytest

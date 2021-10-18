@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Code taken from the SI for 10.1021/acs.jcim.6b00565"""
+# pylint:disable=no-member
 from collections import OrderedDict
 
 import numpy as np
@@ -7,7 +8,7 @@ from rdkit import Chem
 from rdkit.Chem import AllChem
 
 
-def _generate_conformers(mol, num_confs):
+def _generate_conformers(mol, num_confs):  # pylint:disable=too-many-locals
     # Add H atoms to skeleton
     molecule = Chem.AddHs(mol)
     conformer_integers = []
@@ -30,9 +31,9 @@ def _generate_conformers(mol, num_confs):
             conformer_integers.append(conformer)
     # Keep the lowest energy conformer
     lowestenergy = min(energy_dict_with_key_was_id.values())
-    for k, v in energy_dict_with_key_was_id.items():
-        if v == lowestenergy:
-            lowest_energy_conformer_id = k
+    for key, value in energy_dict_with_key_was_id.items():
+        if value == lowestenergy:
+            lowest_energy_conformer_id = key
     final_conformers_to_use[lowest_energy_conformer_id] = lowestenergy
 
     # Remove H atoms to speed up substructure matching
@@ -42,9 +43,9 @@ def _generate_conformers(mol, num_confs):
     matches = molecule.GetSubstructMatches(molecule, uniquify=False)
     maps = [list(enumerate(match)) for match in matches]
     # Loop over conformers other than the lowest energy one
-    for conformer_id in energy_dict_with_key_was_id.keys():
+    for conformer_id, _ in energy_dict_with_key_was_id.items():
         okay_to_add = True
-        for finalconformer_id in final_conformers_to_use.keys():
+        for finalconformer_id in final_conformers_to_use:
             rms = AllChem.GetBestRMS(
                 molecule, molecule, finalconformer_id, conformer_id, maps
             )

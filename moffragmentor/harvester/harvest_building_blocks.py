@@ -46,8 +46,8 @@ def sbu_descriptors(
     descriptors["coordination"] = sbu.coordination
     descriptors["connectivity"] = connectivity
     descriptors["dimensionality"] = get_sbu_dimensionality(
-        mof, sbu._original_indices
-    )  # pylint:disable=protected-access
+        mof, sbu._original_indices  # pylint:disable=protected-access
+    )
     return {**descriptors}
 
 
@@ -129,8 +129,8 @@ def harvest_cif(cif, dumpdir=None):
         harvester = Harvester.from_cif(cif, dumpdir)
         df = harvester.run_harvest()
         return df
-    except Exception as e:
-        LOGGER.exception(f"{cif}. Exception: {e}.")
+    except Exception as execpt:  # pylint:disable=broad-except
+        LOGGER.exception(f"{cif}. Exception: {execpt}.")
         return None
 
 
@@ -152,14 +152,14 @@ def harvest_directory(
     if skip_existing:
         existing_stems = set(
             [
-                str(Path(p).parents[0]).split("_")[0]
+                str(Path(p).parents[0]).split("_", maxsplit=1)[0]
                 for p in glob(os.path.join(outdir, "*", "descriptors.csv"))
             ]
         )
         existing_stems.update(load_failed())
         filtered_all_cifs = []
         for cif in all_cifs:
-            if str(Path(cif).stem).split("_")[0] not in existing_stems:
+            if str(Path(cif).stem).split("_", maxsplit=1)[0] not in existing_stems:
                 if qmof:
                     if "FSR" in cif:
                         filtered_all_cifs.append(cif)
@@ -171,15 +171,17 @@ def harvest_directory(
 
     filtered_all_cifs = sorted(filtered_all_cifs, reverse=reverse)
     all_res = []
-    with concurrent.futures.ProcessPoolExecutor(max_workers=njobs) as exec:
-        for i, res in enumerate(exec.map(harvest_partial, filtered_all_cifs[offset:])):
+    with concurrent.futures.ProcessPoolExecutor(max_workers=njobs) as executor:
+        for i, res in enumerate(
+            executor.map(harvest_partial, filtered_all_cifs[offset:])
+        ):
             try:
                 if res is not None:
                     all_res.append(res)
                 else:
                     LOGGER.error(f"Failed for {filtered_all_cifs[i]}")
             except concurrent.futures.process.BrokenProcessPool as ex:
-                LOGGER.error("Broken process pool")
+                LOGGER.error("Broken process pool due to %s".format(ex))
 
     df = pd.concat(all_res)
     if outdir is None:

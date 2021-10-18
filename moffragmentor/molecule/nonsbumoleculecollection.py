@@ -42,4 +42,5 @@ class NonSbuMoleculeCollection:
 
     @property
     def composition(self) -> str:
+        """Get a string describing the composition"""
         return self._get_composition()

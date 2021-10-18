@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""Make sure we do not have a regression
+in determining the RCSR code"""
+
 import os
 
 import pytest
