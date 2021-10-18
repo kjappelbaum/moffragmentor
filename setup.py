@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""MOFFragmentor"""
 # Copyright 2020 moffragmentor authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +18,7 @@ from setuptools import find_packages, setup
 
 import versioneer
 
-with open("requirements.txt", "r") as fh:
+with open("requirements.txt", "r", encoding="utf8") as fh:
     REQUIREMENTS = fh.readlines()
 
 required = []
@@ -37,7 +38,7 @@ for line in REQUIREMENTS:
         if EGG_MARK in line:
             package_name = line[line.find(EGG_MARK) + len(EGG_MARK) :]
             repository = line[: line.find(EGG_MARK)]
-            required.append("%s @ %s" % (package_name, repository))
+            required.append(f"{package_name} @ {repository}")
             dependency_links.append(line)
         else:
             print("Dependency to a git repository should have the format:")

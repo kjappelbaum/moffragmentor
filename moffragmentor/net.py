@@ -22,7 +22,7 @@ from .utils.systre import _get_systre_input_from_pmg_structure_graph, run_systre
 __all__ = ["NetEmbedding"]
 
 
-class NetEmbedding:
+class NetEmbedding:  # pylint:disable=too-many-instance-attributes
     """In all composition/coordinates arrays we have linkers first"""
 
     def __init__(

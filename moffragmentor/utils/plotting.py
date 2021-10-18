@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Plotting helpers"""
 import plotly.graph_objs as go
 
 
@@ -17,7 +18,7 @@ def ploty_plot_structure_graph(
 
     coords = structure_graph.structure.frac_coords
 
-    for i in range(len(coords)):
+    for i, _ in enumerate(coords):
         c = coords[i]
 
         node_x.append(c[0])
@@ -68,9 +69,6 @@ def ploty_plot_structure_graph(
     )
 
     layout = go.Layout(
-        #          title="Network of coappearances of characters in Victor Hugo's novel<br> Les Miserables (3D visualization)",
-        #          width=1000,
-        #          height=1000,
         showlegend=False,
         scene=dict(
             xaxis=dict(axis),

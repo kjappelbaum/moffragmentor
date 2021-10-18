@@ -33,11 +33,11 @@ def _has_path_to_any_other_metal(mof, index: int, this_metal_index: int) -> bool
     return False
 
 
-def recursive_dfs_until_terminal(
+def recursive_dfs_until_terminal(  # pylint:disable=dangerous-default-value
     mof,
     start: int,
     path: List[int] = [],
-    skip_list: List[int] = [],  # pylint:disable=dangerous-default-value
+    skip_list: List[int] = [],
 ) -> List[int]:
     """From a given starting point perform depth-first search
     until leaf nodes are reached
@@ -96,11 +96,11 @@ def _complete_graph(
     return completed_edges
 
 
-def recursive_dfs_until_branch(
+def recursive_dfs_until_branch(  # pylint:disable=dangerous-default-value
     mof,
     start: int,
     path: List[int] = [],
-    branching_nodes=[],  # pylint:disable=dangerous-default-value
+    branching_nodes=[],
 ) -> List[int]:
     """From a given starting point perform depth-first search
     until branch nodes are reached
@@ -148,6 +148,8 @@ def _to_edges(paths):
     for current in iterator:
         yield last, current
         last = current
+
+    return
 
 
 def _connect_connected_branching_indices(mof, flattend_path) -> set:

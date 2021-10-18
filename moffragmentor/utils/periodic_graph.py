@@ -20,9 +20,9 @@ def _get_pmg_edge_dict_from_net(net: "NetEmbeding") -> dict:
 
     number_linkers = len(net.linker_collection)
 
-    for k, v in net.edge_dict.items():
-        node_vertex_number = k + number_linkers
-        for bound_linker in v:
+    for key, value in net.edge_dict.items():
+        node_vertex_number = key + number_linkers
+        for bound_linker in value:
             linker_idx, image, _ = bound_linker
             pmg_edge_dict[
                 (node_vertex_number, linker_idx, (0, 0, 0), tuple(image))

@@ -32,11 +32,11 @@ def load_failed():
         with open("failed_cifs.pkl", "rb") as handle:
             failed_cifs = pickle.load(handle)
             return failed_cifs
-    except Exception: # pylint:disable=broad-except
+    except Exception:  # pylint:disable=broad-except
         return set()
 
 
-def sbu_descriptors(
+def sbu_descriptors(  # pylint:disable=too-many-arguments
     sbu, mof, bb_type="linker", topology="", dimensionality=np.nan, connectivity=np.nan
 ):
     descriptors = sbu.descriptors
@@ -56,6 +56,8 @@ MAX_ATOMS = 3000
 
 
 class Harvester:
+    """Orchestrating the large-scale mining of building blocks"""
+
     def __init__(self, mof, outdir=None):
         self.mof = mof
         self.outdir = outdir
@@ -114,8 +116,8 @@ class Harvester:
 def harvest_w_timeout(cif, dumpdir=None):
     try:
         return harvest_cif(cif, dumpdir=dumpdir)
-    except Exception as e: # pylint:disable=broad-except
-        LOGGER.exception(f"{cif}. Exception: {e}.")
+    except Exception as e:  # pylint:disable=broad-except
+        LOGGER.exception("%s. Exception: %s.", cif, e)
         return None
 
 
@@ -131,11 +133,11 @@ def harvest_cif(cif, dumpdir=None):
         df = harvester.run_harvest()
         return df
     except Exception as execpt:  # pylint:disable=broad-except
-        LOGGER.exception(f"{cif}. Exception: {execpt}.")
+        LOGGER.exception("%s. Exception: %s.", cif, execpt)
         return None
 
 
-def harvest_directory(
+def harvest_directory(  # pylint:disable=too-many-branches
     directory,
     njobs=1,
     outdir=None,
@@ -151,12 +153,10 @@ def harvest_directory(
     harvest_partial = partial(harvest_w_timeout, dumpdir=outdir)
 
     if skip_existing:
-        existing_stems = set(
-            [
-                str(Path(p).parents[0]).split("_", maxsplit=1)[0]
-                for p in glob(os.path.join(outdir, "*", "descriptors.csv"))
-            ]
-        )
+        existing_stems = {
+            str(Path(p).parents[0]).split("_", maxsplit=1)[0]
+            for p in glob(os.path.join(outdir, "*", "descriptors.csv"))
+        }
         existing_stems.update(load_failed())
         filtered_all_cifs = []
         for cif in all_cifs:
@@ -180,9 +180,9 @@ def harvest_directory(
                 if res is not None:
                     all_res.append(res)
                 else:
-                    LOGGER.error(f"Failed for {filtered_all_cifs[i]}")
+                    LOGGER.error("Failed for %s", filtered_all_cifs[i])
             except concurrent.futures.process.BrokenProcessPool as ex:
-                LOGGER.error("Broken process pool due to %s".format(ex))
+                LOGGER.error("Broken process pool due to %s", ex)
 
     df = pd.concat(all_res)
     if outdir is None:

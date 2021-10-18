@@ -9,6 +9,8 @@ from .sbu import SBU
 
 
 class Linker(SBU):
+    """Describing a linker in a MOF"""
+
     pass
 
 
