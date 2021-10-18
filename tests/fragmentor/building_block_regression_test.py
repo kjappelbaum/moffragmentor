@@ -24,14 +24,14 @@ def test_fragmentation():
     Not that we only give the parent net, not potential subnets.
     """
     vejhez_parts = fragment("VEJHEZ_clean.cif")
-    assert (
-        vejhez_parts.linkers.smiles[0]
-        == "[O]C(=O)c1cc(cc(c1)C1=C2C=CC3=[N]2[Zn@]24n5c1ccc5C(=C1[N]2=C(C=C1)C(=c1n4c(=C3c2cc(cc(c2)C(=O)[O])C(=O)[O])cc1)c1cc(cc(c1)C(=O)[O])C(=O)[O])c1cc(cc(c1)C(=O)[O])C(=O)[O])C(=O)[O]"
-    )
-    assert len(set(vejhez_parts.linkers.smiles)) == 1
-
     assert vejhez_parts.nodes.smiles[0] == "[C]1O[Zn]2O[C]O[Zn](O1)O[C]O2"
     assert len(set(vejhez_parts.nodes.smiles)) == 1
+
+    assert (
+        vejhez_parts.linkers.smiles[0]
+        == "[O]C(=O)c1cc(cc(c1)C1=C2C=CC3=[N]2[Zn@]24n5c1ccc5C(=C1[N]2=C(C=C1)C(=c1n4c(=C3c2cc(cc(c2)C(=O)[O])C(=O)[O])cc1)c1cc(cc(c1)C(=O)[O])C(=O)[O])c1cc(cc(c1)C(=O)[O])C(=O)[O])C(=O)[O]"  # pylint:disable=line-too-long
+    )
+    assert len(set(vejhez_parts.linkers.smiles)) == 1
 
     hkust_parts = fragment("HKUST-1.cif")
     assert hkust_parts.linkers[0].smiles == "[O]C(=O)c1cc(C([O])=O)cc(C([O])=O)c1"

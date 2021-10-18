@@ -22,7 +22,7 @@ FragmentationResult = namedtuple(
 )
 
 
-def run_fragmentation(mof) -> FragmentationResult:
+def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-locals
     """Take a MOF and split it into building blocks"""
     unbound_solvent = get_floating_solvent_molecules(mof)
     # Find nodes
@@ -38,7 +38,7 @@ def run_fragmentation(mof) -> FragmentationResult:
     # filter for metal in linker case:
     ok_node = []
     need_rerun = False
-
+    not_node = []
     # ToDo: factor this out into its own function
     for i, node in enumerate(node_result.nodes):
         metal_in_node = _get_metal_sublist(node, mof.metal_indices)
@@ -65,12 +65,14 @@ def run_fragmentation(mof) -> FragmentationResult:
                     ):
                         need_rerun = True
                         node_ok = False
+                        not_node.append(i)
                         break
             if node_ok:
                 ok_node.append(i)
         else:
             ok_node.append(i)
 
+    print(not_node, ok_node)
     if need_rerun:
         selected_nodes = [node_result.nodes[i] for i in ok_node]
         node_result = NodelocationResult(

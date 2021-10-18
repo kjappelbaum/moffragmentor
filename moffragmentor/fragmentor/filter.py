@@ -11,7 +11,7 @@ from ..utils import unwrap
 
 def point_in_mol_coords(point, points, lattice):
     new_coords = unwrap(np.append(points, [point], axis=0), lattice)
-    return in_hull(new_coords[-1], new_coords[:-1])
+    return in_hull(new_coords[-1], new_coords[:-1]) or in_hull(points[-1], points[:-1])
 
 
 def in_hull(pointcloud, hull):
@@ -73,7 +73,9 @@ def _shortest_path_to_metal(branch_index, metal_indices, graph):
     paths = []
 
     for metal_index in metal_indices:
-        path = nx.shortest_path(graph, source=branch_index, target=metal_index)
+        path = nx.shortest_path(  # pylint:disable=unexpected-keyword-arg, no-value-for-parameter
+            graph, source=branch_index, target=metal_index
+        )
         paths.append(path)
 
     shortest_path = min(paths, key=len)
