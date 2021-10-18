@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Functions to describe nets encoded as pymatgen structures"""
 import pathlib
 from collections import defaultdict
 from typing import List, Tuple, Union
@@ -14,7 +15,7 @@ MIN_DISTANCE_NN = MinimumDistanceNN()
 LSOP = LocalStructOrderParams(types=ALL_LSOP)
 
 
-def basic_net_features(structure: Structure) -> dict:
+def get_basic_net_features(structure: Structure) -> dict:
     """Return basic characteristics of a structure.
     The structure represents the net.
 
@@ -245,3 +246,24 @@ def get_bb_info(structure: Structure) -> dict:
         "lsop_features": lsop_features,
         "distance_features": distance_features,
     }
+
+
+def get_net_descriptors(netfile: Union[str, pathlib.Path]) -> dict:
+    """Create descriptors for net encoded in a cgd file
+
+    Args:
+        netfile (Union[str, pathlib.Path]): Path to cgd file
+
+    Returns:
+        dict: dictionary with global, local descriptors and
+            basic building block information
+    """
+    rcsr_code, structure, node_types, edge_types = cgd_to_structure(netfile)
+    global_descriptors = get_basic_net_features(structure)
+    bb_descriptors = get_bb_info(structure)
+    descriptors = {**global_descriptors, **bb_descriptors}
+    descriptors["rcsr_code"] = rcsr_code
+    descriptors["node_types"] = node_types
+    descriptors["edge_types"] = edge_types
+
+    return descriptors
