@@ -8,7 +8,9 @@
 
 `pip install git+https://github.com/kjappelbaum/moffragmentor.git`
 
-You need to have `openbabel` installed which you can install with ` `. You will also need the RDKit which can be installed with `conda install -c conda-forge rdkit`
+You need to have `openbabel` installed which you can install with ` `. You will also need the RDKit which can be installed with `conda install -c conda-forge rdkit`.
+
+You can also run `bash create_conda.sh`. Note that you might want to change the name of the name of the environment (defaults to `moffragmentor`).
 
 ## How to use
 

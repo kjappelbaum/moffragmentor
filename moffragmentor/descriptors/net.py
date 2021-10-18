@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 import pathlib
+from collections import defaultdict
 from typing import List, Tuple, Union
 
 import numpy as np
 from pymatgen.analysis.graphs import StructureGraph
 from pymatgen.analysis.local_env import LocalStructOrderParams, MinimumDistanceNN
 from pymatgen.core import Lattice, Structure
-from collections import defaultdict
+
 from . import ALL_LSOP
 
 MIN_DISTANCE_NN = MinimumDistanceNN()
@@ -199,7 +200,18 @@ def get_distance_descriptors(
         }
 
 
-def get_bb_info(structure: Structure):
+def get_bb_info(structure: Structure) -> dict:
+    """Compile vertex/edge features for a
+    net represented as pymatgen Structure
+
+    Args:
+        structure (Structure): net representation
+            as pymatgen Structure
+
+    Returns:
+        dict: information about vertices/edges
+            and descriptors
+    """
     types = []
     cns = []
     type_dict = defaultdict(list)

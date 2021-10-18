@@ -6,13 +6,13 @@ import os
 import pickle
 from collections import defaultdict
 from copy import deepcopy
-from backports.cached_property import cached_property
 from shutil import which
 from typing import Collection, Dict, List, Union
 
 import networkx as nx
 import numpy as np
 import pymatgen
+from backports.cached_property import cached_property
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 from pymatgen.core import Molecule, Structure
 from pymatgen.io.babel import BabelMolAdaptor
