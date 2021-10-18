@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Collection for MOF building blocks"""
 from collections import Counter
 from typing import List
 

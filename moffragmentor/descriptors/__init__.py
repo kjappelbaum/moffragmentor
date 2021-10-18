@@ -62,7 +62,7 @@ ALL_LSOP = [
 def try_except_nan(mol, calculator, exception_value=np.nan):
     try:
         value = calculator(mol)
-    except Exception:
+    except Exception:  # pylint:disable=broad-except
         value = exception_value
     return value
 
@@ -85,15 +85,16 @@ def rdkit_descriptors(rdkit_mol, three_dimensional: bool = True):
 
     if three_dimensional:
         try:
-            from rdkit_utils import conformers
+            from rdkit_utils import conformers  # pylint:disable=import-outside-toplevel
 
             engine = conformers.ConformerGenerator(max_conformers=20)
             mol = engine.generate_conformers(rdkit_mol)
         except ImportError:
             warnings.warn(
-                "rdkit_utils is required to create conformers for 3D descriptor calculation."
+                "rdkit_utils is required to create conformers\
+                     for 3D descriptor calculation."
             )
-        except Exception:
+        except Exception:  # pylint:disable=broad-except
             mol = rdkit_mol
         descriptors["spherocity"] = try_except_nan(
             mol, rdMolDescriptors.CalcSpherocityIndex
@@ -137,7 +138,7 @@ def summarize(df):
 def chemistry_descriptors(structure):
     """Calculate basic chemistry like electronegativity, EA"""
     results = []
-    for i, site in enumerate(structure):
+    for site in structure:
         results.append(get_chemistry_descriptors_for_site(site))
 
     return summarize(pd.DataFrame(results))

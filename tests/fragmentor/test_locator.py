@@ -73,7 +73,7 @@ def test_find_p_linker_floating_mof_clusters(get_p_linker_with_floating):
 
 def test_find_li_mof_floating_mof_cluster(get_li_mof_with_floating):
     """A somewhat more complicated node,
-    see https://pubs.rsc.org/en/content/articlelanding/2014/DT/c3dt53415d#!divAbstract"""
+    see https://pubs.rsc.org/en/content/articlelanding/2014/DT/c3dt53415d#!divAbstract"""  # pylint:disable=line-too-long
     mof = get_li_mof_with_floating
     node_location_result = find_node_clusters(mof)
     assert len(node_location_result) == 3
@@ -219,7 +219,7 @@ def test_find_all_bound_solvent_molecules(get_li_mof_with_floating):
 
 def test_find_node_cluster_acetate_zr_mof(get_acetate_zr_mof):
     """Nice (Zr6)2 node,
-    see https://pubs.rsc.org/en/content/articlelanding/2018/CC/C8CC00507A#!divAbstract"""
+    see https://pubs.rsc.org/en/content/articlelanding/2018/CC/C8CC00507A#!divAbstract"""  # pylint:disable=line-too-long
     mof = get_acetate_zr_mof
     node_location_result = find_node_clusters(mof)
     assert len(node_location_result) == 3

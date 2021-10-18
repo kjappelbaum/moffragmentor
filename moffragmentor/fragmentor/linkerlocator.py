@@ -112,8 +112,8 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
             - all_persistent_non_metal_bridges
         )
         | set(unbound_solvent.indices)
-        | set(mof.metal_indices)
-        & all_node_indices  # some metals might also be in the linker, e.g., in porphyrins
+        | set(mof.metal_indices) & all_node_indices
+        # some metals might also be in the linker, e.g., in porphyrins
     )
 
     graph_ = mof.structure_graph.__copy__()

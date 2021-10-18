@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Command line interfaces"""
 import click
 
 from ..harvester.harvest_building_blocks import harvest_directory

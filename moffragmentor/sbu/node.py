@@ -2,7 +2,6 @@
 """Create Python containers for node building blocks.
 Here we understand metal clusters as nodes."""
 from collections import defaultdict
-from copy import deepcopy
 from typing import Set
 
 import numpy as np
@@ -15,14 +14,13 @@ from ..utils import (
     _reindex_list_of_tuple,
     get_neighbors_from_nx_graph,
     get_nx_graph_from_edge_tuples,
-    revert_dict,
 )
 from .sbu import SBU
 
 __all__ = ["Node"]
 
 
-def node_from_mof_and_indices(
+def node_from_mof_and_indices(  # pylint:disable=too-many-locals
     cls, mof, node_indices, branching_indices, binding_indices
 ):
     graph_ = mof.structure_graph.__copy__()
@@ -86,7 +84,7 @@ def node_from_mof_and_indices(
         closest_branching_index_in_molecule=closest_branching_index_in_molecule,
         binding_indices=binding_indices,
         original_indices=[i for i in relevant_indices if i in node_indices],
-        persistent_non_metal_bridged=sites_and_indices.persistent_non_metal_bridged_components,
+        persistent_non_metal_bridged=sites_and_indices.persistent_non_metal_bridged_components,  # pylint:disable=line-too-long
         terminal_in_mol_not_terminal_in_struct=sites_and_indices.hidden_vertices,
         graph_branching_coords=sites_and_indices.cartesian_coordinates[
             [sites_and_indices.index_mapping[i] for i in graph_branching_indices]

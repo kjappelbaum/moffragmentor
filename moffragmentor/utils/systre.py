@@ -45,15 +45,18 @@ def run_systre(systre_string: str) -> dict:
                 universal_newlines=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
+                check=True,
             )
             systre_result = _parse_systre_lines(out.stdout.split("\n"))
 
             return systre_result
-    except Exception as e:
+    except Exception:  # pylint:disable=broad-except
         return ""
 
 
-def _parse_systre_lines(lines: List[str]) -> dict:
+def _parse_systre_lines(  # pylint:disable=too-many-locals, too-many-branches
+    lines: List[str],
+) -> dict:
     """Given the lines from a Systre output file, which might be created with
     ```
     with open('systre.out', 'r') as handle:
@@ -137,7 +140,7 @@ def _parse_node_line(line: str) -> Tuple[int, List[float]]:
     return node_number, coords
 
 
-def _get_systre_input_from_pmg_structure_graph(
+def _get_systre_input_from_pmg_structure_graph(  # pylint: disable=too-many-locals
     structure_graph: StructureGraph, lattice: Lattice = None
 ) -> str:
     """

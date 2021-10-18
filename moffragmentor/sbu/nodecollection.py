@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Describing a collection of nodes"""
 from .sbucollection import SBUCollection
 
 __all__ = ["NodeCollection"]

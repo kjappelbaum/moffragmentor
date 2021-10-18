@@ -137,7 +137,7 @@ def harvest_cif(cif, dumpdir=None):
         return None
 
 
-def harvest_directory(  # pylint:disable=too-many-branches
+def harvest_directory(  # pylint:disable=too-many-branches, too-many-arguments, too-many-locals
     directory,
     njobs=1,
     outdir=None,

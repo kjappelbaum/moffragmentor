@@ -20,7 +20,7 @@ def _is_any_atom_in_cell(frac_coords: np.ndarray) -> bool:
     return False
 
 
-def _select_parts_in_cell(
+def _select_parts_in_cell(  # pylint:disable=too-many-arguments,too-many-locals
     molecules: List[Molecule],
     graphs: List[MoleculeGraph],
     indices: List[List[int]],
@@ -55,7 +55,7 @@ def _select_parts_in_cell(
     return molecules_, graphs_, selected_indices, centers_, coordinates_
 
 
-def get_subgraphs_as_molecules(
+def get_subgraphs_as_molecules(  # pylint:disable=too-many-locals
     structure_graph: StructureGraph,
     use_weights: bool = False,
     return_unique: bool = True,
@@ -69,10 +69,11 @@ def get_subgraphs_as_molecules(
         structure_graph ( pymatgen.analysis.graphs.StructureGraph): Structuregraph
         use_weights (bool): If True, use weights for the edge matching
         return_unique (bool): If true, it only returns the unique molecules.
-            If False, it will return all molecules that are completely included in the unit cell
+            If False, it will return all molecules that
+            are completely included in the unit cell
             and fragments of the ones that are only partly in the cell
-        filter_in_cell (bool): If True, it will only return molecules that have at least one atom
-            in the cell
+        filter_in_cell (bool): If True, it will only return molecules
+            that have at least one atom in the cell
 
     Returns:
         Tuple[List[Molecule], List[MoleculeGraph], List[List[int]], List[np.ndarray]]
@@ -118,8 +119,7 @@ def get_subgraphs_as_molecules(
     def edge_match(e1, e2):
         if use_weights:
             return e1["weight"] == e2["weight"]
-        else:
-            return True
+        return True
 
     if return_unique:
         for subgraph in molecule_subgraphs:
@@ -133,7 +133,9 @@ def get_subgraphs_as_molecules(
             if not any(already_present):
                 unique_subgraphs.append(subgraph)
 
-    def make_mols(molecule_subgraphs=molecule_subgraphs, center=False):
+    def make_mols(
+        molecule_subgraphs=molecule_subgraphs, center=False
+    ):  # pylint:disable=dangerous-default-value
         molecules = []
         indices = []
         indices_here = []
@@ -147,7 +149,7 @@ def get_subgraphs_as_molecules(
             #     for n in subgraph.nodes()
             # ]
             idx = [subgraph.nodes[n]["idx"] for n in subgraph.nodes()]
-            idx_here = [n for n in subgraph.nodes()]
+            idx_here = list(subgraph.nodes())
             molecule = Molecule(
                 species, coords
             )  #  site_properties={"binding": binding}

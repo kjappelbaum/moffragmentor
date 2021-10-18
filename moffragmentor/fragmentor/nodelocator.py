@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Some pure functions that are used to perform the node identification
-Node classification techniques described in \https://pubs.acs.org/doi/pdf/10.1021/acs.cgd.8b00126.
+Node classification techniques described
+in https://pubs.acs.org/doi/pdf/10.1021/acs.cgd.8b00126.
 
 Note that we currently only place one vertex for every linker which might loose some
 information about isomers
@@ -24,7 +25,9 @@ NodelocationResult = namedtuple(
 )
 
 
-def find_node_clusters(mof, unbound_solvent_indices=None) -> NodelocationResult:
+def find_node_clusters(  # pylint:disable=too-many-locals
+    mof, unbound_solvent_indices=None
+) -> NodelocationResult:
     """This function locates the branchin indices, and node clusters in MOFs.
     Starting from the metal indices it performs depth first search on the structure
     graph up to branching points.
@@ -93,7 +96,8 @@ def find_node_clusters(mof, unbound_solvent_indices=None) -> NodelocationResult:
 def create_node_collection(
     mof, node_location_result: NodelocationResult
 ) -> NodeCollection:
-    # ToDo: This is a bit indirect, it would be better if we would have a list of dicts to loop over
+    # ToDo: This is a bit indirect,
+    # it would be better if we would have a list of dicts to loop over
     nodes = []
     for i, _ in enumerate(node_location_result.nodes):
         node_indices = node_location_result.nodes[i]

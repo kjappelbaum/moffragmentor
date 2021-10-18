@@ -49,7 +49,7 @@ def obmol_to_rdkit_mol(obmol):
     return mol
 
 
-class SBU:
+class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-methods
     """Representation for a secondary building block.
     It also acts as container for site indices:
 
@@ -60,7 +60,8 @@ class SBU:
       they are equal to to the graph_branching_indices.
       Otherwise they are obtained as the closest vertex of the original
       branching vertex that is part of the molecule.
-    - binding_indices: are the indices of the sites between the branching index and metal
+    - binding_indices: are the indices of the sites between
+        the branching index and metal
     - original_indices: complete original set of indices that has been selected
       for this building blocks
     - persistent_non_metal_bridged: components that are connected
@@ -71,7 +72,7 @@ class SBU:
        in the molecule but not terminal in the structure
     """
 
-    def __init__(
+    def __init__(  # pylint:disable=too-many-arguments
         self,
         molecule: Molecule,
         molecule_graph: MoleculeGraph,
@@ -226,7 +227,7 @@ class SBU:
         try:
             canonical = Chem.CanonSmiles(smiles)
             return canonical
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             return smiles
 
     def _get_boxed_structure(self):
@@ -291,5 +292,4 @@ def _get_max_sep(coordinates):
     if len(coordinates) > 1:
         distances = pdist(coordinates)
         return np.max(distances)
-    else:
-        return 5
+    return 5

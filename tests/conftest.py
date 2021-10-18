@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+"""Setup tests"""
+# pylint:disable=too-many-lines
 import os
 
 import networkx as nx

@@ -215,5 +215,5 @@ class NetEmbedding:  # pylint:disable=too-many-instance-attributes
             systre_output = run_systre(self._write_systre_file())
             self._rcsr_code = systre_output["rcsr_code"]
             self._space_group = systre_output["space_group"]
-        except Exception as exception:  # pylint: disable=broad-except
+        except Exception as exception:  # pylint:disable=broad-except
             warnings.warn(f"Systre run failed due to {exception}")

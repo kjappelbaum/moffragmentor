@@ -143,13 +143,11 @@ def _to_graph(mof, paths, branch_sites):
 
 def _to_edges(paths):
     iterator = iter(paths)
-    last = next(iterator)
+    last = next(iterator)  # pylint:disable=stop-iteration-return
 
     for current in iterator:
         yield last, current
         last = current
-
-    return
 
 
 def _connect_connected_branching_indices(mof, flattend_path) -> set:

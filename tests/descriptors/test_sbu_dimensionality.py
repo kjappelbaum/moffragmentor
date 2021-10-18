@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Test calculation of the SBU dimensionality"""
 from moffragmentor.descriptors.sbu_dimensionality import (
     get_structure_graph_dimensionality,
 )

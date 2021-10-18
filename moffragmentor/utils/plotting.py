@@ -3,7 +3,7 @@
 import plotly.graph_objs as go
 
 
-def ploty_plot_structure_graph(
+def ploty_plot_structure_graph(  # pylint: disable=too-many-locals
     structure_graph, show_edges: bool = True, show_nodes: bool = True
 ):
     node_x = []

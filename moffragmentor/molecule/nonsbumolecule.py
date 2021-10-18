@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Dealing with molecules that not part of a secondary building unit"""
 from typing import List
 
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph

@@ -179,7 +179,9 @@ def build_molecule_and_graph(s, sites, edges):
     return mol, molecule_graph
 
 
-def write_cif(s, graph, connection_indices, molecule=None, write_bonding_mode=False):
+def write_cif(  # pylint:disable=too-many-locals
+    s, graph, connection_indices, molecule=None, write_bonding_mode=False
+):
     header_lines = [
         "data_cif",
         "_audit_creation_date              "
@@ -253,19 +255,19 @@ def write_cif(s, graph, connection_indices, molecule=None, write_bonding_mode=Fa
             tuple_a = (ind0, ind1)
             tuple_b = (ind1, ind0)
 
-            if not (tuple_a in set_bond) and not (tuple_b in set_bond):
+            if not (tuple_a in set_bond) and not (
+                tuple_b in set_bond
+            ):  # pylint:disable=superfluous-parens
                 set_bond.add(tuple_a)
 
                 dist = np.round(s.get_distance(i, j), 3)
                 if write_bonding_mode:
                     connection_loop_content.append(
-                        "{:7} {:>7} {:>7} {:>3} {:>3}".format(
-                            ind0, ind1, dist, ".", "S"
-                        )
+                        f"{ind0:7} {ind1:>7} {dist:>7} {'.':>3} {s:>3}"
                     )
                 else:
                     connection_loop_content.append(
-                        "{:7} {:>7} {:>7} {:>3}".format(ind0, ind1, "", "")
+                        f"{ind0:7} {ind1:>7} {'':>7} {'':>3}"
                     )
 
     return "\n".join(

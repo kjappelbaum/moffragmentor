@@ -11,8 +11,6 @@ from .sbu import SBU
 class Linker(SBU):
     """Describing a linker in a MOF"""
 
-    pass
-
 
 def _get_edge_dict_from_rdkit_mol(mol):
     edges = {}

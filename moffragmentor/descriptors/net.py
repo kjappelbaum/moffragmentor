@@ -55,7 +55,7 @@ def get_lsop_for_site(structure: Structure, index: int, neighbors: List[int]) ->
     return descriptors
 
 
-def cgd_to_structure(
+def cgd_to_structure(  # pylint:disable=too-many-locals
     filename: Union[str, pathlib.Path],
     node_symbol: str = "C",
     edge_center_symbol: str = "O",
@@ -73,7 +73,7 @@ def cgd_to_structure(
     Returns:
         Tuple[str, Structure]: RCSR code of net, pymatgen Structure
     """
-    with open(filename, "r") as f:
+    with open(filename, "r", encoding="utf8") as f:
         # Neglect "CRYSTAL" and "END"
         lines = f.readlines()[1:-1]
     lines = [line for line in lines if not line.startswith("#")]
@@ -191,7 +191,7 @@ def get_distance_descriptors(
             "median_distance": np.mean(distances),
             "std_distance": np.std(distances),
         }
-    except Exception:
+    except Exception:  # pylint:disable=broad-except
         return {
             "min_distance": 0,
             "max_distance": 0,

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Testing functions related to molecule creation"""
 from moffragmentor.molecule import NonSbuMolecule, NonSbuMoleculeCollection
 
 
