@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """Searches, such as depth-first search (DFS) on graphs"""
 from copy import deepcopy
-
 from typing import List
 
 import networkx as nx
 
 from ..utils import _flatten_list_of_sets
+
 
 def _has_path_to_any_other_metal(mof, index: int, this_metal_index: int) -> bool:
     """Check if some neighbor at index is only connected to this_metal_index
