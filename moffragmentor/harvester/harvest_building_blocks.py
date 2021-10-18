@@ -141,7 +141,7 @@ def harvest_directory(
     skip_existing=True,
     reverse=False,
     offset: int = 0,
-    qmof: bool = True,
+    qmof: bool = False,
 ):
     all_cifs = glob(os.path.join(directory, "*.cif"))
     if outdir is not None:

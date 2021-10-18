@@ -17,6 +17,7 @@ __all__ = [
     "rdkit_descriptors",
     "chemistry_descriptors",
     "distance_descriptors",
+    "ALL_LSOP",
 ]
 
 ALL_LSOP = [
