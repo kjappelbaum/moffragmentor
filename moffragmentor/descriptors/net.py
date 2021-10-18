@@ -6,7 +6,7 @@ import numpy as np
 from pymatgen.analysis.graphs import StructureGraph
 from pymatgen.analysis.local_env import LocalStructOrderParams, MinimumDistanceNN
 from pymatgen.core import Lattice, Structure
-
+from collections import defaultdict
 from . import ALL_LSOP
 
 MIN_DISTANCE_NN = MinimumDistanceNN()
@@ -182,7 +182,6 @@ def get_distance_descriptors(
         distances = []
         for neighbor in neighbors:
             distances.append(structure.get_distance(site, neighbor))
-        print(distances)
         return {
             "min_distance": np.min(distances),
             "max_distance": np.max(distances),
@@ -198,3 +197,39 @@ def get_distance_descriptors(
             "median_distance": 0,
             "std_distance": 0,
         }
+
+
+def get_bb_info(structure: Structure):
+    types = []
+    cns = []
+    type_dict = defaultdict(list)
+    bb_types = {"nodes": set(), "linkers": set()}
+    lsop_features = {}
+    distance_features = {}
+
+    structure_graph = StructureGraph.with_local_env_strategy(structure, MIN_DISTANCE_NN)
+
+    for i, site in enumerate(structure):
+        p = site.as_dict()["properties"]
+        t = p["type"]
+        types.append(t)
+        cns.append(p["cn"])
+        type_dict[p["type"]].append(i)
+        if t > 0:
+            bb_types["nodes"].add(t)
+        else:
+            bb_types["linkers"].add(t)
+
+    for k, v in type_dict.items():
+        neighbors = get_neighbor_indices(structure_graph, v[0])
+        lsop_features[k] = get_lsop_for_site(structure, v[0], neighbors)
+        distance_features[k] = get_distance_descriptors(structure, v[0], neighbors)
+
+    return {
+        "types": types,
+        "cns": cns,
+        "type_indices": type_dict,
+        "bb_types": bb_types,
+        "lsop_features": lsop_features,
+        "distance_features": distance_features,
+    }

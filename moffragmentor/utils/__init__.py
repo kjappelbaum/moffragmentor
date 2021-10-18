@@ -6,7 +6,7 @@ import os
 import pickle
 from collections import defaultdict
 from copy import deepcopy
-from functools import cached_property
+from backports.cached_property import cached_property
 from shutil import which
 from typing import Collection, Dict, List, Union
 

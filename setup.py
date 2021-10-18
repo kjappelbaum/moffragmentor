@@ -24,6 +24,7 @@ required = []
 dependency_links = []
 
 # Do not add to required lines pointing to Git repositories
+# https://stackoverflow.com/a/57500829
 EGG_MARK = "#egg="
 for line in REQUIREMENTS:
     if (
