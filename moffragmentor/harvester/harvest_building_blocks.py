@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Functionality to fragment all MOFs in a folder of CIF files"""
+# pylint:disable=invalid-name
 import concurrent.futures
 import logging
 import os
@@ -31,7 +32,7 @@ def load_failed():
         with open("failed_cifs.pkl", "rb") as handle:
             failed_cifs = pickle.load(handle)
             return failed_cifs
-    except Exception:
+    except Exception: # pylint:disable=broad-except
         return set()
 
 
@@ -113,7 +114,7 @@ class Harvester:
 def harvest_w_timeout(cif, dumpdir=None):
     try:
         return harvest_cif(cif, dumpdir=dumpdir)
-    except Exception as e:
+    except Exception as e: # pylint:disable=broad-except
         LOGGER.exception(f"{cif}. Exception: {e}.")
         return None
 
