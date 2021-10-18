@@ -235,6 +235,3 @@ class MOF:  # pylint:disable=too-many-instance-attributes
         """Writes the structure to a CIF file"""
         with open(filename, "w") as file_handle:
             file_handle.write(self._get_cif_text())
-
-    def __hash__(self):
-        return hash(str(self.structure))
