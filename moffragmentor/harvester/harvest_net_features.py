@@ -35,5 +35,5 @@ def harvest_net_information(indir, outfile, max_workers=10):
             if desc is not None:
                 descriptors.append(desc)
 
-    with open(outfile, "w") as handle:  # pylint:disable=unspecified-encoding
+    with open(outfile, "wb") as handle:  # pylint:disable=unspecified-encoding
         pickle.dump(descriptors, handle)

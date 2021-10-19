@@ -18,7 +18,7 @@ def run_harvest(indir, dumpdir, njobs, reverse, offset):
 
 @click.command("cli")
 @click.argument("indir", type=click.Path(exists=True))
-@click.argument("outfile", default=None)
+@click.argument("outfile", type=click.Path())
 @click.option("--njobs", "-n", default=1, type=int)
 def run_net_harvest(indir, outfile, njobs):
     harvest_net_information(indir, outfile, njobs)
