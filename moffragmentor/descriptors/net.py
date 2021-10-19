@@ -75,8 +75,8 @@ def cgd_to_structure(  # pylint:disable=too-many-locals
     """
     with open(filename, "r", encoding="utf8") as f:
         # Neglect "CRYSTAL" and "END"
-        lines = f.readlines()[1:-1]
-    lines = [line for line in lines if not line.startswith("#")]
+        lines = f.readlines()[1:]
+    lines = [line for line in lines if not "END" in line]
 
     # Get topology name.
     name = lines[0].split()[1]
@@ -85,6 +85,17 @@ def cgd_to_structure(  # pylint:disable=too-many-locals
 
     # Get cell paremeters and expand cell lengths by 10.
     cellpar = np.array(lines[2].split()[1:], dtype=np.float32)
+    if len(cellpar) < 6:
+        assert len(cellpar) == 3
+        new_cellpars = np.zeros(6)
+        new_cellpars[0] = cellpar[0]
+        new_cellpars[1] = cellpar[1]
+        new_cellpars[2] = 1
+        new_cellpars[3] = 90
+        new_cellpars[4] = 90
+        new_cellpars[5] = cellpar[2]
+
+        cellpar = new_cellpars
 
     # Parse node information.
     node_positions = []
@@ -97,6 +108,8 @@ def cgd_to_structure(  # pylint:disable=too-many-locals
 
         coordination_number = int(tokens[2])
         pos = [float(r) for r in tokens[3:]]
+        if len(pos) == 2:
+            pos.append(0)
         node_positions.append(pos)
         coordination_numbers.append(coordination_number)
 
@@ -105,26 +118,29 @@ def cgd_to_structure(  # pylint:disable=too-many-locals
 
     # Parse edge information.
     edge_center_positions = []
-    for line in lines[3:]:
-        tokens = line.split()
+    # for line in lines[3:]:
+    #     tokens = line.split()
 
-        if tokens[0] != "EDGE":
-            continue
+    #     if tokens[0] != "EDGE":
+    #         continue
 
-        pos_i = np.array([float(r) for r in tokens[1:4]])
-        pos_j = np.array([float(r) for r in tokens[4:]])
+    #     pos_i = np.array([float(r) for r in tokens[1:4]])
+    #     pos_j = np.array([float(r) for r in tokens[4:]])
 
-        edge_center_pos = 0.5 * (pos_i + pos_j)
-        edge_center_positions.append(edge_center_pos)
+    #     edge_center_pos = 0.5 * (pos_i + pos_j)
+    #     edge_center_positions.append(edge_center_pos)
 
     # New feature. Read EDGE_CENTER.
     for line in lines[3:]:
         tokens = line.split()
 
-        if tokens[0] != "EDGE_CENTER":
+        if tokens[1] != "EDGE_CENTER":
             continue
 
-        edge_center_pos = np.array([float(r) for r in tokens[1:]])
+        edge_center_pos = [float(r) for r in tokens[2:]]
+        if len(edge_center_pos) == 2:
+            edge_center_pos.append(0)
+
         edge_center_positions.append(edge_center_pos)
 
     edge_center_positions = np.array(edge_center_positions)
@@ -139,6 +155,7 @@ def cgd_to_structure(  # pylint:disable=too-many-locals
         ]
     )
 
+    # print(node_positions, edge_center_positions)
     coords = np.concatenate([node_positions, edge_center_positions], axis=0)
 
     # Pymatget can handle : indicator in spacegroup.
@@ -151,6 +168,7 @@ def cgd_to_structure(  # pylint:disable=too-many-locals
     }
 
     # I don't know why pymatgen can't parse this spacegroup.
+    spacegroup = spacegroup.capitalize()
     if spacegroup == "Cmca":
         spacegroup = "Cmce"
 
