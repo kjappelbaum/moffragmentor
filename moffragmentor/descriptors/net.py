@@ -81,7 +81,7 @@ def cgd_to_structure(  # pylint:disable=too-many-locals
     # Get topology name.
     name = lines[0].split()[1]
     # Get spacegroup.
-    spacegroup = lines[1].split()[1]
+    spacegroup = lines[1].split()[1].split(":")[0]
 
     # Get cell paremeters and expand cell lengths by 10.
     cellpar = np.array(lines[2].split()[1:], dtype=np.float32)

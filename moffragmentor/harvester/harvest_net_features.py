@@ -20,7 +20,10 @@ LOGGER = logging.getLogger(__name__)
 
 def net_description_w_log(file):
     print(f"Featurizing {file}")
-    return get_net_descriptors(file)
+    try:
+        return get_net_descriptors(file)
+    except Exception:  # pylint: disable=broad-except
+        return None
 
 
 def harvest_net_information(indir, outfile, max_workers=10):
@@ -29,8 +32,8 @@ def harvest_net_information(indir, outfile, max_workers=10):
 
     with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
         for desc in executor.map(net_description_w_log, net_files):
-
-            descriptors.append(desc)
+            if desc is not None:
+                descriptors.append(desc)
 
     with open(outfile, "w") as handle:  # pylint:disable=unspecified-encoding
         pickle.dump(descriptors, handle)
