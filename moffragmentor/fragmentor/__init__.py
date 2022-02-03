@@ -72,7 +72,6 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
         else:
             ok_node.append(i)
 
-    print(not_node, ok_node)
     if need_rerun:
         selected_nodes = [node_result.nodes[i] for i in ok_node]
         node_result = NodelocationResult(

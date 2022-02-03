@@ -149,6 +149,7 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
                 idx,
             ),
             original_indices=idx,
+            connecting_paths=[]
         )
 
         if i in linker_indices:

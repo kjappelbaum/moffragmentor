@@ -102,15 +102,16 @@ def create_node_collection(
     for i, _ in enumerate(node_location_result.nodes):
         node_indices = node_location_result.nodes[i]
         node = Node.from_mof_and_indices(
-            mof,
-            node_indices,
-            node_location_result.branching_indices & node_indices,
-            identify_node_binding_indices(
+            mof=mof,
+           node_indices=node_indices,
+           branching_indices = node_location_result.branching_indices & node_indices,
+            binding_indices =identify_node_binding_indices(
                 mof,
                 node_indices,
                 node_location_result.connecting_paths,
                 node_location_result.branching_indices,
             ),
+            connecting_paths = node_location_result.connecting_paths & node_indices,
         )
         nodes.append(node)
 
