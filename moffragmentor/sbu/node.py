@@ -21,7 +21,7 @@ __all__ = ["Node"]
 
 
 def node_from_mof_and_indices(  # pylint:disable=too-many-locals
-    cls, mof, node_indices, branching_indices, binding_indices
+    cls, mof, node_indices, branching_indices, binding_indices, connecting_paths
 ):
     graph_ = mof.structure_graph.__copy__()
     graph_.structure = Structure.from_sites(graph_.structure.sites)
@@ -89,6 +89,7 @@ def node_from_mof_and_indices(  # pylint:disable=too-many-locals
         graph_branching_coords=sites_and_indices.cartesian_coordinates[
             [sites_and_indices.index_mapping[i] for i in graph_branching_indices]
         ],
+        connecting_paths=connecting_paths,
     )
 
     return node
@@ -107,9 +108,10 @@ class Node(SBU):
         node_indices: Set[int],
         branching_indices: Set[int],
         binding_indices: Set[int],
+        connecting_paths: Set[int]
     ):
         """Build a node object from a MOF and some
         intermediate outputs of the fragmentation"""
         return node_from_mof_and_indices(
-            cls, mof, node_indices, branching_indices, binding_indices
+            cls, mof, node_indices, branching_indices, binding_indices, connecting_paths=connecting_paths
         )

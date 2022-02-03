@@ -84,6 +84,7 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         persistent_non_metal_bridged=None,
         terminal_in_mol_not_terminal_in_struct=None,
         graph_branching_coords=None,
+        connecting_paths=None,
     ):
         self.molecule = molecule
         self.center = center
@@ -109,6 +110,15 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
             zip(range(len(molecule)), original_indices)
         )
         self._indices = original_indices
+        self._original_connecting_paths = connecting_paths
+        self.connecting_paths = []
+
+        for i in connecting_paths:
+            try:
+                self.connecting_paths.append(self.mapping_from_original_indices[i])
+            except  KeyError:
+                pass
+    
 
     def get_neighbor_indices(self, site: int) -> List[int]:
         """Get list of indices of neighboring sites"""
