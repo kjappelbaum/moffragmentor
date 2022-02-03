@@ -131,6 +131,12 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         return nx.Graph(self.molecule_graph.graph.to_undirected())
 
     @cached_property
+    def metal_indices(self) -> List[int]:
+        return [
+            i for i, species in enumerate(self.molecule.species) if species.is_metal
+        ]
+
+    @cached_property
     def nx_graph(self):
         return self._get_nx_graph()
 
