@@ -17,14 +17,8 @@ from ..descriptors.sbu_dimensionality import get_sbu_dimensionality
 from ..mof import MOF
 from ..utils import get_linker_connectivity, make_if_not_exists, remove_edge_duplicates
 
-logging.basicConfig(
-    filename="harvester_log.log",
-    filemode="a",
-    format="%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s",
-    datefmt="%H:%M:%S",
-    level=logging.DEBUG,
-)
-LOGGER = logging.getLogger(__name__)
+
+from moffragmentor.utils.logger import logger
 
 
 def load_failed():
@@ -117,7 +111,7 @@ def harvest_w_timeout(cif, dumpdir=None):
     try:
         return harvest_cif(cif, dumpdir=dumpdir)
     except Exception as e:  # pylint:disable=broad-except
-        LOGGER.exception("%s. Exception: %s.", cif, e)
+        logger.exception("%s. Exception: %s.", cif, e)
         return None
 
 
@@ -133,7 +127,7 @@ def harvest_cif(cif, dumpdir=None):
         df = harvester.run_harvest()
         return df
     except Exception as execpt:  # pylint:disable=broad-except
-        LOGGER.exception("%s. Exception: %s.", cif, execpt)
+        logger.exception("%s. Exception: %s.", cif, execpt)
         return None
 
 
@@ -180,9 +174,9 @@ def harvest_directory(  # pylint:disable=too-many-branches, too-many-arguments, 
                 if res is not None:
                     all_res.append(res)
                 else:
-                    LOGGER.error("Failed for %s", filtered_all_cifs[i])
+                    logger.error("Failed for %s", filtered_all_cifs[i])
             except concurrent.futures.process.BrokenProcessPool as ex:
-                LOGGER.error("Broken process pool due to %s", ex)
+                logger.error("Broken process pool due to %s", ex)
 
     df = pd.concat(all_res)
     if outdir is None:

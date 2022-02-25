@@ -6,3 +6,4 @@ networkx
 pyyaml
 timeout_decorator
 git+https://github.com/skearnes/rdkit-utils.git
+loguru

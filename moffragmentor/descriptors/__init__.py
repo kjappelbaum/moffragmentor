@@ -12,6 +12,8 @@ from rdkit.Chem import Descriptors, GraphDescriptors, rdMolDescriptors
 
 from .flexibility import kier_molecular_flexibility, n_conf20
 
+from moffragmentor.utils.logger import logger
+
 __all__ = [
     "get_lsop",
     "rdkit_descriptors",
@@ -59,6 +61,8 @@ ALL_LSOP = [
 ]
 
 
+
+
 def try_except_nan(mol, calculator, exception_value=np.nan):
     try:
         value = calculator(mol)
@@ -69,6 +73,7 @@ def try_except_nan(mol, calculator, exception_value=np.nan):
 
 @lru_cache()
 def rdkit_descriptors(rdkit_mol, three_dimensional: bool = True):
+    logger.debug('Calculating RDKit descriptors')
     descriptors = {
         "min_partial_charge": try_except_nan(rdkit_mol, Descriptors.MinPartialCharge),
         "max_partial_charge": try_except_nan(rdkit_mol, Descriptors.MaxPartialCharge),
@@ -84,10 +89,13 @@ def rdkit_descriptors(rdkit_mol, three_dimensional: bool = True):
     }
 
     if three_dimensional:
+        logger.debug('Calculating 3D RDKit descriptors')
         try:
             from rdkit_utils import conformers  # pylint:disable=import-outside-toplevel
-
-            engine = conformers.ConformerGenerator(max_conformers=20)
+            from .updated_prune import prune_conformers_update  # pylint:disable=import-outside-toplevel
+            
+            engine = conformers.ConformerGenerator(max_conformers=1)
+            engine.prune_conformers = prune_conformers_update
             mol = engine.generate_conformers(rdkit_mol)
         except ImportError:
             warnings.warn(
@@ -96,6 +104,8 @@ def rdkit_descriptors(rdkit_mol, three_dimensional: bool = True):
             )
         except Exception:  # pylint:disable=broad-except
             mol = rdkit_mol
+        
+        logger.debug('Done with calculating conformers')
         descriptors["spherocity"] = try_except_nan(
             mol, rdMolDescriptors.CalcSpherocityIndex
         )
@@ -137,6 +147,7 @@ def summarize(df):
 
 def chemistry_descriptors(structure):
     """Calculate basic chemistry like electronegativity, EA"""
+    logger.debug('Calculating chemistry descriptors')
     results = []
     for site in structure:
         results.append(get_chemistry_descriptors_for_site(site))
@@ -164,6 +175,7 @@ def get_chemistry_descriptors_for_site(site):
 
 
 def get_lsop(structure):
+    logger.debug('Calculating LSOP')
     if len(structure) > 1:
         lsop = LocalStructOrderParams(types=ALL_LSOP)
 
@@ -178,6 +190,7 @@ def get_lsop(structure):
 
 
 def distance_descriptors(structure):
+    logger.debug('Calculating distance descriptors')
     try:
         distances = []
         for i, _ in enumerate(structure):

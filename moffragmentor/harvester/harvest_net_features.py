@@ -8,15 +8,7 @@ from glob import glob
 
 from moffragmentor.descriptors.net import get_net_descriptors
 
-logging.basicConfig(
-    filename="harvester_log.log",
-    filemode="a",
-    format="%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s",
-    datefmt="%H:%M:%S",
-    level=logging.DEBUG,
-)
-LOGGER = logging.getLogger(__name__)
-
+from loguru import logger
 
 def net_description_w_log(file):
     print(f"Featurizing {file}")
