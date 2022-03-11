@@ -124,6 +124,8 @@ def harvest_cif(cif, dumpdir=None):
             make_if_not_exists(path)
             dumpdir = path
         harvester = Harvester.from_cif(cif, dumpdir)
+        if len(harvester.mof)> 500: 
+            raise ValueError("Structure too large")
         df = harvester.run_harvest()
         return df
     except Exception as execpt:  # pylint:disable=broad-except
