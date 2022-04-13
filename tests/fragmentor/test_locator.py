@@ -45,7 +45,7 @@ def test_find_porphyrin_mof_clusters(get_porphryin_mof):
     assert len(fragments.nodes) == 2
     assert len(fragments.linkers) == 2
     assert len(node_location_result.branching_indices) == 8 * 2
-
+    assert fragments.linkers[0].search_pubchem()[0].cid == 58107362
 
 def test_find_hypothetical_mof_clusters(get_hypothetical_mof):
     """Check if we can find the correct nodes in hypothetical MOFs"""

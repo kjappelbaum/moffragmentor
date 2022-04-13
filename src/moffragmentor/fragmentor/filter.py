@@ -18,7 +18,6 @@ def bridges_across_cell(mof, indices) -> bool:
                 bridges[neighbor_site.index] = neighbor_site.jimage
             else:
                 if (bridges[neighbor_site.index] != neighbor_site.jimage) & (neighbor_site.index in mof.metal_indices):
-                    print(bridges, indices, index)
                     return True
 
     return False
