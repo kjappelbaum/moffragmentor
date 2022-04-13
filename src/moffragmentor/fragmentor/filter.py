@@ -8,6 +8,20 @@ from scipy.spatial.qhull import Delaunay, QhullError  # pylint:disable=no-name-i
 
 from ..utils import unwrap
 
+def bridges_across_cell(mof, indices) -> bool: 
+    """Check if a molecule of indices bridges across the cell"""
+    bridges = {}
+
+    for index in indices:
+        for neighbor_site in mof.structure_graph.get_connected_sites(index):
+            if not neighbor_site.index in bridges:
+                bridges[neighbor_site.index] = neighbor_site.jimage
+            else:
+                if bridges[neighbor_site.index] != neighbor_site.jimage:
+                    print(bridges, indices, index)
+                    return True
+
+    return False
 
 def point_in_mol_coords(point, points, lattice):
     new_coords = unwrap(np.append(points, [point], axis=0), lattice)

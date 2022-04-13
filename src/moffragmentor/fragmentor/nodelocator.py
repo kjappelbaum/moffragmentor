@@ -73,7 +73,6 @@ def find_node_clusters(  # pylint:disable=too-many-locals
                 paths.append(p)
                 branch_sites.append(b)
     
-    print(branch_sites)
     # The complete_graph will add the "capping sites" like bridging OH
     # or capping formate
     paths = _complete_graph(mof, paths, branch_sites)

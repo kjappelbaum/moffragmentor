@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Based on the node location, locate the linkers"""
 from typing import List, Tuple
+from xml.dom.minidom import Identified
 
 import numpy as np
 from pymatgen.core import Structure
@@ -8,22 +9,23 @@ from pymatgen.core import Structure
 from ..sbu import Linker, LinkerCollection
 from ..utils import _flatten_list_of_sets
 from .molfromgraph import get_subgraphs_as_molecules
-
+from loguru import logger
 __all__ = ["create_linker_collection", "identify_linker_binding_indices"]
 
 
 def _pick_linker_indices(
-    idxs: List[List[int]], centers, coordinates, all_node_branching_indices
+    idxs: List[List[int]], centers, coordinates, all_node_branching_indices, two_branching_indices=True
 ) -> Tuple[List[int], List[int]]:
     """Trying to have a more reasonable way to filter out linkers
     (of multiple versions of the linker that might be wrapped across a unit cell)"""
+    threshold = 2 if two_branching_indices else 1
     counter = 0
     unique_branching_site_centers = {}
     unique_branching_sites_indices = {}
     has_branch_point = []
     for idx, center, coords in zip(idxs, centers, coordinates):
         intersection = set(idx) & all_node_branching_indices
-        if len(intersection) >= 2:
+        if len(intersection) >= threshold:
             has_branch_point.append(counter)
             intersection = tuple(sorted(tuple(intersection)))
             norm = np.linalg.norm(coords - center)
@@ -103,7 +105,7 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
                 node._persistent_non_metal_bridged  # pylint:disable=protected-access
             )
         )
-
+    
     not_linker_indices = (
         (
             all_node_indices
@@ -115,6 +117,7 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
         | set(mof.metal_indices) & all_node_indices
         # some metals might also be in the linker, e.g., in porphyrins
     )
+
 
     graph_ = mof.structure_graph.__copy__()
     graph_.structure = Structure.from_sites(graph_.structure.sites)
@@ -128,11 +131,18 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
         filter_in_cell=False,
         disable_boundary_crossing_check=True,
     )
+
     # Third: pick those molecules that are closest to the UC
     # ToDo: we should be able to skip this
     linker_indices, _ = _pick_linker_indices(
         idxs, centers, coordinates, node_location_result.branching_indices
     )
+    if len(linker_indices) == 0:
+        logger.warning("No linkers with two branching sites in molecule found. Looking for molecules with one branching site.")
+        linker_indices, _ = _pick_linker_indices(
+            idxs, centers, coordinates, node_location_result.branching_indices, two_branching_indices=False
+        )
+
     # Fourth: collect all linkers in a linker collection
     for i, (mol, graph, idx, center) in enumerate(zip(mols, graphs, idxs, centers)):
         idxs = set(idx)

@@ -5,5 +5,7 @@ backports.cached_property
 networkx
 pyyaml
 timeout_decorator
-git+https://github.com/skearnes/rdkit-utils.git
+joblib
 loguru
+pubchempy
+ase

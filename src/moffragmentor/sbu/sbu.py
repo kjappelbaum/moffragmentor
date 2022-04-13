@@ -12,6 +12,7 @@ from pymatgen.core import Molecule, Structure
 from pymatgen.io.babel import BabelMolAdaptor
 from rdkit import Chem
 from scipy.spatial.distance import pdist
+import pubchempy as pcp
 
 from ..descriptors import (
     chemistry_descriptors,
@@ -119,6 +120,10 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
             except  KeyError:
                 pass
     
+    def search_pubchem(self, **kwargs):
+        
+        pcp.get_compounds(self.smiles, 'smiles', type='substructure', **kwargs)
+
 
     def get_neighbor_indices(self, site: int) -> List[int]:
         """Get list of indices of neighboring sites"""

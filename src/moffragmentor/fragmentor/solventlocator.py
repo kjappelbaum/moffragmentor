@@ -7,7 +7,7 @@ from ..molecule import NonSbuMolecule, NonSbuMoleculeCollection
 from ..utils import _get_metal_sublist
 from ._graphsearch import _has_path_to_any_other_metal, recursive_dfs_until_terminal
 from .molfromgraph import get_subgraphs_as_molecules
-
+from .filter import bridges_across_cell
 __all__ = ["get_floating_solvent_molecules", "get_all_bound_solvent_molecules"]
 
 
@@ -116,10 +116,11 @@ def _locate_bound_solvent(mof, node_atoms: Set[int]) -> OrderedDict:
 
         for metal_neighbor in metal_neighbors:
             if not _has_path_to_any_other_metal(mof, metal_neighbor, metal_index):
-                solvent_connections.add(metal_neighbor)
-                solvent_indices.append(
-                    find_solvent_molecule_indices(mof, metal_neighbor, metal_index)
-                )
+                potential_solvent_indices =  find_solvent_molecule_indices(mof, metal_neighbor, metal_index)
+                if not bridges_across_cell(mof, potential_solvent_indices):
+                    solvent_connections.add(metal_neighbor)
+                    solvent_indices.append(potential_solvent_indices)
+                   
             else:
                 good_connections.add(metal_neighbor)
 

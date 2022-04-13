@@ -1,18 +1,20 @@
 # -*- coding: utf-8 -*-
 """Methods for the fragmentation of MOFs"""
 from collections import namedtuple
+from re import I
 
 from moffragmentor.fragmentor.filter import in_hull
 
 from ..net import NetEmbedding
-from ..utils import _get_metal_sublist
-from .filter import point_in_mol_coords
+from ..utils import _get_metal_sublist, _flatten_list_of_sets
+from .filter import point_in_mol_coords, bridges_across_cell
 from .linkerlocator import create_linker_collection
 from .nodelocator import NodelocationResult, create_node_collection, find_node_clusters
 from .solventlocator import (
     get_all_bound_solvent_molecules,
     get_floating_solvent_molecules,
 )
+from loguru import logger
 
 __all__ = ["FragmentationResult"]
 
@@ -39,7 +41,10 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
     ok_node = []
     need_rerun = False
     not_node = []
+    
+    logger.info("Checking for metal in linker")
     # ToDo: factor this out into its own function
+    # if len(set(_flatten_list_of_sets(linker_collection.indices)) & set(mof.metal_indices)) > 0:
     for i, node in enumerate(node_result.nodes):
         metal_in_node = _get_metal_sublist(node, mof.metal_indices)
         node_ok = True
@@ -73,6 +78,7 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
             ok_node.append(i)
 
     if need_rerun:
+        logger.info("Re-running fragmentation with filtered nodes (metal in linker found)")
         selected_nodes = [node_result.nodes[i] for i in ok_node]
         node_result = NodelocationResult(
             selected_nodes, node_result.branching_indices, node_result.connecting_paths
@@ -84,7 +90,7 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
         linker_collection, edge_dict = create_linker_collection(
             mof, node_result, node_collection, unbound_solvent
         )
-
+    logger.info('Constructing the embedding')
     # Now, get the net
     net_embedding = NetEmbedding(
         linker_collection, node_collection, edge_dict, mof.lattice

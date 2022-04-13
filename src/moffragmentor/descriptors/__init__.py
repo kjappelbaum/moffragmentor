@@ -91,7 +91,7 @@ def rdkit_descriptors(rdkit_mol, three_dimensional: bool = True):
     if three_dimensional:
         logger.debug('Calculating 3D RDKit descriptors')
         try:
-            from rdkit_utils import conformers  # pylint:disable=import-outside-toplevel
+            from .rdkit_utils import conformers  # pylint:disable=import-outside-toplevel
             from .updated_prune import prune_conformers_update  # pylint:disable=import-outside-toplevel
             
             engine = conformers.ConformerGenerator(max_conformers=1)
