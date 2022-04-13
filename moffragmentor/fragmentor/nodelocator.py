@@ -12,7 +12,9 @@ from typing import List
 import networkx as nx
 
 from ..sbu import Node, NodeCollection
-from ._graphsearch import _complete_graph, _to_graph, recursive_dfs_until_branch
+from ._graphsearch import _complete_graph, _to_graph, recursive_dfs_until_branch, recursive_dfs_until_cn3
+from loguru import logger 
+from ..utils import _flatten_list_of_sets
 
 __all__ = [
     "find_node_clusters",
@@ -57,7 +59,21 @@ def find_node_clusters(  # pylint:disable=too-many-locals
             p, b = recursive_dfs_until_branch(mof, metal_index, [], [])
             paths.append(p)
             branch_sites.append(b)
+    if len(_flatten_list_of_sets(branch_sites)) == 0:
+        logger.warning("No branch sites found according to branch site definition.\
+             Using now CN=3 sites between metals as branch sites.\
+                This is not consistent with the conventions used in other parts of the code. ̰")
+        paths = []
+        connecting_paths_ = set()
+        branch_sites = []
 
+        for metal_index in mof.metal_indices:
+            if metal_index not in unbound_solvent_indices:
+                p, b = recursive_dfs_until_cn3(mof, metal_index, [], [])
+                paths.append(p)
+                branch_sites.append(b)
+    
+    print(branch_sites)
     # The complete_graph will add the "capping sites" like bridging OH
     # or capping formate
     paths = _complete_graph(mof, paths, branch_sites)

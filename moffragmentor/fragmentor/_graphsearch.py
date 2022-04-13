@@ -129,6 +129,38 @@ def recursive_dfs_until_branch(  # pylint:disable=dangerous-default-value
     return path, branching_nodes
 
 
+def recursive_dfs_until_cn3(  # pylint:disable=dangerous-default-value
+    mof,
+    start: int,
+    path: List[int] = [],
+    branching_nodes=[],
+) -> List[int]:
+    """From a given starting point perform depth-first search
+    until CN=3 nodes are reaches
+
+    Args:
+        mof (MOF): A MOF instance
+        start (int): Starting index for the search
+        path (List[int], optional): Starting path. Defaults to [].
+
+    Returns:
+        List[int]: Path between start and the leaf node
+    """
+
+    if start not in path:
+        path.append(start)
+
+        if (len(mof.get_neighbor_indices(start))>=3) & (start not  in mof.metal_indices):  # pylint:disable=protected-access
+            branching_nodes.append(start)
+            return path, branching_nodes
+
+        for neighbour in mof.get_neighbor_indices(start):
+            path, branching_nodes = recursive_dfs_until_cn3(
+                mof, neighbour, path, branching_nodes
+            )
+
+    return path, branching_nodes
+
 def _to_graph(mof, paths, branch_sites):
     """https://stackoverflow.com/questions/4842613/merge-lists-that-share-common-elements"""  # pylint:disable=line-too-long
     G = nx.Graph()
