@@ -122,7 +122,7 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
     
     def search_pubchem(self, **kwargs):
         
-        pcp.get_compounds(self.smiles, 'smiles', type='substructure', **kwargs)
+        return pcp.get_compounds(self.smiles, 'smiles', type='substructure', **kwargs)
 
 
     def get_neighbor_indices(self, site: int) -> List[int]:
