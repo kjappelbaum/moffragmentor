@@ -16,7 +16,7 @@ from moffragmentor.fragmentor.solventlocator import (
     get_all_bound_solvent_molecules,
 )
 from moffragmentor.molecule import NonSbuMoleculeCollection
-
+from moffragmentor import MOF
 
 def test_find_cu_i_ii_btc_clusters(get_cuiiibtc_mof):
     """Make sure that we do find the two correct node types in Cu(I/II)-BTC"""
@@ -92,6 +92,14 @@ def test_find_rod_node_floating_mof_cluster(get_1d_node_with_floating):
     assert len(set(node_lengths)) == 1
     assert node_lengths[0] == 20
 
+
+def test_formatte_mof(get_formate_structure_and_graph):
+    s, sg = get_formate_structure_and_graph
+    mof = MOF(s, sg)
+    bbs = mof.fragment()
+    assert len(bbs.nodes) == 1
+    assert len(bbs.linkers) == 8
+    assert bbs.linkers.composition == {"C1 H1 O2": 8}
 
 def test__get_solvent_molecules_bound_to_node(get_li_mof_with_floating):
     mof = get_li_mof_with_floating

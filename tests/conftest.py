@@ -1230,6 +1230,12 @@ def get_systre_output2():
 
 
 @pytest.fixture(scope="module")
+def get_formate_structure_and_graph():
+    s = Structure.from_file(os.path.join(THIS_DIR, "test_files", "WIHSUD_clean.cif"))
+    sg = StructureGraph.with_local_env_strategy(s, JmolNN()) 
+    return s, sg
+    
+@pytest.fixture(scope="module")
 def get_dicarboxy_biphenyl_graph():
     graph = nx.read_graphml(
         os.path.join(THIS_DIR, "test_files", "test_graph_biphenyl_dicarboxy.graphml")

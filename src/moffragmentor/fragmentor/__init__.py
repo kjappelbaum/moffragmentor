@@ -6,7 +6,7 @@ from re import I
 from moffragmentor.fragmentor.filter import in_hull
 
 from ..net import NetEmbedding
-from ..utils import _get_metal_sublist, _flatten_list_of_sets
+from ..utils import _get_metal_sublist, _flatten_list_of_sets, unwrap
 from .filter import point_in_mol_coords, bridges_across_cell
 from .linkerlocator import create_linker_collection
 from .nodelocator import NodelocationResult, create_node_collection, find_node_clusters
@@ -53,10 +53,10 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
         if len(metal_in_node) == 1:
             for linker in linker_collection:
                 if point_in_mol_coords(
-                    mof.cart_coords[metal_in_node[0]],
-                    mof.cart_coords[
+                    unwrap(mof.cart_coords[metal_in_node[0]], mof.lattice),
+                    unwrap(mof.cart_coords[
                         linker._original_indices  # pylint:disable=protected-access
-                    ],
+                    ], mof.lattice),
                     mof.lattice,
                 ):
                     if (

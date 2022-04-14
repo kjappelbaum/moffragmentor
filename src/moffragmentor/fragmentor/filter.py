@@ -7,6 +7,8 @@ import numpy as np
 from scipy.spatial.qhull import Delaunay, QhullError  # pylint:disable=no-name-in-module
 from loguru import logger
 from ..utils import unwrap
+import numpy as np
+from scipy.optimize import linprog
 
 def bridges_across_cell(mof, indices) -> bool: 
     """Check if a molecule of indices bridges across the cell"""
@@ -24,8 +26,7 @@ def bridges_across_cell(mof, indices) -> bool:
 
 def point_in_mol_coords(point, points, lattice):
     new_coords = unwrap(np.append(points, [point], axis=0), lattice)
-    return in_hull(new_coords[-1], new_coords[:-1]) or in_hull(points[-1], points[:-1])
-
+    return in_hull(new_coords[-1], new_coords[:-1]) 
 
 def in_hull(pointcloud, hull):
     """
