@@ -141,4 +141,4 @@ checklink/cookies.txt
 
 dev_notebooks/
 dev/
-test_harvest/
+tests_harvest/
