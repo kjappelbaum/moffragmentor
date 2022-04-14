@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """Methods for the fragmentation of MOFs"""
 from collections import namedtuple
-from re import I
 
 from moffragmentor.fragmentor.filter import in_hull
 
 from ..net import NetEmbedding
 from ..utils import _get_metal_sublist, _flatten_list_of_sets, unwrap
+from ..utils.periodic_graph import is_periodic
 from .filter import point_in_mol_coords, bridges_across_cell
 from .linkerlocator import create_linker_collection
 from .nodelocator import NodelocationResult, create_node_collection, find_node_clusters
@@ -51,12 +51,12 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
         # ToDo: check and think if this can handle the general case
         # it should, at least if we only look at the metals
         if len(metal_in_node) == 1:
-            for linker in linker_collection:
+            for j, linker in enumerate(linker_collection):
                 if point_in_mol_coords(
-                    unwrap(mof.cart_coords[metal_in_node[0]], mof.lattice),
-                    unwrap(mof.cart_coords[
+                mof.cart_coords[metal_in_node[0]],
+                    mof.cart_coords[
                         linker._original_indices  # pylint:disable=protected-access
-                    ], mof.lattice),
+                    ],
                     mof.lattice,
                 ):
                     if (
@@ -68,15 +68,15 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
                         )
                         > 1
                     ):
-                        need_rerun = True
-                        node_ok = False
-                        not_node.append(i)
-                        break
+                        if is_periodic(mof, metal_in_node + linker._original_indices):
+                            need_rerun = True
+                            node_ok = False
+                            not_node.append(i)
+                            break
             if node_ok:
                 ok_node.append(i)
         else:
             ok_node.append(i)
-
     if need_rerun:
         logger.info("Re-running fragmentation with filtered nodes (metal in linker found)")
         selected_nodes = [node_result.nodes[i] for i in ok_node]

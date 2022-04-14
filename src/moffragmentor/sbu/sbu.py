@@ -13,6 +13,7 @@ from pymatgen.io.babel import BabelMolAdaptor
 from rdkit import Chem
 from scipy.spatial.distance import pdist
 import pubchempy as pcp
+from loguru import logger
 
 from ..descriptors import (
     chemistry_descriptors,
@@ -121,8 +122,12 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
                 pass
     
     def search_pubchem(self, **kwargs):
-        
-        return pcp.get_compounds(self.smiles, 'smiles', type='substructure', **kwargs)
+        """Search for a molecule in pubchem"""
+        try:
+            return pcp.get_compounds(self.smiles, namespace='smiles', **kwargs)
+        except Exception:
+            logger.warning(f"Could not find {self.smiles} in pubchem, now performing substructure search")
+            return pcp.get_compounds(self.smiles, namespace='smiles', searchtype='substructure', **kwargs)
 
 
     def get_neighbor_indices(self, site: int) -> List[int]:

@@ -26,7 +26,7 @@ def bridges_across_cell(mof, indices) -> bool:
 
 def point_in_mol_coords(point, points, lattice):
     new_coords = unwrap(np.append(points, [point], axis=0), lattice)
-    return in_hull(new_coords[-1], new_coords[:-1]) 
+    return in_hull(new_coords[-1], new_coords[:-1]) or in_hull(points[-1], points[:-1])
 
 def in_hull(pointcloud, hull):
     """
