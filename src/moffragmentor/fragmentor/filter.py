@@ -4,13 +4,13 @@ indices or fragments obtained from the other fragmentation modules"""
 
 import networkx as nx
 import numpy as np
-from scipy.spatial.qhull import Delaunay, QhullError  # pylint:disable=no-name-in-module
 from loguru import logger
-from ..utils import unwrap
-import numpy as np
-from scipy.optimize import linprog
+from scipy.spatial.qhull import Delaunay, QhullError  # pylint:disable=no-name-in-module
 
-def bridges_across_cell(mof, indices) -> bool: 
+from ..utils import unwrap
+
+
+def bridges_across_cell(mof, indices) -> bool:
     """Check if a molecule of indices bridges across the cell"""
     bridges = {}
 
@@ -48,9 +48,9 @@ def in_hull(pointcloud, hull):
         if len(pointcloud) < 5:
             logger.warning("Too few points to compute Delaunay triangulation")
             return False
-        else:
-            hull = Delaunay(hull, qhull_options="QJ")
-    
+
+        hull = Delaunay(hull, qhull_options="QJ")
+
 
     return hull.find_simplex(pointcloud) >= 0
 

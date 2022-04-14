@@ -5,15 +5,15 @@ from typing import Collection, List
 
 import networkx as nx
 import numpy as np
+import pubchempy as pcp
 from backports.cached_property import cached_property
+from loguru import logger
 from openbabel import pybel as pb
 from pymatgen.analysis.graphs import MoleculeGraph
 from pymatgen.core import Molecule, Structure
 from pymatgen.io.babel import BabelMolAdaptor
 from rdkit import Chem
 from scipy.spatial.distance import pdist
-import pubchempy as pcp
-from loguru import logger
 
 from ..descriptors import (
     chemistry_descriptors,
@@ -22,6 +22,7 @@ from ..descriptors import (
     rdkit_descriptors,
 )
 from ..utils import add_suffix_to_dict_keys, pickle_dump
+from ..utils.mol_compare import mcs_rank
 
 
 def ob_mol_without_metals(obmol):
@@ -120,14 +121,19 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
                 self.connecting_paths.append(self.mapping_from_original_indices[i])
             except  KeyError:
                 pass
-    
-    def search_pubchem(self, **kwargs):
-        """Search for a molecule in pubchem"""
+
+    def search_pubchem(self, listkey_counts=10, **kwargs) -> tuple:
+        """Search for a molecule in pubchem
+        Second element of return tuple is true if there was an identity match
+        """
         try:
-            return pcp.get_compounds(self.smiles, namespace='smiles', **kwargs)
+            return pcp.get_compounds(self.smiles, namespace='smiles', **kwargs), True
         except Exception:
             logger.warning(f"Could not find {self.smiles} in pubchem, now performing substructure search")
-            return pcp.get_compounds(self.smiles, namespace='smiles', searchtype='substructure', **kwargs)
+            res = pcp.get_compounds(self.smiles, namespace='smiles', searchtype='substructure', listkey_counts=listkey_counts, **kwargs)
+            smiles = [r.canonical_smiles for r in res]
+
+            return mcs_rank(self.smiles, smiles, additional_attributes=res), False
 
 
     def get_neighbor_indices(self, site: int) -> List[int]:

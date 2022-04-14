@@ -140,3 +140,5 @@ checklink/cookies.txt
 .gitconfig
 
 dev_notebooks/
+dev/
+test_harvest/

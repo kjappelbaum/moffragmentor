@@ -2,19 +2,18 @@
 """Methods for the fragmentation of MOFs"""
 from collections import namedtuple
 
-from moffragmentor.fragmentor.filter import in_hull
+from loguru import logger
 
 from ..net import NetEmbedding
-from ..utils import _get_metal_sublist, _flatten_list_of_sets, unwrap
+from ..utils import _get_metal_sublist
 from ..utils.periodic_graph import is_periodic
-from .filter import point_in_mol_coords, bridges_across_cell
+from .filter import point_in_mol_coords
 from .linkerlocator import create_linker_collection
 from .nodelocator import NodelocationResult, create_node_collection, find_node_clusters
 from .solventlocator import (
     get_all_bound_solvent_molecules,
     get_floating_solvent_molecules,
 )
-from loguru import logger
 
 __all__ = ["FragmentationResult"]
 
@@ -41,7 +40,7 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
     ok_node = []
     need_rerun = False
     not_node = []
-    
+
     logger.info("Checking for metal in linker")
     # ToDo: factor this out into its own function
     # if len(set(_flatten_list_of_sets(linker_collection.indices)) & set(mof.metal_indices)) > 0:
@@ -51,7 +50,7 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
         # ToDo: check and think if this can handle the general case
         # it should, at least if we only look at the metals
         if len(metal_in_node) == 1:
-            for j, linker in enumerate(linker_collection):
+            for _, linker in enumerate(linker_collection):
                 if point_in_mol_coords(
                 mof.cart_coords[metal_in_node[0]],
                     mof.cart_coords[

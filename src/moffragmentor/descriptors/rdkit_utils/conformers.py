@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Conformer generation.
 """
@@ -7,12 +8,11 @@ __copyright__ = "Copyright 2014, Stanford University"
 __license__ = "3-clause BSD"
 
 import numpy as np
-
 from rdkit import Chem
 from rdkit.Chem import AllChem
 
 
-class ConformerGenerator(object):
+class ConformerGenerator:
     """
     Generate molecule conformers.
 

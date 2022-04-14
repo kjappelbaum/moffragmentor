@@ -4,6 +4,7 @@ from collections import Counter
 
 from pymatgen.core import Structure
 
+from moffragmentor import MOF
 from moffragmentor.fragmentor.linkerlocator import (
     _create_linkers_from_node_location_result,
 )
@@ -16,7 +17,7 @@ from moffragmentor.fragmentor.solventlocator import (
     get_all_bound_solvent_molecules,
 )
 from moffragmentor.molecule import NonSbuMoleculeCollection
-from moffragmentor import MOF
+
 
 def test_find_cu_i_ii_btc_clusters(get_cuiiibtc_mof):
     """Make sure that we do find the two correct node types in Cu(I/II)-BTC"""

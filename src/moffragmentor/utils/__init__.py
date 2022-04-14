@@ -5,7 +5,6 @@ import json
 import os
 import pickle
 from collections import defaultdict
-from copy import deepcopy
 from shutil import which
 from typing import Collection, Dict, List, Union
 

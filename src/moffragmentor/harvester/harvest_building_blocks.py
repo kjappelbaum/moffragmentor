@@ -2,7 +2,6 @@
 """Functionality to fragment all MOFs in a folder of CIF files"""
 # pylint:disable=invalid-name
 import concurrent.futures
-import logging
 import os
 import pickle
 from functools import partial
@@ -13,12 +12,11 @@ import numpy as np
 import pandas as pd
 import timeout_decorator
 
+from moffragmentor.utils.logger import logger
+
 from ..descriptors.sbu_dimensionality import get_sbu_dimensionality
 from ..mof import MOF
 from ..utils import get_linker_connectivity, make_if_not_exists, remove_edge_duplicates
-
-
-from moffragmentor.utils.logger import logger
 
 
 def load_failed():
@@ -124,7 +122,7 @@ def harvest_cif(cif, dumpdir=None):
             make_if_not_exists(path)
             dumpdir = path
         harvester = Harvester.from_cif(cif, dumpdir)
-        if len(harvester.mof)> 500: 
+        if len(harvester.mof)> 500:
             raise ValueError("Structure too large")
         df = harvester.run_harvest()
         return df

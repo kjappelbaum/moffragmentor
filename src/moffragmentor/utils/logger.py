@@ -1,2 +1,2 @@
-from loguru import logger 
-
+# -*- coding: utf-8 -*-
+from loguru import logger

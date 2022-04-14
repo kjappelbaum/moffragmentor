@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 """Wrapper for minin a diretory with cgd files"""
 import concurrent.futures
-import logging
 import os
 import pickle
 from glob import glob
 
 from moffragmentor.descriptors.net import get_net_descriptors
 
-from loguru import logger
 
 def net_description_w_log(file):
     print(f"Featurizing {file}")

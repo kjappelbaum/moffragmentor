@@ -6,7 +6,9 @@ from typing import List
 import networkx as nx
 from pymatgen.analysis.graphs import StructureGraph
 from pymatgen.core import Structure
+
 from . import _not_relevant_structure_indices
+
 
 def is_periodic(mof, indices):
     graph_ = mof.structure_graph.__copy__()

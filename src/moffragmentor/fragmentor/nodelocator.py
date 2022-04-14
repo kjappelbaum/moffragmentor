@@ -10,11 +10,16 @@ from collections import namedtuple
 from typing import List
 
 import networkx as nx
+from loguru import logger
 
 from ..sbu import Node, NodeCollection
-from ._graphsearch import _complete_graph, _to_graph, recursive_dfs_until_branch, recursive_dfs_until_cn3
-from loguru import logger 
 from ..utils import _flatten_list_of_sets
+from ._graphsearch import (
+    _complete_graph,
+    _to_graph,
+    recursive_dfs_until_branch,
+    recursive_dfs_until_cn3,
+)
 
 __all__ = [
     "find_node_clusters",
@@ -72,7 +77,7 @@ def find_node_clusters(  # pylint:disable=too-many-locals
                 p, b = recursive_dfs_until_cn3(mof, metal_index, [], [])
                 paths.append(p)
                 branch_sites.append(b)
-    
+
     # The complete_graph will add the "capping sites" like bridging OH
     # or capping formate
     paths = _complete_graph(mof, paths, branch_sites)

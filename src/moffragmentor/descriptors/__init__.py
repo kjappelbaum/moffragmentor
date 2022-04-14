@@ -10,9 +10,9 @@ from pymatgen.analysis.local_env import LocalStructOrderParams
 from pymatgen.core import Element
 from rdkit.Chem import Descriptors, GraphDescriptors, rdMolDescriptors
 
-from .flexibility import kier_molecular_flexibility, n_conf20
-
 from moffragmentor.utils.logger import logger
+
+from .flexibility import kier_molecular_flexibility, n_conf20
 
 __all__ = [
     "get_lsop",
@@ -91,9 +91,13 @@ def rdkit_descriptors(rdkit_mol, three_dimensional: bool = True):
     if three_dimensional:
         logger.debug('Calculating 3D RDKit descriptors')
         try:
-            from .rdkit_utils import conformers  # pylint:disable=import-outside-toplevel
-            from .updated_prune import prune_conformers_update  # pylint:disable=import-outside-toplevel
-            
+            from .rdkit_utils import (
+                conformers,  # pylint:disable=import-outside-toplevel
+            )
+            from .updated_prune import (
+                prune_conformers_update,  # pylint:disable=import-outside-toplevel
+            )
+
             engine = conformers.ConformerGenerator(max_conformers=1)
             engine.prune_conformers = prune_conformers_update
             mol = engine.generate_conformers(rdkit_mol)
@@ -104,7 +108,7 @@ def rdkit_descriptors(rdkit_mol, three_dimensional: bool = True):
             )
         except Exception:  # pylint:disable=broad-except
             mol = rdkit_mol
-        
+
         logger.debug('Done with calculating conformers')
         descriptors["spherocity"] = try_except_nan(
             mol, rdMolDescriptors.CalcSpherocityIndex

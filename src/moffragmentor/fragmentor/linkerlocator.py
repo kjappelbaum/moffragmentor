@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """Based on the node location, locate the linkers"""
 from typing import List, Tuple
-from xml.dom.minidom import Identified
 
 import numpy as np
+from loguru import logger
 from pymatgen.core import Structure
 
 from ..sbu import Linker, LinkerCollection
 from ..utils import _flatten_list_of_sets
 from .molfromgraph import get_subgraphs_as_molecules
-from loguru import logger
+
 __all__ = ["create_linker_collection", "identify_linker_binding_indices"]
 
 
@@ -105,7 +105,7 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
                 node._persistent_non_metal_bridged  # pylint:disable=protected-access
             )
         )
-    
+
     not_linker_indices = (
         (
             all_node_indices
