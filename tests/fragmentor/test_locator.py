@@ -48,6 +48,7 @@ def test_find_porphyrin_mof_clusters(get_porphryin_mof):
     assert len(node_location_result.branching_indices) == 8 * 2
     assert fragments.linkers[0].search_pubchem()[0][0].cid == 58107362
 
+
 def test_find_hypothetical_mof_clusters(get_hypothetical_mof):
     """Check if we can find the correct nodes in hypothetical MOFs"""
     mof = get_hypothetical_mof
@@ -101,6 +102,7 @@ def test_formatte_mof(get_formate_structure_and_graph):
     assert len(bbs.nodes) == 1
     assert len(bbs.linkers) == 8
     assert bbs.linkers.composition == {"C1 H1 O2": 8}
+
 
 def test__get_solvent_molecules_bound_to_node(get_li_mof_with_floating):
     mof = get_li_mof_with_floating
