@@ -16,7 +16,7 @@ def is_periodic(mof, indices):
     to_delete = _not_relevant_structure_indices(mof.structure, indices)
     graph_.remove_nodes(to_delete)
     mols = graph_.get_subgraphs_as_molecules()
-    return len(mols)>0
+    return len(mols) > 0
 
 
 def _get_leaf_nodes(graph: nx.Graph) -> List[int]:

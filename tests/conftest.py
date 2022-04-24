@@ -1235,6 +1235,7 @@ def get_formate_structure_and_graph():
     sg = StructureGraph.with_local_env_strategy(s, JmolNN())
     return s, sg
 
+
 @pytest.fixture(scope="module")
 def get_dicarboxy_biphenyl_graph():
     graph = nx.read_graphml(

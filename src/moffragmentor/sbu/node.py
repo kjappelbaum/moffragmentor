@@ -108,10 +108,15 @@ class Node(SBU):
         node_indices: Set[int],
         branching_indices: Set[int],
         binding_indices: Set[int],
-        connecting_paths: Set[int]
+        connecting_paths: Set[int],
     ):
         """Build a node object from a MOF and some
         intermediate outputs of the fragmentation"""
         return node_from_mof_and_indices(
-            cls, mof, node_indices, branching_indices, binding_indices, connecting_paths=connecting_paths
+            cls,
+            mof,
+            node_indices,
+            branching_indices,
+            binding_indices,
+            connecting_paths=connecting_paths,
         )

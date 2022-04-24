@@ -35,8 +35,10 @@ def prune_conformers_update(self, mol):
         if len(keep) >= self.max_conformers:
             break
 
-        filter_rms = filter(lambda rms: rms >= self.rmsd_threshold,
-            [AllChem.GetBestRMS(mol, mol, i, j) for j in keep])
+        filter_rms = filter(
+            lambda rms: rms >= self.rmsd_threshold,
+            [AllChem.GetBestRMS(mol, mol, i, j) for j in keep],
+        )
         if filter_rms:
             keep.append(i)
     new = Chem.Mol(mol)
