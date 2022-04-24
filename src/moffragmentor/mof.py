@@ -11,6 +11,7 @@ from backports.cached_property import cached_property
 from pymatgen.analysis.graphs import StructureGraph
 from pymatgen.analysis.local_env import CutOffDictNN
 from pymatgen.core import Lattice, Structure
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 from .descriptors.sbu_dimensionality import get_structure_graph_dimensionality
 from .fragmentor import run_fragmentation
@@ -98,6 +99,9 @@ class MOF:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
     def from_cif(cls, cif: Union[str, os.PathLike]):
         # using the IStructure avoids bugs where somehow the structure changes
         structure = IStructure.from_file(cif)
+        spga = SpacegroupAnalyzer(structure, symprec=0.1)
+        structure = spga.get_conventional_standard_structure()
+        structure = IStructure.from_sites(structure)
         structure_graph = StructureGraph.with_local_env_strategy(
             structure, VestaCutoffDictNN
         )
