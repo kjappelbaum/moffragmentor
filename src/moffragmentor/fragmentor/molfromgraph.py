@@ -88,8 +88,7 @@ def get_subgraphs_as_molecules(  # pylint:disable=too-many-locals
 
     # find subgraphs
     all_subgraphs = [
-        supercell_sg.graph.subgraph(c).copy()
-        for c in nx.connected_components(supercell_sg.graph)
+        supercell_sg.graph.subgraph(c).copy() for c in nx.connected_components(supercell_sg.graph)
     ]
 
     # discount subgraphs that lie across *supercell* boundaries
@@ -124,9 +123,7 @@ def get_subgraphs_as_molecules(  # pylint:disable=too-many-locals
     if return_unique:
         for subgraph in molecule_subgraphs:
             already_present = [
-                nx.is_isomorphic(
-                    subgraph, g, node_match=node_match, edge_match=edge_match
-                )
+                nx.is_isomorphic(subgraph, g, node_match=node_match, edge_match=edge_match)
                 for g in unique_subgraphs
             ]
 
@@ -144,18 +141,10 @@ def get_subgraphs_as_molecules(  # pylint:disable=too-many-locals
         for subgraph in molecule_subgraphs:
             coords = [supercell_sg.structure[n].coords for n in subgraph.nodes()]
             species = [supercell_sg.structure[n].specie for n in subgraph.nodes()]
-            # binding = [
-            #     supercell_sg.structure[n].properties["binding"]
-            #     for n in subgraph.nodes()
-            # ]
             idx = [subgraph.nodes[n]["idx"] for n in subgraph.nodes()]
             idx_here = list(subgraph.nodes())
-            molecule = Molecule(
-                species, coords
-            )  #  site_properties={"binding": binding}
-            mol_centers.append(
-                np.mean(supercell_sg.structure.cart_coords[idx_here], axis=0)
-            )
+            molecule = Molecule(species, coords)  #  site_properties={"binding": binding}
+            mol_centers.append(np.mean(supercell_sg.structure.cart_coords[idx_here], axis=0))
             # shift so origin is at center of mass
             if center:
                 molecule = molecule.get_centered_molecule()
@@ -167,21 +156,14 @@ def get_subgraphs_as_molecules(  # pylint:disable=too-many-locals
 
     def relabel_graph(multigraph):
         mapping = dict(zip(multigraph, range(0, len(multigraph.nodes()))))
-        return nx.readwrite.json_graph.adjacency_data(
-            nx.relabel_nodes(multigraph, mapping)
-        )
+        return nx.readwrite.json_graph.adjacency_data(nx.relabel_nodes(multigraph, mapping))
 
     if return_unique:
-        mol, idx, indices_here, centers, coordinates = make_mols(
-            unique_subgraphs, center=True
-        )
+        mol, idx, indices_here, centers, coordinates = make_mols(unique_subgraphs, center=True)
         return_subgraphs = unique_subgraphs
         return (
             mol,
-            [
-                MoleculeGraph(mol, relabel_graph(graph))
-                for mol, graph in zip(mol, return_subgraphs)
-            ],
+            [MoleculeGraph(mol, relabel_graph(graph)) for mol, graph in zip(mol, return_subgraphs)],
             idx,
             centers,
             coordinates,
@@ -190,8 +172,7 @@ def get_subgraphs_as_molecules(  # pylint:disable=too-many-locals
     mol, idx, indices_here, centers, coordinates = make_mols(molecule_subgraphs)
 
     return_subgraphs = [
-        MoleculeGraph(mol, relabel_graph(graph))
-        for mol, graph in zip(mol, molecule_subgraphs)
+        MoleculeGraph(mol, relabel_graph(graph)) for mol, graph in zip(mol, molecule_subgraphs)
     ]
 
     if filter_in_cell:

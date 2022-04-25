@@ -26,11 +26,8 @@ def test_net_detection():
     """
     assert get_rscr_code("mof-5_cellopt.cif") == "pcu"
     assert get_rscr_code("HKUST-1.cif") == "tbo"
-    # assert get_rscr_code("SDU-1.cif") == "tfe"
-    # assert get_rscr_code("USF-3.cif") == "mmm"
     assert get_rscr_code("QEFWUV_clean.cif") == "csq"
     # only works after "standardization of crystal data" in VESTA
     assert get_rscr_code("LASYOU.cif") == "nbo"
     assert get_rscr_code("OFOCUI_clean.cif") == "nbo"
-    # assert get_rscr_code("PUBSOV_clean.cif") == "ssb"
     assert get_rscr_code("WETPES_clean.cif") == "ssa"

@@ -114,21 +114,9 @@ def cgd_to_structure(  # pylint:disable=too-many-locals
         coordination_numbers.append(coordination_number)
 
     node_positions = np.array(node_positions)
-    # coordination_numbers = np.array(coordination_numbers)
 
     # Parse edge information.
     edge_center_positions = []
-    # for line in lines[3:]:
-    #     tokens = line.split()
-
-    #     if tokens[0] != "EDGE":
-    #         continue
-
-    #     pos_i = np.array([float(r) for r in tokens[1:4]])
-    #     pos_j = np.array([float(r) for r in tokens[4:]])
-
-    #     edge_center_pos = 0.5 * (pos_i + pos_j)
-    #     edge_center_positions.append(edge_center_pos)
 
     # New feature. Read EDGE_CENTER.
     for line in lines[3:]:
@@ -155,7 +143,6 @@ def cgd_to_structure(  # pylint:disable=too-many-locals
         ]
     )
 
-    # print(node_positions, edge_center_positions)
     coords = np.concatenate([node_positions, edge_center_positions], axis=0)
 
     # Pymatget can handle : indicator in spacegroup.
@@ -183,9 +170,7 @@ def cgd_to_structure(  # pylint:disable=too-many-locals
     return name, structure, node_types, edge_types
 
 
-def get_distance_descriptors(
-    structure: Structure, site: int, neighbors: List[int]
-) -> dict:
+def get_distance_descriptors(structure: Structure, site: int, neighbors: List[int]) -> dict:
     """Return distance descriptors for site index.
 
     Args:

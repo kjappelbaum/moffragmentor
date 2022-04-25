@@ -12,14 +12,14 @@ from typing import List
 import networkx as nx
 from loguru import logger
 
-from ..sbu import Node, NodeCollection
-from ..utils import _flatten_list_of_sets
 from ._graphsearch import (
     _complete_graph,
     _to_graph,
     recursive_dfs_until_branch,
     recursive_dfs_until_cn3,
 )
+from ..sbu import Node, NodeCollection
+from ..utils import _flatten_list_of_sets
 
 __all__ = [
     "find_node_clusters",
@@ -110,15 +110,12 @@ def find_node_clusters(  # pylint:disable=too-many-locals
     # from the connecting paths we remove the metal indices and the branching indices
     # we need to remove the metal indices as otherwise the fragmentation breaks
     connecting_paths_ -= set(mof.metal_indices)
-    # connecting_paths_ -= bs
 
     res = NodelocationResult(nodes, bs, connecting_paths_)
     return res
 
 
-def create_node_collection(
-    mof, node_location_result: NodelocationResult
-) -> NodeCollection:
+def create_node_collection(mof, node_location_result: NodelocationResult) -> NodeCollection:
     # ToDo: This is a bit indirect,
     # it would be better if we would have a list of dicts to loop over
     nodes = []
@@ -141,9 +138,7 @@ def create_node_collection(
     return NodeCollection(nodes)
 
 
-def identify_node_binding_indices(
-    mof, indices, connecting_paths, binding_indices
-) -> List[int]:
+def identify_node_binding_indices(mof, indices, connecting_paths, binding_indices) -> List[int]:
     """For the metal clusters, our rule for binding indices is quite simple.
     We simply take the metal that is part of the connecting path.
     We then additionally filter based on the constraint that
@@ -153,10 +148,7 @@ def identify_node_binding_indices(
     filtered = []
     candidates = set(mof.metal_indices) & set(indices)
     for candidate in candidates:
-        if len(
-            set(mof.get_neighbor_indices(candidate)) & connecting_paths
-            | binding_indices
-        ):
+        if len(set(mof.get_neighbor_indices(candidate)) & connecting_paths | binding_indices):
             filtered.append(candidate)
 
     return filtered
