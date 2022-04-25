@@ -110,7 +110,6 @@ def find_node_clusters(  # pylint:disable=too-many-locals
     # from the connecting paths we remove the metal indices and the branching indices
     # we need to remove the metal indices as otherwise the fragmentation breaks
     connecting_paths_ -= set(mof.metal_indices)
-    # connecting_paths_ -= bs
 
     res = NodelocationResult(nodes, bs, connecting_paths_)
     return res

@@ -70,7 +70,6 @@ class Harvester:
         dimensionality = self.mof.dimensionality
         edge_dict = parts.net_embedding.edge_dict
         linker_connectivity = get_linker_connectivity(edge_dict)
-        # descriptors.append({"dimensionality", self.mof.dimensionality})
         for i, linker in enumerate(parts.linkers):
             if self.outdir is not None:
                 linker.dump(os.path.join(self.outdir, f"linker_{i}.pkl"))

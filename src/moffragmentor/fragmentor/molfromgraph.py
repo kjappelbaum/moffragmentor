@@ -144,10 +144,6 @@ def get_subgraphs_as_molecules(  # pylint:disable=too-many-locals
         for subgraph in molecule_subgraphs:
             coords = [supercell_sg.structure[n].coords for n in subgraph.nodes()]
             species = [supercell_sg.structure[n].specie for n in subgraph.nodes()]
-            # binding = [
-            #     supercell_sg.structure[n].properties["binding"]
-            #     for n in subgraph.nodes()
-            # ]
             idx = [subgraph.nodes[n]["idx"] for n in subgraph.nodes()]
             idx_here = list(subgraph.nodes())
             molecule = Molecule(

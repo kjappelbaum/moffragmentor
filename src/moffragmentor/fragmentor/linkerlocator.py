@@ -206,14 +206,7 @@ def identify_linker_binding_indices(mof, connecting_paths, indices):
     #     [i for i in range(len(my_new_graph.structure)) if i not in relevant_indices]
     # )
 
-    # _, mg, idx, _, _ = get_subgraphs_as_molecules(
-    #     my_new_graph,
-    #     filter_in_cell=True,
-    #     return_unique=False,
-    #     disable_boundary_crossing_check=False,
-    # )
 
-    # idx = {str(sorted(i)): mg for i, mg in zip(idx, mg)}
 
     # Now, we need to filter these index sets.
     # If they are of length 1 there is nothing we need to do
