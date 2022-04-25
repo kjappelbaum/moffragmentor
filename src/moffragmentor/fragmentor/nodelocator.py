@@ -65,9 +65,12 @@ def find_node_clusters(  # pylint:disable=too-many-locals
             paths.append(p)
             branch_sites.append(b)
     if len(_flatten_list_of_sets(branch_sites)) == 0:
-        logger.warning("No branch sites found according to branch site definition.\
+        logger.warning(
+            "No branch sites found according to branch site definition.\
              Using now CN=3 sites between metals as branch sites.\
-                This is not consistent with the conventions used in other parts of the code. ̰")
+                This is not consistent with the conventions \
+                    used in other parts of the code."
+        )
         paths = []
         connecting_paths_ = set()
         branch_sites = []
@@ -123,15 +126,15 @@ def create_node_collection(
         node_indices = node_location_result.nodes[i]
         node = Node.from_mof_and_indices(
             mof=mof,
-           node_indices=node_indices,
-           branching_indices = node_location_result.branching_indices & node_indices,
-            binding_indices =identify_node_binding_indices(
+            node_indices=node_indices,
+            branching_indices=node_location_result.branching_indices & node_indices,
+            binding_indices=identify_node_binding_indices(
                 mof,
                 node_indices,
                 node_location_result.connecting_paths,
                 node_location_result.branching_indices,
             ),
-            connecting_paths = node_location_result.connecting_paths & node_indices,
+            connecting_paths=node_location_result.connecting_paths & node_indices,
         )
         nodes.append(node)
 

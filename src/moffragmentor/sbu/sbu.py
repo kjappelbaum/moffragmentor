@@ -119,7 +119,7 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         for i in connecting_paths:
             try:
                 self.connecting_paths.append(self.mapping_from_original_indices[i])
-            except  KeyError:
+            except KeyError:
                 pass
 
     def search_pubchem(self, listkey_counts=10, **kwargs) -> tuple:
@@ -127,14 +127,22 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         Second element of return tuple is true if there was an identity match
         """
         try:
-            return pcp.get_compounds(self.smiles, namespace='smiles', **kwargs), True
-        except Exception:
-            logger.warning(f"Could not find {self.smiles} in pubchem, now performing substructure search")
-            res = pcp.get_compounds(self.smiles, namespace='smiles', searchtype='substructure', listkey_counts=listkey_counts, **kwargs)
+            return pcp.get_compounds(self.smiles, namespace="smiles", **kwargs), True
+        except Exception:  # pylint: disable=broad-except
+            logger.warning(
+                f"Could not find {self.smiles} in pubchem, \
+                    now performing substructure search"
+            )
+            res = pcp.get_compounds(
+                self.smiles,
+                namespace="smiles",
+                searchtype="substructure",
+                listkey_counts=listkey_counts,
+                **kwargs,
+            )
             smiles = [r.canonical_smiles for r in res]
 
             return mcs_rank(self.smiles, smiles, additional_attributes=res), False
-
 
     def get_neighbor_indices(self, site: int) -> List[int]:
         """Get list of indices of neighboring sites"""

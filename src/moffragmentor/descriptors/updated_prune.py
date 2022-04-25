@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-"""Updated prune method from https://github.com/skearnes/rdkit-utils/pull/21/commits/be6a3512919ae4bd9387dc25907cd622bab27cda"""
+# pylint:disable=no-member
+"""Updated prune method from
+https://github.com/skearnes/rdkit-utils/pull/21/commits/be6a3512919ae4bd9387dc25907cd622bab27cda"""
 import numpy as np
 from rdkit import Chem
 from rdkit.Chem import AllChem
@@ -35,8 +37,10 @@ def prune_conformers_update(self, mol):
         if len(keep) >= self.max_conformers:
             break
 
-        filter_rms = filter(lambda rms: rms >= self.rmsd_threshold,
-            [AllChem.GetBestRMS(mol, mol, i, j) for j in keep])
+        filter_rms = filter(
+            lambda rms: rms >= self.rmsd_threshold,
+            [AllChem.GetBestRMS(mol, mol, i, j) for j in keep],
+        )
         if filter_rms:
             keep.append(i)
     new = Chem.Mol(mol)

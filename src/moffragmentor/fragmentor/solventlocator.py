@@ -117,7 +117,9 @@ def _locate_bound_solvent(mof, node_atoms: Set[int]) -> OrderedDict:
 
         for metal_neighbor in metal_neighbors:
             if not _has_path_to_any_other_metal(mof, metal_neighbor, metal_index):
-                potential_solvent_indices =  find_solvent_molecule_indices(mof, metal_neighbor, metal_index)
+                potential_solvent_indices = find_solvent_molecule_indices(
+                    mof, metal_neighbor, metal_index
+                )
                 if not bridges_across_cell(mof, potential_solvent_indices):
                     solvent_connections.add(metal_neighbor)
                     solvent_indices.append(potential_solvent_indices)

@@ -150,7 +150,9 @@ def recursive_dfs_until_cn3(  # pylint:disable=dangerous-default-value
     if start not in path:
         path.append(start)
 
-        if (len(mof.get_neighbor_indices(start))>=3) & (start not  in mof.metal_indices):  # pylint:disable=protected-access
+        if (len(mof.get_neighbor_indices(start)) >= 3) & (
+            start not in mof.metal_indices
+        ):  # pylint:disable=protected-access
             branching_nodes.append(start)
             return path, branching_nodes
 
@@ -160,6 +162,7 @@ def recursive_dfs_until_cn3(  # pylint:disable=dangerous-default-value
             )
 
     return path, branching_nodes
+
 
 def _to_graph(mof, paths, branch_sites):
     """https://stackoverflow.com/questions/4842613/merge-lists-that-share-common-elements"""  # pylint:disable=line-too-long

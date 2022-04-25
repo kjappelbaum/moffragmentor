@@ -11,8 +11,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import timeout_decorator
-
-from moffragmentor.utils.logger import logger
+from loguru import logger
 
 from ..descriptors.sbu_dimensionality import get_sbu_dimensionality
 from ..mof import MOF
@@ -122,7 +121,7 @@ def harvest_cif(cif, dumpdir=None):
             make_if_not_exists(path)
             dumpdir = path
         harvester = Harvester.from_cif(cif, dumpdir)
-        if len(harvester.mof)> 500:
+        if len(harvester.mof) > 500:
             raise ValueError("Structure too large")
         df = harvester.run_harvest()
         return df

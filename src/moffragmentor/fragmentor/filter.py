@@ -19,14 +19,20 @@ def bridges_across_cell(mof, indices) -> bool:
             if not neighbor_site.index in bridges:
                 bridges[neighbor_site.index] = neighbor_site.jimage
             else:
-                if (bridges[neighbor_site.index] != neighbor_site.jimage) & (neighbor_site.index in mof.metal_indices):
+                if (bridges[neighbor_site.index] != neighbor_site.jimage) & (
+                    neighbor_site.index in mof.metal_indices
+                ):
                     return True
 
     return False
 
+
 def point_in_mol_coords(point, points, lattice):
     new_coords = unwrap(np.append(points, [point], axis=0), lattice)
-    return in_hull(new_coords[-1], new_coords[:-1]) or in_hull(points[-1], points[:-1])
+    return in_hull(
+        new_coords[-1], new_coords[:-1]
+    )  # or in_hull(points[-1], points[:-1])
+
 
 def in_hull(pointcloud, hull):
     """
@@ -43,14 +49,13 @@ def in_hull(pointcloud, hull):
     try:
         if not isinstance(hull, Delaunay):
             hull = Delaunay(hull)
-    except QhullError:
+    except (QhullError, ValueError):
 
         if len(pointcloud) < 5:
             logger.warning("Too few points to compute Delaunay triangulation")
             return False
 
         hull = Delaunay(hull, qhull_options="QJ")
-
 
     return hull.find_simplex(pointcloud) >= 0
 

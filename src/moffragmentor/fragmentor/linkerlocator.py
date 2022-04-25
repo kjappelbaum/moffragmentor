@@ -14,7 +14,11 @@ __all__ = ["create_linker_collection", "identify_linker_binding_indices"]
 
 
 def _pick_linker_indices(
-    idxs: List[List[int]], centers, coordinates, all_node_branching_indices, two_branching_indices=True
+    idxs: List[List[int]],
+    centers,
+    coordinates,
+    all_node_branching_indices,
+    two_branching_indices=True,
 ) -> Tuple[List[int], List[int]]:
     """Trying to have a more reasonable way to filter out linkers
     (of multiple versions of the linker that might be wrapped across a unit cell)"""
@@ -118,7 +122,6 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
         # some metals might also be in the linker, e.g., in porphyrins
     )
 
-
     graph_ = mof.structure_graph.__copy__()
     graph_.structure = Structure.from_sites(graph_.structure.sites)
     graph_.remove_nodes(not_linker_indices)
@@ -138,9 +141,16 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
         idxs, centers, coordinates, node_location_result.branching_indices
     )
     if len(linker_indices) == 0:
-        logger.warning("No linkers with two branching sites in molecule found. Looking for molecules with one branching site.")
+        logger.warning(
+            "No linkers with two branching sites in molecule found. \
+                 Looking for molecules with one branching site."
+        )
         linker_indices, _ = _pick_linker_indices(
-            idxs, centers, coordinates, node_location_result.branching_indices, two_branching_indices=False
+            idxs,
+            centers,
+            coordinates,
+            node_location_result.branching_indices,
+            two_branching_indices=False,
         )
 
     # Fourth: collect all linkers in a linker collection
@@ -159,7 +169,7 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
                 idx,
             ),
             original_indices=idx,
-            connecting_paths=[]
+            connecting_paths=[],
         )
 
         if i in linker_indices:
