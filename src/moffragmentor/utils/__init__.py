@@ -363,10 +363,7 @@ def _reindex_list_of_tuple(list_of_tuples, remapping: Dict[int, int]):
 
 
 def _metal_in_edge(site_collection, edge):
-    for edge_partner in edge:
-        if site_collection[edge_partner].specie.is_metal:
-            return True
-    return False
+    return any(site_collection[edge_partner].specie.is_metal for edge_partner in edge)
 
 
 def _get_vertices_of_smaller_component_upon_edge_break(graph, edge):

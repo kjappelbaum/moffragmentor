@@ -88,10 +88,7 @@ def _filter_branch_points(
 
 
 def _has_branch_index_in_path(path, branch_indices):
-    for metal_index in branch_indices:
-        if metal_index in path:
-            return True
-    return False
+    return any(metal_index in path for metal_index in branch_indices)
 
 
 def _shortest_path_to_metal(branch_index, metal_indices, graph):
