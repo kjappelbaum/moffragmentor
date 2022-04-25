@@ -67,6 +67,12 @@ which will return a dictionary of the counts of the compositions, for example :c
 
 Clearly, we do not consider floating solvent for the computation of the net.
 
+Known issues
+----------------
+
+For some structures in the CSD MOF subset, there will be problems with the fragmentation.
+One example is :code:`CAYSIE`, which is a metalloporphyrinate. Here, the code struggles to distinguish nodes and linkers.
+
 
 Calculating descriptors
 --------------------------
