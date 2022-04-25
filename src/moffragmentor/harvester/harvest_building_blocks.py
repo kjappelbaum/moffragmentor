@@ -165,9 +165,7 @@ def harvest_directory(  # pylint:disable=too-many-branches, too-many-arguments, 
     filtered_all_cifs = sorted(filtered_all_cifs, reverse=reverse)
     all_res = []
     with concurrent.futures.ProcessPoolExecutor(max_workers=njobs) as executor:
-        for i, res in enumerate(
-            executor.map(harvest_partial, filtered_all_cifs[offset:])
-        ):
+        for i, res in enumerate(executor.map(harvest_partial, filtered_all_cifs[offset:])):
             try:
                 if res is not None:
                     all_res.append(res)

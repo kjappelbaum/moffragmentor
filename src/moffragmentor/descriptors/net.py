@@ -118,9 +118,6 @@ def cgd_to_structure(  # pylint:disable=too-many-locals
     # Parse edge information.
     edge_center_positions = []
 
-
-
-
     # New feature. Read EDGE_CENTER.
     for line in lines[3:]:
         tokens = line.split()
@@ -173,9 +170,7 @@ def cgd_to_structure(  # pylint:disable=too-many-locals
     return name, structure, node_types, edge_types
 
 
-def get_distance_descriptors(
-    structure: Structure, site: int, neighbors: List[int]
-) -> dict:
+def get_distance_descriptors(structure: Structure, site: int, neighbors: List[int]) -> dict:
     """Return distance descriptors for site index.
 
     Args:

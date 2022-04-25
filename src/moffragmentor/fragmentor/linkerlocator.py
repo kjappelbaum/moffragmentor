@@ -6,9 +6,9 @@ import numpy as np
 from loguru import logger
 from pymatgen.core import Structure
 
+from .molfromgraph import get_subgraphs_as_molecules
 from ..sbu import Linker, LinkerCollection
 from ..utils import _flatten_list_of_sets
-from .molfromgraph import get_subgraphs_as_molecules
 
 __all__ = ["create_linker_collection", "identify_linker_binding_indices"]
 
@@ -205,8 +205,6 @@ def identify_linker_binding_indices(mof, connecting_paths, indices):
     # my_new_graph.remove_nodes(
     #     [i for i in range(len(my_new_graph.structure)) if i not in relevant_indices]
     # )
-
-
 
     # Now, we need to filter these index sets.
     # If they are of length 1 there is nothing we need to do
