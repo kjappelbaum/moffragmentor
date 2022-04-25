@@ -13,4 +13,4 @@ max-line-length = 88
 [SIMILARITIES]
 
 # Minimum lines number of a similarity.
-min-similarity-lines=10
+min-similarity-lines=15

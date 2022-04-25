@@ -96,10 +96,12 @@ class MOF:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         return self.structure.frac_coords
 
     @classmethod
-    def from_cif(cls, cif: Union[str, os.PathLike]):
+    def from_cif(cls, cif: Union[str, os.PathLike], symprec=0.2, angle_tolerance=10):
         # using the IStructure avoids bugs where somehow the structure changes
         structure = IStructure.from_file(cif)
-        spga = SpacegroupAnalyzer(structure, symprec=0.1)
+        spga = SpacegroupAnalyzer(
+            structure, symprec=symprec, angle_tolerance=angle_tolerance
+        )
         structure = spga.get_conventional_standard_structure()
         structure = IStructure.from_sites(structure)
         structure_graph = StructureGraph.with_local_env_strategy(

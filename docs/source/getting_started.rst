@@ -71,8 +71,14 @@ Known issues
 ----------------
 
 For some structures in the CSD MOF subset, there will be problems with the fragmentation.
-One example is :code:`CAYSIE`, which is a metalloporphyrinate. Here, the code struggles to distinguish nodes and linkers.
+One example is :code:`CAYSIE`, which is a metalloporphyrinate. Here, the code struggles to distinguish nodes and linkers as a core routine of the fragmentor is to check if a metal atoms is inside another, potential linker, molecule.
 
+.. figure:: _static/RSM2943.png
+    :alt: RSM2943
+    :width: 400px
+    :align: center
+
+    Example of a metalloporphyrinate for which the fragmentor fails.
 
 Calculating descriptors
 --------------------------
