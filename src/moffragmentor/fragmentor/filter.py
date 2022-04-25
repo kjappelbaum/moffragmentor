@@ -16,7 +16,7 @@ def bridges_across_cell(mof, indices) -> bool:
 
     for index in indices:
         for neighbor_site in mof.structure_graph.get_connected_sites(index):
-            if not neighbor_site.index in bridges:
+            if neighbor_site.index not in bridges:
                 bridges[neighbor_site.index] = neighbor_site.jimage
             else:
                 if (bridges[neighbor_site.index] != neighbor_site.jimage) & (

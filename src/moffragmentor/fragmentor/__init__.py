@@ -4,16 +4,13 @@ from collections import namedtuple
 
 from loguru import logger
 
-from ..net import NetEmbedding
-from ..utils import _get_metal_sublist
-from ..utils.periodic_graph import is_periodic
 from .filter import point_in_mol_coords
 from .linkerlocator import create_linker_collection
 from .nodelocator import NodelocationResult, create_node_collection, find_node_clusters
-from .solventlocator import (
-    get_all_bound_solvent_molecules,
-    get_floating_solvent_molecules,
-)
+from .solventlocator import get_all_bound_solvent_molecules, get_floating_solvent_molecules
+from ..net import NetEmbedding
+from ..utils import _get_metal_sublist
+from ..utils.periodic_graph import is_periodic
 
 __all__ = ["FragmentationResult"]
 
@@ -43,9 +40,7 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
 
     logger.info("Checking for metal in linker")
     # ToDo: factor this out into its own function
-    for i, node in enumerate(  # pylint:disable=too-many-nested-blocks
-        node_result.nodes
-    ):
+    for i, node in enumerate(node_result.nodes):  # pylint:disable=too-many-nested-blocks
         metal_in_node = _get_metal_sublist(node, mof.metal_indices)
         node_ok = True
         # ToDo: check and think if this can handle the general case
@@ -54,18 +49,14 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
             for _, linker in enumerate(linker_collection):
                 if point_in_mol_coords(
                     mof.cart_coords[metal_in_node[0]],
-                    mof.cart_coords[
-                        linker._original_indices  # pylint:disable=protected-access
-                    ],
+                    mof.cart_coords[linker._original_indices],  # pylint:disable=protected-access
                     mof.lattice,
                 ):
                     logger.info("Metal in linker found")
                     if (
                         len(
                             set(mof.get_neighbor_indices(metal_in_node[0]))
-                            & set(
-                                linker._original_indices  # pylint:disable=protected-access
-                            )
+                            & set(linker._original_indices)  # pylint:disable=protected-access
                         )
                         > 1
                     ):
@@ -83,9 +74,7 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
         else:
             ok_node.append(i)
     if need_rerun:
-        logger.info(
-            "Re-running fragmentation with filtered nodes (metal in linker found)"
-        )
+        logger.info("Re-running fragmentation with filtered nodes (metal in linker found)")
         selected_nodes = [node_result.nodes[i] for i in ok_node]
         node_result = NodelocationResult(
             selected_nodes, node_result.branching_indices, node_result.connecting_paths
@@ -99,9 +88,7 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
         )
     logger.info("Constructing the embedding")
     # Now, get the net
-    net_embedding = NetEmbedding(
-        linker_collection, node_collection, edge_dict, mof.lattice
-    )
+    net_embedding = NetEmbedding(linker_collection, node_collection, edge_dict, mof.lattice)
     fragmentation_results = FragmentationResult(
         node_collection,
         linker_collection,

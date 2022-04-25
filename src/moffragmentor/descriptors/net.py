@@ -76,7 +76,7 @@ def cgd_to_structure(  # pylint:disable=too-many-locals
     with open(filename, "r", encoding="utf8") as f:
         # Neglect "CRYSTAL" and "END"
         lines = f.readlines()[1:]
-    lines = [line for line in lines if not "END" in line]
+    lines = [line for line in lines if "END" not in line]
 
     # Get topology name.
     name = lines[0].split()[1]

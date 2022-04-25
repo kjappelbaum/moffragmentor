@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """Test calculation of the SBU dimensionality"""
-from moffragmentor.descriptors.sbu_dimensionality import (
-    get_structure_graph_dimensionality,
-)
+from moffragmentor.descriptors.sbu_dimensionality import get_structure_graph_dimensionality
 
 
 def test_get_structure_graph_dimensionality(get_0d_node_graph, get_1d_node_graph):

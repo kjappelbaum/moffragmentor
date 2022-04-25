@@ -8,6 +8,7 @@ import numpy as np
 from pymatgen.analysis.graphs import MoleculeGraph
 from pymatgen.core import Molecule, Structure
 
+from .sbu import SBU
 from ..fragmentor.splitter import _sites_and_classified_indices_from_indices
 from ..utils import (
     _not_relevant_structure_indices,
@@ -15,7 +16,6 @@ from ..utils import (
     get_neighbors_from_nx_graph,
     get_nx_graph_from_edge_tuples,
 )
-from .sbu import SBU
 
 __all__ = ["Node"]
 

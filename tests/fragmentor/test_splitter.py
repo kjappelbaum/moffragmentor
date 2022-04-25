@@ -14,9 +14,7 @@ def test_unbound_solvent_identification(get_p_linker_with_floating):
     # we see pyrrolidinium, h2o and h3o+ as solvent,
     # see https://www.ccdc.cam.ac.uk/structures/Search?Ccdcid=MAGBON&DatabaseToSearch=Published # pylint:disable=line-too-long
     assert len(unique_mols) == len(unique_graphs) == len(unique_indices) == 3
-    compositions = [
-        str(unique_mol.composition.alphabetical_formula) for unique_mol in unique_mols
-    ]
+    compositions = [str(unique_mol.composition.alphabetical_formula) for unique_mol in unique_mols]
 
     assert "H2 O1" in compositions
     assert "C4 H10 N1" in compositions
@@ -40,9 +38,7 @@ def test_unbound_solvent_identification_li_mof(get_li_mof_with_floating):
         get_li_mof_with_floating.structure_graph
     )
     assert len(unique_mols) == len(unique_graphs) == len(unique_indices) == 1
-    compositions = [
-        str(unique_mol.composition.alphabetical_formula) for unique_mol in unique_mols
-    ]
+    compositions = [str(unique_mol.composition.alphabetical_formula) for unique_mol in unique_mols]
     assert "H2 O1" in compositions
 
     # Now, we'll return all in the unit cell

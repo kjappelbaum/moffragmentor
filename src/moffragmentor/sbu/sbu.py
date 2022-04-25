@@ -15,12 +15,7 @@ from pymatgen.io.babel import BabelMolAdaptor
 from rdkit import Chem
 from scipy.spatial.distance import pdist
 
-from ..descriptors import (
-    chemistry_descriptors,
-    distance_descriptors,
-    get_lsop,
-    rdkit_descriptors,
-)
+from ..descriptors import chemistry_descriptors, distance_descriptors, get_lsop, rdkit_descriptors
 from ..utils import add_suffix_to_dict_keys, pickle_dump
 from ..utils.mol_compare import mcs_rank
 
@@ -94,24 +89,16 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         self._original_indices = original_indices
         self.molecule_graph = molecule_graph
         self._original_graph_branching_indices = graph_branching_indices
-        self._original_closest_branching_index_in_molecule = (
-            closest_branching_index_in_molecule
-        )
+        self._original_closest_branching_index_in_molecule = closest_branching_index_in_molecule
 
         self._persistent_non_metal_bridged = persistent_non_metal_bridged
-        self._terminal_in_mol_not_terminal_in_struct = (
-            terminal_in_mol_not_terminal_in_struct
-        )
+        self._terminal_in_mol_not_terminal_in_struct = terminal_in_mol_not_terminal_in_struct
         self.graph_branching_coords = graph_branching_coords
 
         self._original_binding_indices = binding_indices
 
-        self.mapping_from_original_indices = dict(
-            zip(original_indices, range(len(molecule)))
-        )
-        self.mapping_to_original_indices = dict(
-            zip(range(len(molecule)), original_indices)
-        )
+        self.mapping_from_original_indices = dict(zip(original_indices, range(len(molecule))))
+        self.mapping_to_original_indices = dict(zip(range(len(molecule)), original_indices))
         self._indices = original_indices
         self._original_connecting_paths = connecting_paths
         self.connecting_paths = []
@@ -166,9 +153,7 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
 
     @cached_property
     def metal_indices(self) -> List[int]:
-        return [
-            i for i, species in enumerate(self.molecule.species) if species.is_metal
-        ]
+        return [i for i, species in enumerate(self.molecule.species) if species.is_metal]
 
     @cached_property
     def nx_graph(self):
@@ -193,8 +178,7 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
     @property
     def graph_branching_indices(self):
         return [
-            self.mapping_from_original_indices[i]
-            for i in self.original_graph_branching_indices
+            self.mapping_from_original_indices[i] for i in self.original_graph_branching_indices
         ]
 
     @cached_property
@@ -218,9 +202,7 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
 
     @cached_property
     def binding_indices(self):
-        return [
-            self.mapping_from_original_indices[i] for i in self.original_binding_indices
-        ]
+        return [self.mapping_from_original_indices[i] for i in self.original_binding_indices]
 
     @cached_property
     def rdkit_mol(self):

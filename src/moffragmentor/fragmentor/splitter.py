@@ -9,6 +9,7 @@ import numpy as np
 from pymatgen.analysis.graphs import MoleculeGraph
 from pymatgen.core import Molecule
 
+from .solventlocator import _locate_bound_solvent
 from ..utils import (
     _get_cartesian_coords,
     _get_molecule_edge_label,
@@ -16,7 +17,6 @@ from ..utils import (
     _reindex_list_of_tuple,
     revert_dict,
 )
-from .solventlocator import _locate_bound_solvent
 
 _SitesAndIndicesOutput = namedtuple(
     "SitesAndIndicesOutput",

@@ -75,9 +75,7 @@ def rdkit_descriptors(rdkit_mol, three_dimensional: bool = True):
         "min_partial_charge": try_except_nan(rdkit_mol, Descriptors.MinPartialCharge),
         "max_partial_charge": try_except_nan(rdkit_mol, Descriptors.MaxPartialCharge),
         "tpsa": try_except_nan(rdkit_mol, rdMolDescriptors.CalcTPSA),
-        "kier_molecular_flexibility": try_except_nan(
-            rdkit_mol, kier_molecular_flexibility
-        ),
+        "kier_molecular_flexibility": try_except_nan(rdkit_mol, kier_molecular_flexibility),
         "bertz_ct": try_except_nan(rdkit_mol, GraphDescriptors.BertzCT),
         "kappa_1": try_except_nan(rdkit_mol, GraphDescriptors.Kappa1),
         "kappa_2": try_except_nan(rdkit_mol, GraphDescriptors.Kappa2),
@@ -88,9 +86,7 @@ def rdkit_descriptors(rdkit_mol, three_dimensional: bool = True):
     if three_dimensional:
         logger.debug("Calculating 3D RDKit descriptors")
         try:
-            from .rdkit_utils import (  # pylint:disable=import-outside-toplevel
-                conformers,
-            )
+            from .rdkit_utils import conformers  # pylint:disable=import-outside-toplevel
             from .updated_prune import (  # pylint:disable=import-outside-toplevel
                 prune_conformers_update,
             )
@@ -107,12 +103,8 @@ def rdkit_descriptors(rdkit_mol, three_dimensional: bool = True):
             mol = rdkit_mol
 
         logger.debug("Done with calculating conformers")
-        descriptors["spherocity"] = try_except_nan(
-            mol, rdMolDescriptors.CalcSpherocityIndex
-        )
-        descriptors["eccentricity"] = try_except_nan(
-            mol, rdMolDescriptors.CalcEccentricity
-        )
+        descriptors["spherocity"] = try_except_nan(mol, rdMolDescriptors.CalcSpherocityIndex)
+        descriptors["eccentricity"] = try_except_nan(mol, rdMolDescriptors.CalcEccentricity)
         descriptors["radius_of_gyration"] = try_except_nan(
             mol, rdMolDescriptors.CalcRadiusOfGyration
         )

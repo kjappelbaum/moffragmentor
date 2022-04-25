@@ -92,8 +92,7 @@ class NetEmbedding:  # pylint:disable=too-many-instance-attributes
         """List of coordination numbers, first linkers,
         then nodes"""
         return (
-            self.linker_collection.coordination_numbers
-            + self.node_collection.coordination_numbers
+            self.linker_collection.coordination_numbers + self.node_collection.coordination_numbers
         )
 
     @cached_property
@@ -127,9 +126,7 @@ class NetEmbedding:  # pylint:disable=too-many-instance-attributes
     def show_dummy_structure(self):
         import nglview  # pylint: disable=import-outside-toplevel
 
-        return nglview.show_pymatgen(
-            self._get_dummy_structure()  # pylint:disable=protected-access
-        )
+        return nglview.show_pymatgen(self._get_dummy_structure())  # pylint:disable=protected-access
 
     def plot_net(self, plotly=True):
         """It draws the repeat unit of the net using networkx"""
@@ -170,8 +167,7 @@ class NetEmbedding:  # pylint:disable=too-many-instance-attributes
 
     def _get_kinds(self):
         node_indices = [
-            i + len(self.linker_collection.unique_sbus)
-            for i in self.node_collection.unique_sbus
+            i + len(self.linker_collection.unique_sbus) for i in self.node_collection.unique_sbus
         ]
         self._kinds = self.linker_collection.sbu_types + node_indices
 
@@ -184,9 +180,7 @@ class NetEmbedding:  # pylint:disable=too-many-instance-attributes
             new_structure_graph = self.simplified_structure_graph
         else:
             new_structure_graph = self.structure_graph
-        filestring = _get_systre_input_from_pmg_structure_graph(
-            new_structure_graph, self.lattice
-        )
+        filestring = _get_systre_input_from_pmg_structure_graph(new_structure_graph, self.lattice)
         return filestring
 
     @property

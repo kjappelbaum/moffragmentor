@@ -13,9 +13,7 @@ def _generate_conformers(mol, num_confs):  # pylint:disable=too-many-locals
     molecule = Chem.AddHs(mol)
     conformer_integers = []
     # Embed and optimise the conformers
-    conformers = AllChem.EmbedMultipleConfs(
-        molecule, num_confs, pruneRmsThresh=0.5, numThreads=3
-    )
+    conformers = AllChem.EmbedMultipleConfs(molecule, num_confs, pruneRmsThresh=0.5, numThreads=3)
 
     optimised_and_energies = AllChem.MMFFOptimizeMoleculeConfs(
         molecule, maxIters=600, numThreads=3, nonBondedThresh=100.0
@@ -46,21 +44,15 @@ def _generate_conformers(mol, num_confs):  # pylint:disable=too-many-locals
     for conformer_id, _ in energy_dict_with_key_was_id.items():
         okay_to_add = True
         for finalconformer_id in final_conformers_to_use:
-            rms = AllChem.GetBestRMS(
-                molecule, molecule, finalconformer_id, conformer_id, maps
-            )
+            rms = AllChem.GetBestRMS(molecule, molecule, finalconformer_id, conformer_id, maps)
             if rms < 1.0:
                 okay_to_add = False
                 break
 
         if okay_to_add:
-            final_conformers_to_use[conformer_id] = energy_dict_with_key_was_id[
-                conformer_id
-            ]
+            final_conformers_to_use[conformer_id] = energy_dict_with_key_was_id[conformer_id]
 
-    sorted_dictionary = OrderedDict(
-        sorted(final_conformers_to_use.items(), key=lambda t: t[1])
-    )
+    sorted_dictionary = OrderedDict(sorted(final_conformers_to_use.items(), key=lambda t: t[1]))
     energies = list(sorted_dictionary.values())
 
     return energies

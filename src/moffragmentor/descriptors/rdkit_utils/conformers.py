@@ -135,12 +135,8 @@ class ConformerGenerator:
             ff = AllChem.UFFGetMoleculeForceField(mol, confId=conf_id, **kwargs)
         elif self.force_field.startswith("mmff"):
             AllChem.MMFFSanitizeMolecule(mol)
-            mmff_props = AllChem.MMFFGetMoleculeProperties(
-                mol, mmffVariant=self.force_field
-            )
-            ff = AllChem.MMFFGetMoleculeForceField(
-                mol, mmff_props, confId=conf_id, **kwargs
-            )
+            mmff_props = AllChem.MMFFGetMoleculeProperties(mol, mmffVariant=self.force_field)
+            ff = AllChem.MMFFGetMoleculeForceField(mol, mmff_props, confId=conf_id, **kwargs)
         else:
             raise ValueError(f"Invalid force_field '{self.force_field}'")
         return ff
@@ -249,8 +245,6 @@ class ConformerGenerator:
             for j, fit_conf in enumerate(mol.GetConformers()):
                 if i >= j:
                     continue
-                rmsd[i, j] = AllChem.GetBestRMS(
-                    mol, mol, ref_conf.GetId(), fit_conf.GetId()
-                )
+                rmsd[i, j] = AllChem.GetBestRMS(mol, mol, ref_conf.GetId(), fit_conf.GetId())
                 rmsd[j, i] = rmsd[i, j]
         return rmsd

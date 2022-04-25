@@ -36,17 +36,13 @@ def _get_pmg_edge_dict_from_net(net: "NetEmbeding") -> dict:
         node_vertex_number = key + number_linkers
         for bound_linker in value:
             linker_idx, image, _ = bound_linker
-            pmg_edge_dict[
-                (node_vertex_number, linker_idx, (0, 0, 0), tuple(image))
-            ] = None
+            pmg_edge_dict[(node_vertex_number, linker_idx, (0, 0, 0), tuple(image))] = None
 
     return pmg_edge_dict
 
 
 def _get_colormap_for_net_sg(net: "NetEmbeding"):
-    color_map = ["blue"] * len(net.linker_collection) + ["red"] * len(
-        net.node_collection
-    )
+    color_map = ["blue"] * len(net.linker_collection) + ["red"] * len(net.node_collection)
     return color_map
 
 

@@ -191,10 +191,7 @@ def _get_systre_input_from_pmg_structure_graph(  # pylint: disable=too-many-loca
         edge_lines.append(_create_edge_string(edge[0], edge[1]))
 
     file_lines = (
-        ["CRYSTAL", "   NAME", symmetry_group, cell_line]
-        + vertex_lines
-        + edge_lines
-        + ["END"]
+        ["CRYSTAL", "   NAME", symmetry_group, cell_line] + vertex_lines + edge_lines + ["END"]
     )
 
     return "\n".join(file_lines)

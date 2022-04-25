@@ -5,13 +5,8 @@ from collections import Counter
 from pymatgen.core import Structure
 
 from moffragmentor import MOF
-from moffragmentor.fragmentor.linkerlocator import (
-    _create_linkers_from_node_location_result,
-)
-from moffragmentor.fragmentor.nodelocator import (
-    create_node_collection,
-    find_node_clusters,
-)
+from moffragmentor.fragmentor.linkerlocator import _create_linkers_from_node_location_result
+from moffragmentor.fragmentor.nodelocator import create_node_collection, find_node_clusters
 from moffragmentor.fragmentor.solventlocator import (
     _get_solvent_molecules_bound_to_node,
     get_all_bound_solvent_molecules,
@@ -239,9 +234,7 @@ def test_find_node_cluster_acetate_zr_mof(get_acetate_zr_mof):
     assert len(node_location_result.branching_indices) == 6
     node_lengths = [len(node) for node in node_location_result.nodes]
     assert len(set(node_lengths)) == 1
-    assert (
-        node_lengths[0] == 180
-    )  # [Zr12O8(OH)8(CH3COO)18(tpp)2]·4CH3COOH according to paper
+    assert node_lengths[0] == 180  # [Zr12O8(OH)8(CH3COO)18(tpp)2]·4CH3COOH according to paper
 
 
 def test_find_all_bound_solvent_molecules_acetate_zr_mof(get_acetate_zr_mof):
@@ -371,9 +364,7 @@ def test__create_linkers_from_node_location_result(get_hkust_mof):
 def test__get_node_cluster_across_pbc(get_across_periodic_boundary_node):
     mof = get_across_periodic_boundary_node
     node_location_result = find_node_clusters(mof)
-    assert (
-        len(node_location_result.nodes) == 2
-    )  # we have 8 Zn in unit cell and Zn4 nodes
+    assert len(node_location_result.nodes) == 2  # we have 8 Zn in unit cell and Zn4 nodes
     sites = []
 
     for site in node_location_result.nodes[0]:

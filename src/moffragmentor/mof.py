@@ -99,14 +99,10 @@ class MOF:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
     def from_cif(cls, cif: Union[str, os.PathLike], symprec=0.2, angle_tolerance=10):
         # using the IStructure avoids bugs where somehow the structure changes
         structure = IStructure.from_file(cif)
-        spga = SpacegroupAnalyzer(
-            structure, symprec=symprec, angle_tolerance=angle_tolerance
-        )
+        spga = SpacegroupAnalyzer(structure, symprec=symprec, angle_tolerance=angle_tolerance)
         structure = spga.get_conventional_standard_structure()
         structure = IStructure.from_sites(structure)
-        structure_graph = StructureGraph.with_local_env_strategy(
-            structure, VestaCutoffDictNN
-        )
+        structure_graph = StructureGraph.with_local_env_strategy(structure, VestaCutoffDictNN)
         return cls(structure, structure_graph)
 
     def _is_branch_point(self, index: int, allow_metal: bool = False) -> bool:
@@ -138,7 +134,7 @@ class MOF:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
                 not self._is_terminal(connected_site)
             ):
                 valid_connections += 1
-                if not connected_site in self.metal_indices:
+                if connected_site not in self.metal_indices:
                     non_metal_connections += 1
 
         return (valid_connections >= 3) and (non_metal_connections >= 2)
@@ -203,15 +199,11 @@ class MOF:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
 
     @cached_property
     def metal_indices(self) -> List[int]:
-        return [
-            i for i, species in enumerate(self.structure.species) if species.is_metal
-        ]
+        return [i for i, species in enumerate(self.structure.species) if species.is_metal]
 
     @cached_property
     def h_indices(self) -> List[int]:
-        return [
-            i for i, species in enumerate(self.structure.species) if str(species) == "H"
-        ]
+        return [i for i, species in enumerate(self.structure.species) if str(species) == "H"]
 
     def get_neighbor_indices(self, site: int) -> List[int]:
         """Get list of indices of neighboring sites"""

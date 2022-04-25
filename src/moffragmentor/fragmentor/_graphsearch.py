@@ -157,9 +157,7 @@ def recursive_dfs_until_cn3(  # pylint:disable=dangerous-default-value
             return path, branching_nodes
 
         for neighbour in mof.get_neighbor_indices(start):
-            path, branching_nodes = recursive_dfs_until_cn3(
-                mof, neighbour, path, branching_nodes
-            )
+            path, branching_nodes = recursive_dfs_until_cn3(mof, neighbour, path, branching_nodes)
 
     return path, branching_nodes
 
@@ -170,9 +168,7 @@ def _to_graph(mof, paths, branch_sites):
     for part in paths:
         G.add_nodes_from(part)
         G.add_edges_from(_to_edges(part))
-    G.add_edges_from(
-        _connect_connected_branching_indices(mof, _flatten_list_of_sets(branch_sites))
-    )
+    G.add_edges_from(_connect_connected_branching_indices(mof, _flatten_list_of_sets(branch_sites)))
     return G
 
 

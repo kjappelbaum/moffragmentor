@@ -34,9 +34,7 @@ def mcs_rank(
     num_bonds = mol.GetNumBonds()
     for i, smile in enumerate(smiles):
         mol2 = Chem.MolFromSmiles(smile)
-        res = rdFMCS.FindMCS(
-            [mol, mol2], completeRingsOnly=True, ringMatchesRingOnly=True
-        )
+        res = rdFMCS.FindMCS([mol, mol2], completeRingsOnly=True, ringMatchesRingOnly=True)
         smarts = res.smartsString
         bond_diff = num_bonds - res.numBonds
         atom_diff = num_atoms - res.numAtoms

@@ -3,11 +3,11 @@
 from collections import OrderedDict
 from typing import List, Set
 
-from ..molecule import NonSbuMolecule, NonSbuMoleculeCollection
-from ..utils import _get_metal_sublist
 from ._graphsearch import _has_path_to_any_other_metal, recursive_dfs_until_terminal
 from .filter import bridges_across_cell
 from .molfromgraph import get_subgraphs_as_molecules
+from ..molecule import NonSbuMolecule, NonSbuMoleculeCollection
+from ..utils import _get_metal_sublist
 
 __all__ = ["get_floating_solvent_molecules", "get_all_bound_solvent_molecules"]
 
@@ -22,9 +22,7 @@ def get_floating_solvent_molecules(mof) -> NonSbuMoleculeCollection:
     Returns:
         NonSbuMoleculeCollection: collection of NonSbuMolecules
     """
-    mols, graphs, idx, _, _ = get_subgraphs_as_molecules(
-        mof.structure_graph, return_unique=False
-    )
+    mols, graphs, idx, _, _ = get_subgraphs_as_molecules(mof.structure_graph, return_unique=False)
     molecules = []
 
     for mol, graph, identifier in zip(mols, graphs, idx):
@@ -33,9 +31,7 @@ def get_floating_solvent_molecules(mof) -> NonSbuMoleculeCollection:
     return NonSbuMoleculeCollection(molecules)
 
 
-def _get_solvent_molecules_bound_to_node(
-    mof, node_atoms: Set[int]
-) -> NonSbuMoleculeCollection:
+def _get_solvent_molecules_bound_to_node(mof, node_atoms: Set[int]) -> NonSbuMoleculeCollection:
     """Locate solvent molecules bound to one MOF node.
     Bound solvent is defined as being connected via one bridge
     to one metal center.
@@ -55,9 +51,7 @@ def _get_solvent_molecules_bound_to_node(
 
     for solvent_ind in bound_solvent_location_result["solvent_indices"]:
         molecules.append(
-            NonSbuMolecule.from_structure_graph_and_indices(
-                mof.structure_graph, solvent_ind
-            )
+            NonSbuMolecule.from_structure_graph_and_indices(mof.structure_graph, solvent_ind)
         )
 
     return NonSbuMoleculeCollection(molecules)
@@ -81,9 +75,7 @@ def get_all_bound_solvent_molecules(
     """
     non_sbu_molecule_collections = NonSbuMoleculeCollection([])
     for node_atom_set in node_atom_sets:
-        non_sbu_molecule_collections += _get_solvent_molecules_bound_to_node(
-            mof, node_atom_set
-        )
+        non_sbu_molecule_collections += _get_solvent_molecules_bound_to_node(mof, node_atom_set)
 
     return non_sbu_molecule_collections
 
