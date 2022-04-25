@@ -113,9 +113,7 @@ def build_mols_from_structure_graph(structure, structure_graph):
     new_pool, _, _ = explore_neighbors(0, site_pool, structure_graph)
 
     while len(new_pool) > 0:
-        new_pool, sites, edges = explore_neighbors(
-            new_pool[0], new_pool, structure_graph
-        )
+        new_pool, sites, edges = explore_neighbors(new_pool[0], new_pool, structure_graph)
         all_sites.append(sites)
         all_edges.append(edges)
 
@@ -183,8 +181,7 @@ def write_cif(  # pylint:disable=too-many-locals
 ):
     header_lines = [
         "data_cif",
-        "_audit_creation_date              "
-        + datetime.datetime.today().strftime("%Y-%m-%d"),
+        "_audit_creation_date              " + datetime.datetime.today().strftime("%Y-%m-%d"),
         "_audit_creation_method            'moffragmentor'",
         "_symmetry_space_group_name_H-M    'P 1'",
         "_symmetry_Int_Tables_number       1",
@@ -221,14 +218,10 @@ def write_cif(  # pylint:disable=too-many-locals
 
         if i in connection_indices:
             ind = "X" + str(i)
-            loop_content.append(
-                f" {ind} {es}  {vec[0]:.6f}  {vec[1]:.6f}  {vec[2]:.6f}  {0:.6f}"
-            )
+            loop_content.append(f" {ind} {es}  {vec[0]:.6f}  {vec[1]:.6f}  {vec[2]:.6f}  {0:.6f}")
         else:
             ind = es + str(i)
-            loop_content.append(
-                f" {ind} {es}  {vec[0]:.6f}  {vec[1]:.6f}  {vec[2]:.6f}  {0:.6f}"
-            )
+            loop_content.append(f" {ind} {es}  {vec[0]:.6f}  {vec[1]:.6f}  {vec[2]:.6f}  {0:.6f}")
         site_index[i] = ind
 
     connection_loop_header = [
@@ -261,13 +254,9 @@ def write_cif(  # pylint:disable=too-many-locals
 
                 dist = np.round(s.get_distance(i, j), 3)
                 if write_bonding_mode:
-                    connection_loop_content.append(
-                        f"{ind0:7} {ind1:>7} {dist:>7} {'.':>3} {s:>3}"
-                    )
+                    connection_loop_content.append(f"{ind0:7} {ind1:>7} {dist:>7} {'.':>3} {s:>3}")
                 else:
-                    connection_loop_content.append(
-                        f"{ind0:7} {ind1:>7} {'':>7} {'':>3}"
-                    )
+                    connection_loop_content.append(f"{ind0:7} {ind1:>7} {'':>7} {'':>3}")
 
     return "\n".join(
         header_lines
@@ -296,9 +285,7 @@ def is_tool(name):
     return which(name) is not None
 
 
-def _not_relevant_structure_indices(
-    structure: Structure, indices: Collection[int]
-) -> List[int]:
+def _not_relevant_structure_indices(structure: Structure, indices: Collection[int]) -> List[int]:
     """Returns the indices of the structure that are *not* in the indices
     collection
 
@@ -363,10 +350,7 @@ def _reindex_list_of_tuple(list_of_tuples, remapping: Dict[int, int]):
 
 
 def _metal_in_edge(site_collection, edge):
-    for edge_partner in edge:
-        if site_collection[edge_partner].specie.is_metal:
-            return True
-    return False
+    return any(site_collection[edge_partner].specie.is_metal for edge_partner in edge)
 
 
 def _get_vertices_of_smaller_component_upon_edge_break(graph, edge):
