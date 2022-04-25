@@ -19,8 +19,10 @@ class SBUCollection:
         self._centers = [sbu.center for sbu in self.sbus]
         self._indices = [sbu.get_indices() for sbu in self.sbus]
 
-        assert len(self._indices) == len(self.sbus)
-        assert len(self._indices) == len(self.sbus)
+        if len(self._indices) != len(self.sbus):
+            raise AssertionError
+        if len(self._indices) != len(self.sbus):
+            raise AssertionError
 
     def __len__(self):
         return len(self.sbus)

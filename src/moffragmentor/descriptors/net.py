@@ -86,7 +86,8 @@ def cgd_to_structure(  # pylint:disable=too-many-locals
     # Get cell paremeters and expand cell lengths by 10.
     cellpar = np.array(lines[2].split()[1:], dtype=np.float32)
     if len(cellpar) < 6:
-        assert len(cellpar) == 3
+        if len(cellpar) != 3:
+            raise AssertionError
         new_cellpars = np.zeros(6)
         new_cellpars[0] = cellpar[0]
         new_cellpars[1] = cellpar[1]
