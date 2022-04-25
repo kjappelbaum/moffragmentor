@@ -20,9 +20,9 @@ class SBUCollection:
         self._indices = [sbu.get_indices() for sbu in self.sbus]
 
         if len(self._indices) != len(self.sbus):
-            raise AssertionError
+            raise ValueError("Number of SBUs is inconsistent")
         if len(self._indices) != len(self.sbus):
-            raise AssertionError
+            raise ValueError("Number of SBUs is inconsistent")
 
     def __len__(self):
         return len(self.sbus)
