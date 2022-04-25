@@ -29,9 +29,7 @@ def bridges_across_cell(mof, indices) -> bool:
 
 def point_in_mol_coords(point, points, lattice):
     new_coords = unwrap(np.append(points, [point], axis=0), lattice)
-    return in_hull(
-        new_coords[-1], new_coords[:-1]
-    )  # or in_hull(points[-1], points[:-1])
+    return in_hull(new_coords[-1], new_coords[:-1])  # or in_hull(points[-1], points[:-1])
 
 
 def in_hull(pointcloud, hull):
@@ -60,9 +58,7 @@ def in_hull(pointcloud, hull):
     return hull.find_simplex(pointcloud) >= 0
 
 
-def _filter_branch_points(
-    branch_indices: list, metal_indices: list, graph: nx.Graph
-) -> list:
+def _filter_branch_points(branch_indices: list, metal_indices: list, graph: nx.Graph) -> list:
     """In a MOF structure there might be many sites with
     more than three neighbors that do not lead to a tree or
     leaf node. The relevant branching indices are those that
