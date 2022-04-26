@@ -265,6 +265,12 @@ def get_net_descriptors(netfile: Union[str, pathlib.Path]) -> dict:
     rcsr_code, structure, node_types, edge_types = cgd_to_structure(netfile)
     global_descriptors = get_basic_net_features(structure)
     bb_descriptors = get_bb_info(structure)
-    descriptors = {**global_descriptors, **bb_descriptors, "rcsr_code": rcsr_code, "node_types": node_types, "edge_types": edge_types}
+    descriptors = {
+        **global_descriptors,
+        **bb_descriptors,
+        "rcsr_code": rcsr_code,
+        "node_types": node_types,
+        "edge_types": edge_types,
+    }
 
     return descriptors
