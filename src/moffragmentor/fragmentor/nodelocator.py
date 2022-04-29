@@ -89,12 +89,6 @@ def find_node_clusters(  # pylint:disable=too-many-locals
     g = _to_graph(mof, paths, branch_sites)
     nodes = list(nx.connected_components(g))
 
-    # filter out "node" candidates that are not actual nodes.
-    # in practice this is relevant for ligands with metals in them (e.g., porphyrins)
-    # nodes = filter_nodes(
-    #     nodes, mof.structure_graph, mof.metal_indices, mof.terminal_indices
-    # )
-
     bs = set(sum(branch_sites, []))
 
     # we store the shortest paths between nodes and branching indices
@@ -106,6 +100,14 @@ def find_node_clusters(  # pylint:disable=too-many-locals
                 metal_in_path = [i for i in p if i in mof.metal_indices]
                 if len(metal_in_path) == 1:
                     connecting_paths_.update(p)
+
+    all_neighbors = []
+    for node in nodes:
+        neighbors = mof.get_neighbor_indices(node)
+        all_neighbors.extend(neighbors)
+        intesection = set(neighbors) & bs
+        if len(intesection) > 0:
+            connecting_paths_.update(neighbors)
 
     # from the connecting paths we remove the metal indices and the branching indices
     # we need to remove the metal indices as otherwise the fragmentation breaks

@@ -66,8 +66,8 @@ def _get_connected_linkers(
                     linked_to.append(
                         (
                             j,
-                            image,
-                            mof.lattice.get_cartesian_coords(center_frac + image),
+                            list(image),
+                            list(mof.lattice.get_cartesian_coords(center_frac + image)),
                         )
                     )
 

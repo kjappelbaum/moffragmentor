@@ -399,6 +399,12 @@ Finished data file "/Users/kevinmaikjablonka/Downloads/test_systre.cgd".
 
 
 @pytest.fixture(scope="module")
+def get_agn_mof():
+    mof = MOF.from_cif(os.path.join(THIS_DIR, "test_files", "RSM3317.cif"))
+    return mof
+
+
+@pytest.fixture(scope="module")
 def get_cuiiibtc_mof():
     mof = MOF.from_cif(os.path.join(THIS_DIR, "test_files", "KAJZIH_freeONLY.cif"))
     return mof

@@ -40,3 +40,17 @@ def test_fragmentation_single_metal(get_single_metal_mof):
     assert len(fragments.nodes) == 4
     assert fragments.linkers[0].search_pubchem()[0][0].cid == 60197031
     assert fragments.net_embedding.rcsr_code == "dia"
+
+
+def test_fragmentation_single_metal(get_single_metal_mof):
+    mof = get_single_metal_mof
+    fragments = mof.fragment()
+    assert len(fragments.nodes) == 4
+    assert fragments.linkers[0].search_pubchem()[0][0].cid == 60197031
+    assert fragments.net_embedding.rcsr_code == "dia"
+
+
+def test_fragmentation_ag_n_compound(get_agn_mof):
+    mof = get_agn_mof
+    fragments = mof.fragment()
+    assert fragments.net_embedding.rcsr_code == "bex"
