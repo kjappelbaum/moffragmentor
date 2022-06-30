@@ -75,7 +75,7 @@ You can also run `bash create_conda.sh`. Note that you might want to change the 
 ## 👐 Contributing
 
 Contributions, whether filing an issue, making a pull request, or forking, are appreciated. See
-[CONTRIBUTING.rst](https://github.com/kjappelbaum/moffragmentor/blob/master/CONTRIBUTING.rst) for more information on getting involved.
+[CONTRIBUTING.rst](https://github.com/kjappelbaum/moffragmentor/blob/main/CONTRIBUTING.rst) for more information on getting involved.
 
 
 ### ⚖️ License
