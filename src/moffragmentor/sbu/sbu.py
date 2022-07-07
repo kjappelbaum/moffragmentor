@@ -16,7 +16,7 @@ from rdkit import Chem
 from scipy.spatial.distance import pdist
 
 
-from ..utils import add_suffix_to_dict_keys, pickle_dump
+from ..utils import pickle_dump
 from ..utils.mol_compare import mcs_rank
 
 

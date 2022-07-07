@@ -113,40 +113,7 @@ class MOF:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         structure = IStructure.from_sites(structure)
         structure_graph = StructureGraph.with_local_env_strategy(structure, VestaCutoffDictNN) 
         return cls(structure, structure_graph)
-
-    def _is_branch_point(self, index: int, allow_metal: bool = False) -> bool:
-        """The branch point definition is key for splitting MOFs
-        into linker and nodes. Branch points are here defined as points
-        that have at least three connections that do not lead to a tree or
-        leaf node.
-
-        Args:
-            index (int): index of site that is to be probed
-            allow_metal (bool, optional): If True it does not perform
-                this check for metals (and just return False). Defaults to False.
-
-        Returns:
-            bool: True if this is a branching index
-        """
-        valid_connections = 0
-        connected_sites = self.get_neighbor_indices(index)
-        non_metal_connections = 0
-        if len(connected_sites) < 3:
-            return False
-
-        if not allow_metal:
-            if index in self.metal_indices:
-                return False
-
-        for connected_site in connected_sites:
-            if (not self._leads_to_terminal((index, connected_site))) and (
-                not self._is_terminal(connected_site)
-            ):
-                valid_connections += 1
-                if connected_site not in self.metal_indices:
-                    non_metal_connections += 1
-
-        return (valid_connections >= 3) and (non_metal_connections >= 2)
+ 
 
     def _is_terminal(self, index):
         return len(self.get_neighbor_indices(index)) == 1
