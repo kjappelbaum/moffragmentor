@@ -17,16 +17,15 @@ import sys
 sys.path.insert(0, os.path.abspath("../.."))
 
 
-from moffragmentor import __version__
 
 # -- Project information -----------------------------------------------------
 
 project = "moffragmentor"
-copyright = "2020, LSMO"
+copyright = "2022, Kevin Maik Jablonka"
 author = "Kevin Maik Jablonka"
 
 # The full version, including alpha/beta/rc tags
-release = __version__
+release = '0.0.1-dev'
 
 
 # -- General configuration ---------------------------------------------------

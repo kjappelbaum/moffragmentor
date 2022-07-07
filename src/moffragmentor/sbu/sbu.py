@@ -15,7 +15,7 @@ from pymatgen.io.babel import BabelMolAdaptor
 from rdkit import Chem
 from scipy.spatial.distance import pdist
 
-from ..descriptors import chemistry_descriptors, distance_descriptors, get_lsop, rdkit_descriptors
+
 from ..utils import add_suffix_to_dict_keys, pickle_dump
 from ..utils.mol_compare import mcs_rank
 
@@ -276,34 +276,6 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
             sites.append(s[i])
         return Structure.from_sites(sites)
 
-    def _get_descriptors(self):
-        branching_sites_structure = self._get_connected_sites_structure()
-        full_structure = self._get_boxed_structure()
-        connecting_sites_structure = self._get_binding_sites_structure()
-
-        descriptors_lsop_branching = add_suffix_to_dict_keys(
-            get_lsop(branching_sites_structure), "branching"
-        )
-        descriptors_lsop_binding = add_suffix_to_dict_keys(
-            get_lsop(branching_sites_structure), "binding"
-        )
-        descriptors_rdkit = rdkit_descriptors(self.rdkit_mol)
-        descriptors_chemistry_binding = add_suffix_to_dict_keys(
-            chemistry_descriptors(connecting_sites_structure), "binding"
-        )
-        descriptors_chemistry_full = add_suffix_to_dict_keys(
-            chemistry_descriptors(full_structure), "full"
-        )
-        descriptors_distance = distance_descriptors(branching_sites_structure)
-
-        return {
-            **descriptors_lsop_branching,
-            **descriptors_lsop_binding,
-            **descriptors_rdkit,
-            **descriptors_chemistry_full,
-            **descriptors_chemistry_binding,
-            **descriptors_distance,
-        }
 
     @cached_property
     def descriptors(self):
