@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Representation for a secondary building block"""
 import warnings
-from typing import Collection, List
+from typing import Collection, List, Optional, Tuple
 
 import networkx as nx
 import numpy as np
@@ -48,6 +48,7 @@ def obmol_to_rdkit_mol(obmol):
 
 class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-methods
     """Representation for a secondary building block.
+
     It also acts as container for site indices:
 
     - graph_branching_indices: are the branching indices according
@@ -67,6 +68,12 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
       i.e., bound solvents are not included in this set
     - terminal_in_mol_not_terminal_in_struct: indices that are terminal
        in the molecule but not terminal in the structure
+
+    Examples: 
+        >>> # visualize the molecule
+        >>> sbu_object.show_molecule()
+        >>> # search pubchem for the molecule 
+        >>> sbu_object.search_pubchem()
     """
 
     def __init__(  # pylint:disable=too-many-arguments
@@ -78,11 +85,28 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         closest_branching_index_in_molecule: Collection[int],
         binding_indices: Collection[int],
         original_indices: Collection[int],
-        persistent_non_metal_bridged=None,
-        terminal_in_mol_not_terminal_in_struct=None,
-        graph_branching_coords=None,
-        connecting_paths=None,
+        persistent_non_metal_bridged: Optional[Collection[int]]=None,
+        terminal_in_mol_not_terminal_in_struct: Optional[Collection[int]]=None,
+        graph_branching_coords: Optional[Collection[np.ndarray]]=None,
+        connecting_paths: Optional[Collection[int]]=None,
     ):
+        """Initialize a secondary building block.
+
+        In practice, you won't use this constructor directly.
+
+        Args:
+            molecule (Molecule): _description_
+            molecule_graph (MoleculeGraph): _description_
+            center (np.ndarray): _description_
+            graph_branching_indices (Collection[int]): _description_
+            closest_branching_index_in_molecule (Collection[int]): _description_
+            binding_indices (Collection[int]): _description_
+            original_indices (Collection[int]): _description_
+            persistent_non_metal_bridged (Optional[Collection[int]], optional): _description_. Defaults to None.
+            terminal_in_mol_not_terminal_in_struct (Optional[Collection[int]], optional): _description_. Defaults to None.
+            graph_branching_coords (Optional[Collection[np.ndarray]], optional): _description_. Defaults to None.
+            connecting_paths (Optional[Collection[int]], optional): _description_. Defaults to None.
+        """        
         self.molecule = molecule
         self.center = center
         self._original_indices = original_indices
@@ -108,7 +132,7 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
             except KeyError:
                 pass
 
-    def search_pubchem(self, listkey_counts=10, **kwargs) -> tuple:
+    def search_pubchem(self, listkey_counts: int=10, **kwargs) -> Tuple[List[str], bool]:
         """Search for a molecule in pubchem
         Second element of return tuple is true if there was an identity match
         """

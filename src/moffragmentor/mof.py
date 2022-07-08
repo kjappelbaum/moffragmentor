@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""Defining the main representation of a MOF"""
+"""Defining the main representation of a MOF."""
 import os
 from collections import defaultdict
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict
 
 import networkx as nx
 import numpy as np
@@ -23,7 +23,7 @@ THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 with open(
     os.path.join(THIS_DIR, "utils", "data", "tuned_vesta.yml"), "r", encoding="utf8"
 ) as handle:
-    VESTA_CUTOFFS = yaml.load(handle, Loader=yaml.UnsafeLoader)
+    VESTA_CUTOFFS = yaml.load(handle, Loader=yaml.UnsafeLoader)  # noqa: S506
 
 VestaCutoffDictNN = CutOffDictNN(cut_off_dict=VESTA_CUTOFFS)
 
@@ -31,9 +31,37 @@ __all__ = ["MOF"]
 
 
 class MOF:  # pylint:disable=too-many-instance-attributes, too-many-public-methods
-    """Main representation for a MOF structure"""
+    """Main representation for a MOF structure.
+
+    This container holds a structure and its associated graph.
+    It also provides some convenience methods for getting neighbors
+    or results of the fragmentation.
+
+    Internally, this code typically uses IStructure objects to
+    avoid bugs due to the mutability of Structure objects
+    (e.g. the fragmentation code performs operations on the structure
+    and we want to be sure that there is no impact on the input).
+
+    Examples:
+        >>> from moffragmentor import MOF
+        >>> mof = MOF(structure, structure_graph)
+        >>> # equivalent is to read from a cif file
+        >>> mof = MOF.from_cif(cif_file)
+        >>> # visualize the structure
+        >>> mof.show_structure()
+        >>> # get the neighbors of a site
+        >>> mof.get_neighbor_indices(0)
+        >>> # perform fragmentation
+        >>> fragments mof.fragment()
+    """
 
     def __init__(self, structure: Structure, structure_graph: StructureGraph):
+        """Initialize a MOF object.
+
+        Args:
+            structure (Structure): Pymatgen Structure object
+            structure_graph (StructureGraph): Pymatgen StructureGraph object
+        """
         self._structure = structure
         self._structure_graph = structure_graph
         self._node_indices = None
@@ -51,6 +79,7 @@ class MOF:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         )
 
     def _reset(self):
+        """Reset all parameters that are computed at some point."""
         self._node_indices = None
         self._linker_indices = None
         self._topology = None
@@ -59,19 +88,18 @@ class MOF:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         self._bridges = None
         self._nx_graph = None
 
-    def dump(self, path):
+    def dump(self, path) -> None:
         """Dump this object as pickle file"""
         pickle_dump(self, path)
 
     def __len__(self) -> str:
+        """Length of the MOF. Equivalent to the number of sites."""
         return len(self.structure)
 
-    # we should not be able to write this
     @property
     def structure(self):
         return self._structure
 
-    # we should not be able to write this
     @property
     def structure_graph(self):
         return self._structure_graph
@@ -94,12 +122,32 @@ class MOF:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
 
     @cached_property
     def frac_coords(self) -> np.ndarray:
+        """Return fractional coordinates of the structure.
+
+        We cache this call as pymatgen seems to re-compute this.
+
+        Returns:
+            np.ndarray: fractional coordinates of the structure
+                in array of shape (n_sites, 3)
+        """
         return self.structure.frac_coords
 
     @classmethod
     def from_cif(
         cls, cif: Union[str, os.PathLike], symprec: float = 0.5, angle_tolerance: float = 10
     ):
+        """Initialize a MOF object from a cif file.
+
+        Note that this method, by default, symmetrizes the structure.
+
+        Args:
+            cif (str): path to the cif file
+            symprec (float): Symmetry precision
+            angle_tolerance (float): Angle tolerance
+
+        Returns:
+            MOF: MOF object
+        """
         # using the IStructure avoids bugs where somehow the structure changes
         structure = IStructure.from_file(cif)
         spga = SpacegroupAnalyzer(structure, symprec=symprec, angle_tolerance=angle_tolerance)
@@ -126,7 +174,21 @@ class MOF:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         return len(self.get_neighbor_indices(index)) == 1
 
     @cached_property
-    def terminal_indices(self):
+    def terminal_indices(self) -> List[int]:
+        """Return the indices of the terminal sites.
+
+        A terminal site is a site that has only one neighbor.
+        And is connected via a bridge to the rest of the structure.
+        That means, splitting the bond between the terminal site
+        and the rest of the structure will increase the number
+        of connected components.
+
+        Typical examples of terminal sites are hydrogren atoms,
+        or halogen functional groups.
+
+        Returns:
+            List[int]: indices of the terminal sites
+        """
         return [i for i in range(len(self.structure)) if self._is_terminal(i)]
 
     def _get_nx_graph(self):
@@ -147,7 +209,7 @@ class MOF:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         """Structure graph as networkx graph object"""
         return self._get_nx_graph()
 
-    def _generate_bridges(self):
+    def _generate_bridges(self) -> Dict[int, int]:
         if self._bridges is None:
             bridges = list(nx.bridges(self.nx_graph))
 
@@ -159,9 +221,11 @@ class MOF:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         return self._bridges
 
     @cached_property
-    def bridges(self) -> dict:
-        """Bridges are edges in a graph that, if deleted,
-        increase the number of connected components"""
+    def bridges(self) ->  Dict[int, int]:
+        """Get a dictionary of bridges.
+        
+        Bridges are edges in a graph that, if deleted, increase the number of connected components
+        """
         return self._generate_bridges()
 
     @cached_property

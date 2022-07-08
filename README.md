@@ -54,13 +54,14 @@ To get the [RCSR code](http://rcsr.anu.edu.au/nets) run
 ```python
 fragments.net_embedding.rcsr_code
 ```
+## MOFfragmentor in the MOF decomposition tool landscape
 
-To get some features for the building blocks, you can use
+While MOFfragmentor has some unique features, it might not be the right tool for your task. Due to some design choices (having a pymatgen representation of all fragments and the net) it is relatively slow in the current implementation (though there are obvious ways for fixing this). 
 
-```python
-fragments.linkers[0].descriptors
-```
+Therefore, we encourage you to also consider alternative tools: 
 
+- [mofid](https://github.com/snurr-group/mofid)
+- [mBUD](https://github.com/gdev7/mBUD)
 
 ## 🚀 Installation
 

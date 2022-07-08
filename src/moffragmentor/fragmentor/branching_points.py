@@ -4,10 +4,12 @@ Routines for finding branching points in a structure graph of a MOF.
 Note that those routines do not work for other reticular materials 
 as they assume the presence of a metal.
 """
-from typing import List
+from operator import itemgetter
+from typing import List, Tuple
 
 import networkx as nx
 import numpy as np
+from loguru import logger
 from more_itertools import pairwise
 from pymatgen.core import Structure
 
@@ -131,17 +133,48 @@ def filter_branch_points(mof: "MOF", branching_indices) -> List[int]:
 
     verified_indices = []
 
-    for mol, graph, index in zip(mols, graphs, idx):
+    for _, graph, index in zip(mols, graphs, idx):
         if len(index) == 1:
             verified_indices.extend(index)
         else:
-            rank = rank_by_metal_distance(index, mof)
-            if rank is not None:
-                verified_indices.append(rank)
-            else:
-                verified_indices.append(cluster_nodes(graph.graph, index, mof))
+            (
+                good_by_distance,
+                not_resolvable_by_distance,
+                not_resolvable_graphs,
+            ) = remove_not_closest_neighbor(mof, graph.graph, index)
+            verified_indices.extend(good_by_distance)
+            for not_resolvable_graph, not_resolvable_by_distance_index in zip(
+                not_resolvable_graphs, not_resolvable_by_distance
+            ):
+                verified_indices.append(
+                    cluster_nodes(not_resolvable_graph, not_resolvable_by_distance_index, mof)
+                )
 
     return verified_indices
+
+
+def remove_not_closest_neighbor(mof: "MOF", graph: nx.Graph, index: int) -> List[int]:
+    """
+    Remove all nodes that are not the closest neighbor to the given index.
+    """
+    good_indices = []
+    not_resolvable = []
+    not_resolvable_graphs = []
+    # divide indices into two groups, one with the closest neighbor metal and one with the rest
+    minimum_distance, not_minimum_distance = rank_by_metal_distance(index, mof)
+    # delete all nodes that are not the closest neighbor
+
+    graph.remove_nodes_from(not_minimum_distance)
+    # now, get new connected components
+    for g in nx.connected_components(graph.to_undirected()):
+        if len(g) == 1:
+            good_indices.append(index[list(g)[0]])
+        else:
+            not_resolvable.append(itemgetter(*list(g))(index))
+            not_resolvable_graphs.append(graph.subgraph(g))
+    if len(good_indices) == 0:
+        logger.warning("Could not find unique branching point")
+    return good_indices, not_resolvable, not_resolvable_graphs
 
 
 def has_bond_to_metal(mof: "MOF", index: int) -> bool:
@@ -152,7 +185,7 @@ def has_bond_to_metal(mof: "MOF", index: int) -> bool:
     return False
 
 
-def rank_by_metal_distance(idx, mof):
+def rank_by_metal_distance(idx, mof) -> Tuple[np.ndarray, np.ndarray]:
     """
     Rank the indices by the distance to the metal.
     """
@@ -161,16 +194,12 @@ def rank_by_metal_distance(idx, mof):
     # in this case, it simply means if there is one
     # direct single bond
     distances = -np.array([has_bond_to_metal(mof, i) for i in idx]).astype(int)
-    # this works by default in ascending order as we need it
-    order = np.argsort(distances)
-    sorted_distances = distances[order]
-    if sorted_distances[0] < sorted_distances[1]:
-        return idx[order][0]
-    else:
-        return None
+
+    minimum_distance = np.min(distances)
+    return np.where(distances == minimum_distance)[0], np.where(distances != minimum_distance)[0]
 
 
-def cluster_nodes(graph: nx.Graph, original_indices: List[int], mof: "MOF") -> int:
+def cluster_nodes(graph: nx.Graph, original_indices: List[int], mof: "MOF") -> List[int]:
     g = nx.Graph(graph).to_undirected()
     terminal_nodes = []
     for node in g.nodes:
@@ -185,20 +214,20 @@ def cluster_nodes(graph: nx.Graph, original_indices: List[int], mof: "MOF") -> i
     path = nx.shortest_path(g, terminal_nodes[0], terminal_nodes[1])
     # if odd return the middle node
     if len(path) % 2 == 1:
-        return original_indices[path[int(len(path) / 2)]]
+        return [original_indices[path[int(len(path) / 2)]]]
 
     # else we currently have no good solution
     # perhaps the best would be to insert a dummy node in the middle
     # but for now we will perhaps simply return the the node closest to a metal
     # (in the Euclidean embedding))
-    min_distance = np.inf
-    min_node = None
-    for node in path:
-        distances = get_distances_to_metal(mof, node)
-        if np.min(distances) < min_distance:
-            min_distance = np.min(distances)
-            min_node = node
-    return original_indices[min_node]
+    # min_distance = np.inf
+    # min_node = None
+    # for node in path:
+    #     distances = get_distances_to_metal(mof, node)
+    #     if np.min(distances) < min_distance:
+    #         min_distance = np.min(distances)
+    #         min_node = node
+    return original_indices  # [min_node]
 
 
 def get_branch_points(mof: "MOF") -> List[int]:
