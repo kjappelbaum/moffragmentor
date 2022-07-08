@@ -60,7 +60,7 @@ def get_subgraphs_as_molecules(  # pylint:disable=too-many-locals
     filter_in_cell: bool = True,
 ) -> Tuple[List[Molecule], List[MoleculeGraph], List[List[int]], List[np.ndarray]]:
     """Isolates connected components as molecules from a StructureGraph.
-    
+
     Copied from http://pymatgen.org/_modules/pymatgen/analysis/graphs.html#StructureGraph.get_subgraphs_as_molecules
     and removed the duplicate check
 

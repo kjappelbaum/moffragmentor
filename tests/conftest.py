@@ -449,6 +449,13 @@ def get_li_mof_with_floating():
 
 
 @pytest.fixture(scope="module")
+def abaxin():
+    # https://github.com/kjappelbaum/moffragmentor/issues/70
+    mof = MOF.from_cif(os.path.join(THIS_DIR, "test_files", "ABAXIN.cif"))
+    return mof
+
+
+@pytest.fixture(scope="module")
 def get_1d_node_with_floating():
     """https://pubs.rsc.org/en/content/articlelanding/2014/cc/c3cc49684h#!divAbstract
     found with Google search 'complicated node mof'"""

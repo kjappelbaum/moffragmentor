@@ -2,7 +2,7 @@
 """Defining the main representation of a MOF"""
 import os
 from collections import defaultdict
-from typing import List, Union, Optional
+from typing import List, Optional, Union
 
 import networkx as nx
 import numpy as np
@@ -15,6 +15,7 @@ from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 from .descriptors.sbu_dimensionality import get_structure_graph_dimensionality
 from .fragmentor import run_fragmentation
+from .fragmentor.branching_points import get_branch_points
 from .utils import IStructure, pickle_dump, write_cif
 
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -96,7 +97,9 @@ class MOF:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         return self.structure.frac_coords
 
     @classmethod
-    def from_cif(cls, cif: Union[str, os.PathLike], symprec: float=0.5, angle_tolerance: float=10):
+    def from_cif(
+        cls, cif: Union[str, os.PathLike], symprec: float = 0.5, angle_tolerance: float = 10
+    ):
         # using the IStructure avoids bugs where somehow the structure changes
         structure = IStructure.from_file(cif)
         spga = SpacegroupAnalyzer(structure, symprec=symprec, angle_tolerance=angle_tolerance)
@@ -105,15 +108,19 @@ class MOF:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         structure_graph = StructureGraph.with_local_env_strategy(structure, VestaCutoffDictNN)
         return cls(structure, structure_graph)
 
-    @classmethod 
-    def from_structure(cls, structure: Structure, symprec: Optional[float]=0.5, angle_tolerance: Optional[float]=10):
+    @classmethod
+    def from_structure(
+        cls,
+        structure: Structure,
+        symprec: Optional[float] = 0.5,
+        angle_tolerance: Optional[float] = 10,
+    ):
         if (symprec is not None) and (angle_tolerance is not None):
             spga = SpacegroupAnalyzer(structure, symprec=symprec, angle_tolerance=angle_tolerance)
             structure = spga.get_conventional_standard_structure()
         structure = IStructure.from_sites(structure)
-        structure_graph = StructureGraph.with_local_env_strategy(structure, VestaCutoffDictNN) 
+        structure_graph = StructureGraph.with_local_env_strategy(structure, VestaCutoffDictNN)
         return cls(structure, structure_graph)
- 
 
     def _is_terminal(self, index):
         return len(self.get_neighbor_indices(index)) == 1
@@ -172,6 +179,13 @@ class MOF:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
             matrix[self.metal_indices, cols] = 2
             matrix[rows, self.metal_indices] = 2
         plt.imshow(self.adjaceny_matrix.todense(), cmap="Greys_r")
+
+    @cached_property
+    def _branching_indices_list(self):
+        return get_branch_points(self)
+
+    def _is_branch_point(self, index):
+        return index in self._branching_indices_list
 
     @cached_property
     def metal_indices(self) -> List[int]:

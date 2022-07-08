@@ -15,7 +15,6 @@ from pymatgen.io.babel import BabelMolAdaptor
 from rdkit import Chem
 from scipy.spatial.distance import pdist
 
-
 from ..utils import pickle_dump
 from ..utils.mol_compare import mcs_rank
 
@@ -275,7 +274,6 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         for i in self.binding_indices:
             sites.append(s[i])
         return Structure.from_sites(sites)
-
 
     @cached_property
     def descriptors(self):
