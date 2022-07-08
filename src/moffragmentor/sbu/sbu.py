@@ -69,10 +69,10 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
     - terminal_in_mol_not_terminal_in_struct: indices that are terminal
        in the molecule but not terminal in the structure
 
-    Examples: 
+    Examples:
         >>> # visualize the molecule
         >>> sbu_object.show_molecule()
-        >>> # search pubchem for the molecule 
+        >>> # search pubchem for the molecule
         >>> sbu_object.search_pubchem()
     """
 
@@ -85,10 +85,10 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         closest_branching_index_in_molecule: Collection[int],
         binding_indices: Collection[int],
         original_indices: Collection[int],
-        persistent_non_metal_bridged: Optional[Collection[int]]=None,
-        terminal_in_mol_not_terminal_in_struct: Optional[Collection[int]]=None,
-        graph_branching_coords: Optional[Collection[np.ndarray]]=None,
-        connecting_paths: Optional[Collection[int]]=None,
+        persistent_non_metal_bridged: Optional[Collection[int]] = None,
+        terminal_in_mol_not_terminal_in_struct: Optional[Collection[int]] = None,
+        graph_branching_coords: Optional[Collection[np.ndarray]] = None,
+        connecting_paths: Optional[Collection[int]] = None,
     ):
         """Initialize a secondary building block.
 
@@ -106,7 +106,7 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
             terminal_in_mol_not_terminal_in_struct (Optional[Collection[int]], optional): _description_. Defaults to None.
             graph_branching_coords (Optional[Collection[np.ndarray]], optional): _description_. Defaults to None.
             connecting_paths (Optional[Collection[int]], optional): _description_. Defaults to None.
-        """        
+        """
         self.molecule = molecule
         self.center = center
         self._original_indices = original_indices
@@ -132,7 +132,7 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
             except KeyError:
                 pass
 
-    def search_pubchem(self, listkey_counts: int=10, **kwargs) -> Tuple[List[str], bool]:
+    def search_pubchem(self, listkey_counts: int = 10, **kwargs) -> Tuple[List[str], bool]:
         """Search for a molecule in pubchem
         Second element of return tuple is true if there was an identity match
         """

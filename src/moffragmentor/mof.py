@@ -2,7 +2,7 @@
 """Defining the main representation of a MOF."""
 import os
 from collections import defaultdict
-from typing import List, Optional, Union, Dict
+from typing import Dict, List, Optional, Union
 
 import networkx as nx
 import numpy as np
@@ -221,9 +221,9 @@ class MOF:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         return self._bridges
 
     @cached_property
-    def bridges(self) ->  Dict[int, int]:
+    def bridges(self) -> Dict[int, int]:
         """Get a dictionary of bridges.
-        
+
         Bridges are edges in a graph that, if deleted, increase the number of connected components
         """
         return self._generate_bridges()
