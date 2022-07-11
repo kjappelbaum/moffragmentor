@@ -146,7 +146,7 @@ def filter_branch_points(mof: "MOF", branching_indices) -> List[int]:
             for not_resolvable_graph, not_resolvable_by_distance_index in zip(
                 not_resolvable_graphs, not_resolvable_by_distance
             ):
-                verified_indices.append(
+                verified_indices.extend(
                     cluster_nodes(not_resolvable_graph, not_resolvable_by_distance_index, mof)
                 )
 

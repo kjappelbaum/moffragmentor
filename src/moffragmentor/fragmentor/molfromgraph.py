@@ -6,7 +6,7 @@ from typing import List, Tuple
 import networkx as nx
 import numpy as np
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
-from pymatgen.core import Molecule
+from pymatgen.core import Element, Molecule
 
 
 def _is_in_cell(frac_coords: np.ndarray) -> bool:
@@ -50,6 +50,17 @@ def _select_parts_in_cell(  # pylint:disable=too-many-arguments,too-many-locals
             coordinates_.append(coordinates[index])
 
     return molecules_, graphs_, selected_indices, centers_, coordinates_
+
+
+def get_mass(atomic_symbol):
+
+    elem = Element(atomic_symbol)
+    return elem.atomic_mass
+
+
+def com(xyz, mass):
+    mass = mass.reshape((-1, 1))
+    return (xyz * mass).mean(0)
 
 
 def get_subgraphs_as_molecules(  # pylint:disable=too-many-locals
@@ -143,7 +154,11 @@ def get_subgraphs_as_molecules(  # pylint:disable=too-many-locals
             idx = [subgraph.nodes[n]["idx"] for n in subgraph.nodes()]
             idx_here = list(subgraph.nodes())
             molecule = Molecule(species, coords)  #  site_properties={"binding": binding}
-            mol_centers.append(np.mean(supercell_sg.structure.cart_coords[idx_here], axis=0))
+
+            masses = np.array(
+                [get_mass(str(supercell_sg.structure[idx].specie)) for idx in idx_here]
+            )
+            mol_centers.append(com(supercell_sg.structure.cart_coords[idx_here], masses))
             # shift so origin is at center of mass
             if center:
                 molecule = molecule.get_centered_molecule()

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""Dealing with molecules that not part of a secondary building unit"""
-from typing import List
+"""Dealing with molecules that not part of a secondary building unit."""
+from typing import List, Optional
 
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 from pymatgen.core import Molecule
@@ -9,15 +9,25 @@ from ..utils import get_edge_dict, remove_all_nodes_not_in_indices
 
 
 class NonSbuMolecule:
-    """Class to handle solvent or other non-SBU molecules"""
+    """Class to handle solvent or other non-SBU molecules."""
 
     def __init__(
         self,
         molecule: Molecule,
         molecule_graph: MoleculeGraph,
         indices: List[int],
-        connecting_index: int = None,
+        connecting_index: Optional[int] = None,
     ):
+        """Construct a NonSbuMolecule.
+
+        Args:
+            molecule (Molecule): A pymatgen Molecule object.
+            molecule_graph (MoleculeGraph): A pymatgen MoleculeGraph object.
+            indices (List[int]): List of indices of the molecule
+                in the original structure.
+            connecting_index (int, optional): List of connecting indices
+                in the original structure. Defaults to None.
+        """
         self.molecule = molecule
         self.molecule_graph = molecule_graph
         self.indices = indices
@@ -31,9 +41,11 @@ class NonSbuMolecule:
         return self.molecule.composition.alphabetical_formula
 
     def __str__(self):
+        """String representation of the molecule (the composition)."""
         return str(self.composition)
 
     def __len__(self):
+        """Number of atoms in the molecule"""
         return len(self.molecule)
 
     @classmethod
@@ -61,6 +73,7 @@ class NonSbuMolecule:
         return cls(mol, molecule_graph, indices)
 
     def show_molecule(self):
+        """Use nglview to show the molecule."""
         import nglview  # pylint:disable=import-outside-toplevel
 
         return nglview.show_pymatgen(self.molecule)

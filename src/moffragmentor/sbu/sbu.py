@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
-"""Representation for a secondary building block"""
+"""Representation for a secondary building block."""
 import warnings
 from typing import Collection, List, Optional, Tuple
 
 import networkx as nx
 import numpy as np
 import pubchempy as pcp
+from ase import Atoms
 from backports.cached_property import cached_property
 from loguru import logger
 from openbabel import pybel as pb
 from pymatgen.analysis.graphs import MoleculeGraph
-from pymatgen.core import Molecule, Structure
+from pymatgen.core import Lattice, Molecule, Structure
+from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.io.babel import BabelMolAdaptor
 from rdkit import Chem
 from scipy.spatial.distance import pdist
@@ -20,6 +22,7 @@ from ..utils.mol_compare import mcs_rank
 
 
 def ob_mol_without_metals(obmol):
+    """Remove metals from an OpenBabel molecule."""
     import openbabel as ob  # pylint: disable=import-outside-toplevel
 
     mol = obmol.clone
@@ -34,7 +37,7 @@ __all__ = ["SBU"]
 
 
 def obmol_to_rdkit_mol(obmol):
-
+    """Convert an OpenBabel molecule to a RDKit molecule."""
     smiles = obmol.write("can").strip()
     mol = Chem.MolFromSmiles(smiles, sanitize=True)  # pylint: disable=no-member
     if mol is None:
@@ -51,28 +54,28 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
 
     It also acts as container for site indices:
 
-    - graph_branching_indices: are the branching indices according
-      to the graph-based definition. They might not be part of the molecule.
-    - closest_branching_index_in_molecule: those are always part of the molecule.
-      In case the branching index is part of the molecule,
-      they are equal to to the graph_branching_indices.
-      Otherwise they are obtained as the closest vertex of the original
-      branching vertex that is part of the molecule.
-    - binding_indices: are the indices of the sites between
-        the branching index and metal
-    - original_indices: complete original set of indices that has been selected
-      for this building blocks
-    - persistent_non_metal_bridged: components that are connected
-      via a bridge both in the MOF structure
-      and building block molecule. No metal is part of the edge,
-      i.e., bound solvents are not included in this set
-    - terminal_in_mol_not_terminal_in_struct: indices that are terminal
-       in the molecule but not terminal in the structure
+        - graph_branching_indices: are the branching indices according
+        to the graph-based definition. They might not be part of the molecule.
+        - closest_branching_index_in_molecule: those are always part of the molecule.
+        In case the branching index is part of the molecule,
+        they are equal to to the graph_branching_indices.
+        Otherwise they are obtained as the closest vertex of the original
+        branching vertex that is part of the molecule.
+        - binding_indices: are the indices of the sites between
+            the branching index and metal
+        - original_indices: complete original set of indices that has been selected
+        for this building blocks
+        - persistent_non_metal_bridged: components that are connected
+        via a bridge both in the MOF structure
+        and building block molecule. No metal is part of the edge,
+        i.e., bound solvents are not included in this set
+        - terminal_in_mol_not_terminal_in_struct: indices that are terminal
+        in the molecule but not terminal in the structure
 
-    Examples: 
+    Examples:
         >>> # visualize the molecule
         >>> sbu_object.show_molecule()
-        >>> # search pubchem for the molecule 
+        >>> # search pubchem for the molecule
         >>> sbu_object.search_pubchem()
     """
 
@@ -85,28 +88,36 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         closest_branching_index_in_molecule: Collection[int],
         binding_indices: Collection[int],
         original_indices: Collection[int],
-        persistent_non_metal_bridged: Optional[Collection[int]]=None,
-        terminal_in_mol_not_terminal_in_struct: Optional[Collection[int]]=None,
-        graph_branching_coords: Optional[Collection[np.ndarray]]=None,
-        connecting_paths: Optional[Collection[int]]=None,
+        persistent_non_metal_bridged: Optional[Collection[int]] = None,
+        terminal_in_mol_not_terminal_in_struct: Optional[Collection[int]] = None,
+        graph_branching_coords: Optional[Collection[np.ndarray]] = None,
+        connecting_paths: Optional[Collection[int]] = None,
+        coordinates: Optional[np.ndarray] = None,
+        lattice: Optional[Lattice] = None,
     ):
         """Initialize a secondary building block.
 
         In practice, you won't use this constructor directly.
 
         Args:
-            molecule (Molecule): _description_
-            molecule_graph (MoleculeGraph): _description_
-            center (np.ndarray): _description_
-            graph_branching_indices (Collection[int]): _description_
-            closest_branching_index_in_molecule (Collection[int]): _description_
-            binding_indices (Collection[int]): _description_
-            original_indices (Collection[int]): _description_
+            molecule (Molecule): Pymatgen molecule object.
+            molecule_graph (MoleculeGraph): Pymatgen molecule graph object.
+            center (np.ndarray): Center of the SBU.
+            graph_branching_indices (Collection[int]): Branching indices
+                in the original structure.
+            closest_branching_index_in_molecule (Collection[int]):
+                Closest branching index in the molecule.
+            binding_indices (Collection[int]): Binding indices in the original structure.
+            original_indices (Collection[int]): List of all indicies in the original
+                structure this SBU corresponds to.
             persistent_non_metal_bridged (Optional[Collection[int]], optional): _description_. Defaults to None.
             terminal_in_mol_not_terminal_in_struct (Optional[Collection[int]], optional): _description_. Defaults to None.
             graph_branching_coords (Optional[Collection[np.ndarray]], optional): _description_. Defaults to None.
             connecting_paths (Optional[Collection[int]], optional): _description_. Defaults to None.
-        """        
+            coordinates (Optional[np.ndarray], optional): Coordinates of all atoms in the molecule.
+                Defaults to None.
+            lattice (Optional[Lattice], optional): Pymatgen Lattice object. Defaults to None.
+        """
         self.molecule = molecule
         self.center = center
         self._original_indices = original_indices
@@ -125,28 +136,71 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         self._indices = original_indices
         self._original_connecting_paths = connecting_paths
         self.connecting_paths = []
-
+        self._coordinates = coordinates
+        self._lattice = lattice
         for i in connecting_paths:
             try:
                 self.connecting_paths.append(self.mapping_from_original_indices[i])
             except KeyError:
                 pass
 
-    def search_pubchem(self, listkey_counts: int=10, **kwargs) -> Tuple[List[str], bool]:
+    @cached_property
+    def centered_molecule(self) -> Molecule:
+        """Return a molecule that is not wrapped around the unit cell.
+
+        Often a molecule would appear broken because it
+        is wrapped around the unit cell. This method attempts to center
+        it as connected molecule in the center of the unit cell.
+        """
+        # if we do not scale the cell, we struggle fitting large molecule
+        atoms = Atoms(
+            map(str, self.molecule.species),
+            self.cart_coords,
+            cell=self._lattice.matrix * 1.5,
+            pbc=True,
+        )
+        for _ in range(1):
+            atoms.translate(
+                atoms.cell.array
+                * 1.5
+                @ (np.array([0.5, 0.5, 0.5]) - atoms.get_center_of_mass(scaled=True))
+            )
+            atoms.wrap()
+
+        mol = AseAtomsAdaptor.get_molecule(atoms)
+        return mol
+
+    def search_pubchem(self, listkey_counts: int = 10, **kwargs) -> Tuple[List[str], bool]:
         """Search for a molecule in pubchem
+
         Second element of return tuple is true if there was an identity match
+
+        Args:
+            listkey_counts (int): Number of list keys to return
+                (relevant for substructure search).
+                Defaults to 10.
+
+        Returns:
+            Tuple[List[str], bool]: List of pubchem ids and whether there was an identity match
         """
         try:
-            return pcp.get_compounds(self.smiles, namespace="smiles", **kwargs), True
+            return (
+                pcp.get_compounds(
+                    self.smiles, namespace="smiles", searchtype="fastidentity", **kwargs
+                ),
+                True,
+            )
         except Exception:  # pylint: disable=broad-except
             logger.warning(
                 f"Could not find {self.smiles} in pubchem, \
                     now performing substructure search"
             )
+            # we use `fastsubstructure` as it fixes
+            # https://github.com/kjappelbaum/moffragmentor/issues/63
             res = pcp.get_compounds(
                 self.smiles,
                 namespace="smiles",
-                searchtype="substructure",
+                searchtype="fastsubstructure",
                 listkey_counts=listkey_counts,
                 **kwargs,
             )
@@ -236,14 +290,14 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         return self.get_openbabel_mol()
 
     def get_openbabel_mol(self):
-        a = BabelMolAdaptor(self.molecule)
+        a = BabelMolAdaptor(self.centered_molecule)
         pm = pb.Molecule(a.openbabel_mol)
         return pm
 
     def show_molecule(self):
         import nglview  # pylint:disable=import-outside-toplevel
 
-        return nglview.show_pymatgen(self.molecule)
+        return nglview.show_pymatgen(self.centered_molecule)
 
     def show_connecting_structure(self):
         import nglview  # pylint:disable=import-outside-toplevel
@@ -261,7 +315,8 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
     @cached_property
     def smiles(self) -> str:
         """Return canonical SMILES.
-        Using openbabel to compute the SMILES, but then get the
+
+        Use openbabel to compute the SMILES, but then get the
         canonical version with RDKit as we observed sometimes the same
         molecule ends up as different canonical SMILES for openbabel.
         If RDKit cannot make a canonical SMILES (can happen with organometallics)

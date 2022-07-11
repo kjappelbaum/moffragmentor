@@ -90,6 +90,7 @@ def node_from_mof_and_indices(  # pylint:disable=too-many-locals, too-many-argum
             [sites_and_indices.index_mapping[i] for i in graph_branching_indices]
         ],
         connecting_paths=connecting_paths,
+        lattice=mof.lattice,
     )
 
     return node

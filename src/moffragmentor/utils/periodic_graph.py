@@ -92,29 +92,29 @@ def _simplify_structure_graph(structure_graph: StructureGraph) -> StructureGraph
     # and collect the nodes to delete
     for i, _ in enumerate(structure_graph.structure):
         if structure_graph.get_coordination_of_site(i) == 2:
-            if str(structure_graph.structure[i].specie) != "Si":
-                indices = []
-                images = []
-                for neighbor in structure_graph.get_connected_sites(i):
-                    indices.append(neighbor.index)
-                    images.append(neighbor.jimage)
-                    try:
-                        graph_copy.break_edge(i, neighbor.index, neighbor.jimage)
-                    except ValueError:
-                        warnings.warn("Edge cannot be broken")
-                sorted_images = [x for _, x in sorted(zip(indices, images))]
-                edge_tuple = (tuple(sorted(indices)), tuple(sorted_images))
-                # in principle, this check should not be needed ...
-                if edge_tuple not in added_edges:
-                    added_edges.add(edge_tuple)
-                    graph_copy.add_edge(indices[0], indices[1], images[0], images[1])
+            # if str(structure_graph.structure[i].specie) != "Si":
+            indices = []
+            images = []
+            for neighbor in structure_graph.get_connected_sites(i):
+                indices.append(neighbor.index)
+                images.append(neighbor.jimage)
+                try:
+                    graph_copy.break_edge(i, neighbor.index, neighbor.jimage)
+                except ValueError:
+                    warnings.warn("Edge cannot be broken")
+            sorted_images = [x for _, x in sorted(zip(indices, images))]
+            edge_tuple = (tuple(sorted(indices)), tuple(sorted_images))
+            # in principle, this check should not be needed ...
+            if edge_tuple not in added_edges:
+                added_edges.add(edge_tuple)
+                graph_copy.add_edge(indices[0], indices[1], images[0], images[1])
 
-                to_remove.append(i)
-            else:
-                warnings.warn(
-                    "Metal cluster with low coodination number detected.\
-                    Results might be incorrect."
-                )
+            to_remove.append(i)
+            # else:
+            #     warnings.warn(
+            #         "Metal cluster with low coodination number detected.\
+            #         Results might be incorrect."
+            #     )
 
     # after we added all the edges, we can remove the nodes
     graph_copy.remove_nodes(to_remove)

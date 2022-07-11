@@ -2,7 +2,7 @@
 """Defining the main representation of a MOF."""
 import os
 from collections import defaultdict
-from typing import List, Optional, Union, Dict
+from typing import Dict, List, Optional, Union
 
 import networkx as nx
 import numpy as np
@@ -14,7 +14,7 @@ from pymatgen.core import Lattice, Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 from .descriptors.sbu_dimensionality import get_structure_graph_dimensionality
-from .fragmentor import run_fragmentation
+from .fragmentor import FragmentationResult, run_fragmentation
 from .fragmentor.branching_points import get_branch_points
 from .utils import IStructure, pickle_dump, write_cif
 
@@ -221,10 +221,13 @@ class MOF:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         return self._bridges
 
     @cached_property
-    def bridges(self) ->  Dict[int, int]:
+    def bridges(self) -> Dict[int, int]:
         """Get a dictionary of bridges.
-        
-        Bridges are edges in a graph that, if deleted, increase the number of connected components
+
+        Bridges are edges in a graph that, if deleted, increase the number of connected components.
+
+        Returns:
+            Dict[int, int]: dictionary of bridges
         """
         return self._generate_bridges()
 
@@ -260,15 +263,15 @@ class MOF:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         return [i for i, species in enumerate(self.structure.species) if str(species) == "H"]
 
     def get_neighbor_indices(self, site: int) -> List[int]:
-        """Get list of indices of neighboring sites"""
+        """Get list of indices of neighboring sites."""
         return [site.index for site in self.structure_graph.get_connected_sites(site)]
 
     def get_symbol_of_site(self, site: int) -> str:
-        """Get elemental symbol of site indexed site"""
+        """Get elemental symbol of site indexed site."""
         return str(self.structure[site].specie)
 
     def show_structure(self):
-        """Visualize structure using nglview"""
+        """Visualize structure using nglview."""
         import nglview  # pylint:disable=import-outside-toplevel
 
         return nglview.show_pymatgen(self.structure)
@@ -277,9 +280,15 @@ class MOF:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         fragmentation_result = run_fragmentation(self)
         return fragmentation_result
 
-    def fragment(self):
-        """Splits the MOF into building blocks (linkers, nodes, bound,
-        undbound solvent, net embedding of those building blocks)"""
+    def fragment(self) -> FragmentationResult:
+        """Split the MOF into building blocks.
+
+        The building blocks are linkers, nodes, bound,
+        unbound solvent, net embedding of those building blocks.
+
+        Returns:
+            FragmentationResult: FragmentationResult object.
+        """
         return self._fragment()
 
     def _get_cif_text(self) -> str:

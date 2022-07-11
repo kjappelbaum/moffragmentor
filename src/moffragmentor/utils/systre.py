@@ -9,8 +9,11 @@ from contextlib import contextmanager
 from tempfile import NamedTemporaryFile
 from typing import List, Tuple
 
+import numpy as np
 from pymatgen.analysis.graphs import StructureGraph
 from pymatgen.core import Lattice
+
+from . import unwrap
 
 __all__ = ["run_systre"]
 
@@ -171,8 +174,27 @@ def _get_systre_input_from_pmg_structure_graph(  # pylint: disable=too-many-loca
         vertices.append((structure_graph.get_coordination_of_site(i), frac_coords[i]))
 
     for edge in structure_graph.graph.edges(data=True):
+
+        #       // iterating over connectors instead of bonds
+        # PseudoAtom x = *x_it;
+        # PseudoAtom a = conns.GetConnEndpoints(x).first;
+        # PseudoAtom b = conns.GetConnEndpoints(x).second;
+
+        # vector3 pos_a = uc->CartesianToFractional(a->GetVector());
+        # vector3 pos_x = uc->UnwrapFractionalNear(uc->CartesianToFractional(x->GetVector()), pos_a);
+        # vector3 pos_b = uc->UnwrapFractionalNear(uc->CartesianToFractional(b->GetVector()), pos_x);
+        # ofs << indent << "EDGE  "
+        #   << pos_a[0] << " " << pos_a[1] << " " << pos_a[2] << "   "
+        #   << pos_b[0] << " " << pos_b[1] << " " << pos_b[2] << std::endl;
+        # edge_centers << indent << "# EDGE_CENTER  "
+        #   << pos_x[0] << " " << pos_x[1] << " " << pos_x[2] << std::endl;
+
         start = frac_coords[edge[0]]
         end = frac_coords[edge[1]] + edge[2]["to_jimage"]
+        # center =  (start + end)  /2
+        # print(center)
+        # warped_center = unwrap_fractional_near(center, start)
+        # end =   unwrap_fractional_near(end, start)
         edges.append((tuple(start), tuple(end)))
 
     def _create_vertex_string(counter, coordination, coordinate):
@@ -195,3 +217,13 @@ def _get_systre_input_from_pmg_structure_graph(  # pylint: disable=too-many-loca
     )
 
     return "\n".join(file_lines)
+
+
+def minimum_image_fractiona(coords):
+    return np.array(coords) - np.floor(coords)
+
+
+def unwrap_fractional_near(coord, ref):
+
+    bond_dir = minimum_image_fractiona(coord - ref)
+    return ref + bond_dir

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""collections of molecules, e.g. bound solvents and non-bound solvents"""
+"""Collections of molecules, e.g. bound solvents and non-bound solvents."""
 from collections import Counter
 from typing import List
 
@@ -7,16 +7,24 @@ from .nonsbumolecule import NonSbuMolecule
 
 
 class NonSbuMoleculeCollection:
-    """Class to handle collections of molecules,
-    e.g. bound solvents and non-bound solvents"""
+    """Class to handle collections of molecules.
 
-    def __init__(self, non_sbu_molecules=List[NonSbuMolecule]):
+    For example, bound solvents and non-bound solvents.
+    """
+
+    def __init__(self, non_sbu_molecules: List[NonSbuMolecule]):
+        """Construct a NonSbuMoleculeCollection.
+
+        Args:
+            non_sbu_molecules (List[NonSbuMolecule]): List of NonSbuMolecule objects.
+        """
         self.molecules = non_sbu_molecules
         self._composition = None
         # currently also contains indices from the supercell expansion
         self.indices = sum([molecule.indices for molecule in self.molecules], [])
 
     def __len__(self):
+        """Number of molecules in the collection."""
         return len(self.molecules)
 
     def __getitem__(self, index):
@@ -42,5 +50,5 @@ class NonSbuMoleculeCollection:
 
     @property
     def composition(self) -> str:
-        """Get a string describing the composition"""
+        """Get a string describing the composition."""
         return self._get_composition()

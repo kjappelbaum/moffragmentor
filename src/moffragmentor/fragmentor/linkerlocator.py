@@ -52,24 +52,24 @@ def _get_connected_linkers(
     indices outside the cell a node might
     be bound to are periodic images of the ones in the cell"""
     linked_to = []
+    added_coords = set()
     for branching_coordinate in branching_coordinates:
 
         frac_a = mof.lattice.get_fractional_coords(branching_coordinate)
         for j, linker in enumerate(linker_collection):
             for coord in linker.branching_coords:
                 frac_b = mof.lattice.get_fractional_coords(coord)
-
+                # wrap the coordinates to the unit cell
+                # frac_b = frac_b- np.floor(frac_b)
                 distance, image = mof.lattice.get_distance_and_image(frac_a, frac_b)
 
                 if distance < 0.001:
+                    # need to really carefully check that we get the correct COM and not only have an image
                     center_frac = mof.lattice.get_fractional_coords(linker.center)
-                    linked_to.append(
-                        (
-                            j,
-                            list(image),
-                            list(mof.lattice.get_cartesian_coords(center_frac + image)),
-                        )
-                    )
+                    image_coord = list(mof.lattice.get_cartesian_coords(center_frac + image))
+                    if tuple(center_frac) not in added_coords:
+                        linked_to.append((j, list(image), image_coord))
+                        added_coords.add(tuple(center_frac))
 
     return linked_to
 
@@ -154,7 +154,9 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
         )
 
     # Fourth: collect all linkers in a linker collection
-    for i, (mol, graph, idx, center) in enumerate(zip(mols, graphs, idxs, centers)):
+    for i, (mol, graph, idx, center, coord) in enumerate(
+        zip(mols, graphs, idxs, centers, coordinates)
+    ):
         idxs = set(idx)
         branching_indices = node_location_result.branching_indices & idxs
         linker = Linker(
@@ -170,6 +172,8 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
             ),
             original_indices=idx,
             connecting_paths=[],
+            coordinates=coord,
+            lattice=mof.lattice,
         )
 
         if i in linker_indices:

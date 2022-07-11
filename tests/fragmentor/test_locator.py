@@ -63,9 +63,7 @@ def test_find_p_linker_floating_mof_clusters(get_p_linker_with_floating):
     assert len(node_location_result.nodes) == 8
     node_lengths = [len(node) for node in node_location_result.nodes]
     assert len(set(node_lengths)) == 1
-    assert node_lengths[0] == 25
-    # ToDo: think more carefully if we want to
-    # deal this way with the µ1-carboxy, check if this is correct
+    assert node_lengths[0] == 21
 
 
 def test_find_li_mof_floating_mof_cluster(get_li_mof_with_floating):
