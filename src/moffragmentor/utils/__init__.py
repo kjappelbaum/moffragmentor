@@ -49,7 +49,7 @@ def _get_metal_sublists(
     metal_indices: list,
     periodic_index_map: Union[dict, None] = None,
 ) -> List[List[int]]:
-    """This helper function is useful to recover the metal fragments from the nodes.
+    """Recover the metal fragments from the nodes.
 
      We need it, for example, in the node filtering step where we analyze
      if the removal of a node creates new connected components.
@@ -222,7 +222,7 @@ def write_cif(  # pylint:disable=too-many-locals
     set_bond = set()
     if molecule:
         s = molecule
-    for i, site in enumerate(s):
+    for i, _ in enumerate(s):
         neighbors = graph.get_connected_sites(i)
         for j, neighbor_site in enumerate(neighbors):
             ind0 = site_index[i]
@@ -262,17 +262,23 @@ def make_if_not_exists(directory):
         os.makedirs(directory)
 
 
-def is_tool(name):
+def is_tool(name: str) -> bool:
     """Check whether `name` is on PATH and marked as executable.
 
-    https://stackoverflow.com/questions/11210104/check-if-a-program-exists-from-a-python-script"""
+    https://stackoverflow.com/questions/11210104/check-if-a-program-exists-from-a-python-script
 
+    Args
+        name (str): The name of the tool to check for.
+
+    Returns:
+        bool: True if the tool is on PATH and marked as executable.
+    """
     return which(name) is not None
 
 
 def _not_relevant_structure_indices(structure: Structure, indices: Collection[int]) -> List[int]:
     """Return the indices of the structure that are *not* in the indices
-    collection
+    collection.
 
     Args:
         structure (Structure): pymatgen Structure object
