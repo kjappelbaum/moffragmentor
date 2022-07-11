@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Searches, such as depth-first search (DFS) on graphs"""
+"""Searches, such as depth-first search (DFS) on graphs."""
 from copy import deepcopy
 from typing import List
 
@@ -10,8 +10,9 @@ from ..utils import _flatten_list_of_sets
 
 def _has_path_to_any_other_metal(mof, index: int, this_metal_index: int) -> bool:
     """Check if some neighbor at index is only connected to this_metal_index
-        or if we have some path to some other metal. A valid linker will have
-        a path to another metal wheras a solvent molecule will only have a bond
+        or if we have some path to some other metal.
+
+        A valid linker will have a path to another metal wheras a solvent molecule will only have a bond
         to `this_metal_index`
 
     Args:
@@ -64,8 +65,9 @@ def recursive_dfs_until_terminal(  # pylint:disable=dangerous-default-value
 def _complete_graph(
     mof, paths: List[List[int]], branching_nodes: List[List[int]]
 ) -> List[List[int]]:
-    """Loop over all paths that were traversed in DFS
-    and then, if the verices are not branching add all the paths
+    """Loop over all paths that were traversed in DFS.
+
+    Then, if the verices are not branching add all the paths
     that lead to terminal nodes. That is, in this step, we're adding
     the "capping" components of MOF nodes like capping formates or
     µ(3)-OH centers.

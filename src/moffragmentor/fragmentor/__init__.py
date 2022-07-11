@@ -21,7 +21,7 @@ FragmentationResult = namedtuple(
 
 
 def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-locals
-    """Take a MOF and split it into building blocks"""
+    """Take a MOF and split it into building blocks."""
     unbound_solvent = get_floating_solvent_molecules(mof)
     # Find nodes
     node_result = find_node_clusters(mof, unbound_solvent.indices)

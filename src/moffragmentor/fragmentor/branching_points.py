@@ -19,7 +19,7 @@ from moffragmentor.utils import _not_relevant_structure_indices
 __all__ = ("get_branch_points",)
 
 
-def get_distances_to_metal(mof: "MOF", site: int) -> List[float]:
+def get_distances_to_metal(mof: "MOF", site: int) -> List[float]:  # noqa: F821 - forward reference
     """For a given site, return the distances to all metals in the MOF."""
     distances = []
     for i in mof.metal_indices:
@@ -27,7 +27,7 @@ def get_distances_to_metal(mof: "MOF", site: int) -> List[float]:
     return distances
 
 
-def has_bridge_in_path(mof: "MOF", path: List[int]) -> bool:
+def has_bridge_in_path(mof: "MOF", path: List[int]) -> bool:  # noqa: F821 - forward reference
     """Return True if the path contains a bridge."""
     for edge in pairwise(path):
         if mof._leads_to_terminal(edge):
@@ -35,9 +35,18 @@ def has_bridge_in_path(mof: "MOF", path: List[int]) -> bool:
     return False
 
 
-def get_two_edge_paths_from_site(mof: "MOF", site: int) -> List[List[int]]:
+def get_two_edge_paths_from_site(
+    mof: "MOF", site: int  # noqa: F821 - forward reference
+) -> List[List[int]]:
     """
     Return all two edge paths from a site.
+
+    Args:
+        mof (MOF): MOF object
+        site (int): index of site that is to be probed.
+
+    Returns:
+        List[List[int]]: List of all two edge paths from the site.
 
     Example:
         >>> mof = MOF(...)
@@ -53,7 +62,7 @@ def get_two_edge_paths_from_site(mof: "MOF", site: int) -> List[List[int]]:
     return paths
 
 
-def has_metal_in_path(mof: "MOF", path: List[int]) -> bool:
+def has_metal_in_path(mof: "MOF", path: List[int]) -> bool:  # noqa: F821 - forward reference
     """Return True if the path contains a metal."""
     for site in path:
         if site in mof.metal_indices:
@@ -61,7 +70,7 @@ def has_metal_in_path(mof: "MOF", path: List[int]) -> bool:
     return False
 
 
-def has_non_bridge_path_with_metal(mof: "MOF", site: int) -> bool:
+def has_non_bridge_path_with_metal(mof: "MOF", site: int) -> bool:  # noqa: F821 - forward reference
     """Return True if the MOF has a non-bridge path with a meta.l"""
     for path in get_two_edge_paths_from_site(mof, site):
         if not has_bridge_in_path(mof, path) and has_metal_in_path(mof, path):
@@ -69,9 +78,13 @@ def has_non_bridge_path_with_metal(mof: "MOF", site: int) -> bool:
     return False
 
 
-def _is_branch_point(mof: "MOF", index: int, allow_metal: bool = False) -> bool:
-    """The branch point definition is key for splitting MOFs
-    into linker and nodes. Branch points are here defined as points
+def _is_branch_point(
+    mof: "MOF", index: int, allow_metal: bool = False  # noqa: F821 - forward reference
+) -> bool:
+    """Check if a site is a branching point.
+
+    The branch point definition is key for splitting MOFs into linker and nodes.
+    Branch points are here defined as points
     that have at least three connections that do not lead to a tree or
     leaf node.
 
@@ -114,15 +127,13 @@ def _is_branch_point(mof: "MOF", index: int, allow_metal: bool = False) -> bool:
     return False
 
 
-def filter_branch_points(mof: "MOF", branching_indices) -> List[int]:
-    """
-    Return a list of all branching points in the MOF.
-    """
-
+def filter_branch_points(
+    mof: "MOF", branching_indices  # noqa: F821 - forward reference
+) -> List[int]:
+    """Return a list of all branching points in the MOF."""
     # now, check if there are connected branching points
     # we need to clean that up as it does not make sense for splitting and the clustering
     # algorithm will not work (i believe).
-
     graph_ = mof.structure_graph.__copy__()
     graph_.structure = Structure.from_sites(graph_.structure.sites)
     to_delete = _not_relevant_structure_indices(mof.structure, branching_indices)
@@ -153,10 +164,10 @@ def filter_branch_points(mof: "MOF", branching_indices) -> List[int]:
     return verified_indices
 
 
-def remove_not_closest_neighbor(mof: "MOF", graph: nx.Graph, index: int) -> List[int]:
-    """
-    Remove all nodes that are not the closest neighbor to the given index.
-    """
+def remove_not_closest_neighbor(
+    mof: "MOF", graph: nx.Graph, index: int  # noqa: F821 - forward reference
+) -> List[int]:
+    """Remove all nodes that are not the closest neighbor to the given index."""
     good_indices = []
     not_resolvable = []
     not_resolvable_graphs = []
@@ -177,7 +188,7 @@ def remove_not_closest_neighbor(mof: "MOF", graph: nx.Graph, index: int) -> List
     return good_indices, not_resolvable, not_resolvable_graphs
 
 
-def has_bond_to_metal(mof: "MOF", index: int) -> bool:
+def has_bond_to_metal(mof: "MOF", index: int) -> bool:  # noqa: F821 - forward reference
     """Return True if the site has a bond to a metal."""
     for i in mof.get_neighbor_indices(index):
         if i in mof.metal_indices:
@@ -186,9 +197,7 @@ def has_bond_to_metal(mof: "MOF", index: int) -> bool:
 
 
 def rank_by_metal_distance(idx, mof) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Rank the indices by the distance to the metal.
-    """
+    """Rank the indices by the distance to the metal."""
     idx = np.array(idx)
     # ToDo: should use the path length
     # in this case, it simply means if there is one
@@ -199,7 +208,9 @@ def rank_by_metal_distance(idx, mof) -> Tuple[np.ndarray, np.ndarray]:
     return np.where(distances == minimum_distance)[0], np.where(distances != minimum_distance)[0]
 
 
-def cluster_nodes(graph: nx.Graph, original_indices: List[int], mof: "MOF") -> List[int]:
+def cluster_nodes(
+    graph: nx.Graph, original_indices: List[int], mof: "MOF"  # noqa: F821 - forward reference
+) -> List[int]:
     g = nx.Graph(graph).to_undirected()
     terminal_nodes = []
     for node in g.nodes:
@@ -216,21 +227,10 @@ def cluster_nodes(graph: nx.Graph, original_indices: List[int], mof: "MOF") -> L
     if len(path) % 2 == 1:
         return [original_indices[path[int(len(path) / 2)]]]
 
-    # else we currently have no good solution
-    # perhaps the best would be to insert a dummy node in the middle
-    # but for now we will perhaps simply return the the node closest to a metal
-    # (in the Euclidean embedding))
-    # min_distance = np.inf
-    # min_node = None
-    # for node in path:
-    #     distances = get_distances_to_metal(mof, node)
-    #     if np.min(distances) < min_distance:
-    #         min_distance = np.min(distances)
-    #         min_node = node
-    return original_indices  # [min_node]
+    return original_indices
 
 
-def get_branch_points(mof: "MOF") -> List[int]:
+def get_branch_points(mof: "MOF") -> List[int]:  # noqa: F821 - forward reference
     """Get all branching points in the MOF.
 
     Args:

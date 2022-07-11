@@ -23,6 +23,7 @@ __all__ = ["Node"]
 def node_from_mof_and_indices(  # pylint:disable=too-many-locals, too-many-arguments
     cls, mof, node_indices, branching_indices, binding_indices, connecting_paths
 ):
+    """Create a node from a MOF and a list of indices of different types."""
     graph_ = mof.structure_graph.__copy__()
     graph_.structure = Structure.from_sites(graph_.structure.sites)
     to_delete = _not_relevant_structure_indices(mof.structure, node_indices)
@@ -98,21 +99,31 @@ def node_from_mof_and_indices(  # pylint:disable=too-many-locals, too-many-argum
 
 class Node(SBU):
     """Container for metal cluster building blocks.
-    Will typically automatically be constructured
-    by the fragmentor.
+
+    Will typically automatically be constructured by the fragmentor.
     """
 
     @classmethod
     def from_mof_and_indices(  # pylint:disable=too-many-arguments
         cls,
-        mof,
+        mof: "MOF",  # noqa: F821
         node_indices: Set[int],
         branching_indices: Set[int],
         binding_indices: Set[int],
         connecting_paths: Set[int],
     ):
-        """Build a node object from a MOF and some
-        intermediate outputs of the fragmentation"""
+        """Build a node object from a MOF and some intermediate outputs of the fragmentation.
+
+        Args:
+            mof: The MOF to build the node from.
+            node_indices: The indices of the nodes in the MOF.
+            branching_indices: The indices of the branching points in the MOF
+                that belong to this node.
+            binding_indices: The indices of the binding points in the MOF
+                that belong to this node.
+            connecting_paths: The indices of the connecting paths in the MOF
+                that belong to this node.
+        """
         return node_from_mof_and_indices(
             cls,
             mof,

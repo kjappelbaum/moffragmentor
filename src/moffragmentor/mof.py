@@ -295,6 +295,6 @@ class MOF:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         return write_cif(self.structure, self.structure_graph, [])
 
     def write_cif(self, filename) -> None:
-        """Writes the structure to a CIF file"""
+        """Write the structure to a CIF file."""
         with open(filename, "w", encoding="utf8") as file_handle:
             file_handle.write(self._get_cif_text())

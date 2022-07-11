@@ -7,6 +7,7 @@ import pickle
 from functools import partial
 from glob import glob
 from pathlib import Path
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -47,9 +48,16 @@ MAX_ATOMS = 3000
 
 
 class Harvester:
-    """Orchestrating the large-scale mining of building blocks"""
+    """Orchestrating the large-scale mining of building blocks."""
 
-    def __init__(self, mof, outdir=None):
+    def __init__(self, mof: MOF, outdir: Optional[Union[str, os.PathLike]] = None):
+        """Initialize the harvester.
+
+        Args:
+            mof (MOF): MOF to be harvested.
+            outdir (Optional[Union[str, os.PathLike]], optional):
+                Name of/path to output directory. Defaults to None.
+        """
         self.mof = mof
         self.outdir = outdir
 

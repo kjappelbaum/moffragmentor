@@ -9,7 +9,6 @@ from moffragmentor.descriptors.net import get_net_descriptors
 
 
 def net_description_w_log(file):
-    print(f"Featurizing {file}")
     try:
         return get_net_descriptors(file)
     except Exception:  # pylint: disable=broad-except

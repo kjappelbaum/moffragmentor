@@ -7,7 +7,7 @@ from rdkit.Chem import rdFMCS
 
 def tanimoto_rank(smiles_reference, smiles, additional_attributes=None):
     """
-    Ranks smiles based on the Tanimoto similarity to the reference smiles.
+    Rank SMILES based on the Tanimoto similarity to the reference smiles.
     """
     distances = []
     mol = Chem.MolFromSmiles(smiles_reference)
@@ -15,8 +15,8 @@ def tanimoto_rank(smiles_reference, smiles, additional_attributes=None):
     for i, smile in enumerate(smiles):
         mol2 = Chem.MolFromSmiles(smile)
         fp2 = Chem.RDKFingerprint(mol2)
-        addAttr = additional_attributes[i] if additional_attributes else None
-        distances.append((smile, DataStructs.FingerprintSimilarity(fp, fp2), addAttr))
+        add_attr = additional_attributes[i] if additional_attributes else None
+        distances.append((smile, DataStructs.FingerprintSimilarity(fp, fp2), add_attr))
 
     sorted_by_second = sorted(distances, key=lambda tup: tup[1])
     return sorted_by_second
@@ -26,7 +26,7 @@ def mcs_rank(
     smiles_reference, smiles, additional_attributes=None
 ):  # pylint:disable=too-many-locals
     """
-    Ranks smiles based on the maximum common substructure to the reference smiles.
+    Rank SMILES based on the maximum common substructure to the reference smiles.
     """
     distances = []
     mol = Chem.MolFromSmiles(smiles_reference)
@@ -38,8 +38,8 @@ def mcs_rank(
         smarts = res.smartsString
         bond_diff = num_bonds - res.numBonds
         atom_diff = num_atoms - res.numAtoms
-        addAttr = additional_attributes[i] if additional_attributes else None
-        distances.append((smile, smarts, bond_diff, atom_diff, addAttr))
+        add_attr = additional_attributes[i] if additional_attributes else None
+        distances.append((smile, smarts, bond_diff, atom_diff, add_attr))
 
     sorted_by_atom_diff = sorted(distances, key=lambda tup: tup[-2])
     return sorted_by_atom_diff

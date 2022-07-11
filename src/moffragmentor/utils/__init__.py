@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Helper functions"""
+"""Helper functions."""
 import datetime
 import json
 import os
@@ -24,24 +24,6 @@ def unwrap(positions, lattice):
     dxyz += positions[0]
 
     return dxyz
-
-
-def remove_edge_duplicates(edges: List[tuple]):
-    """The edges are one value of the edge_dict.
-    The function is intended to remove the duplicates
-    in this list of tuples. There can be duplicates in case
-    one linker is bound via two neighboring branching
-    atoms to the same node.
-    """
-    new_list = set()
-
-    for element in edges:
-        index = element[0]
-        image = element[1]
-
-        new_list.add((index, (image[0], image[1], image[2])))
-
-    return new_list
 
 
 def _get_metal_sublist(
