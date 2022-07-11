@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""This module focusses on the extraction of pymatgen Molecules
-from a structure for which we know the branching points / node/linker indices"""
+"""Etraction of pymatgen Molecules from a structure for which we know the branching points."""
 from collections import namedtuple
 from typing import List, Tuple
 
@@ -33,8 +32,9 @@ _SitesAndIndicesOutput = namedtuple(
 
 def _sites_and_classified_indices_from_indices(  # pylint:disable=too-many-locals
     mof, indices: set
-) -> Tuple[Molecule, List[int], List[int]]:
-    """
+) -> _SitesAndIndicesOutput:
+    """Extract the sites and indices of a molecule from a set of indices.
+
     Given the indices that we identified to belong to the group
     1) Build a molecule from the structure, handling the periodic images
     2) Build the molecule graph from the structure graph,
@@ -47,7 +47,14 @@ def _sites_and_classified_indices_from_indices(  # pylint:disable=too-many-local
     To get reasonable nodes/linkers we will remove these from the node.
     We also flag indices that are connected via a bridge that
         is also a bridge in the original graph.
-        This is, for example, the case for one carboxy O in MOF-74
+        This is, for example, the case for one carboxy O in MOF-74.
+
+    Args:
+        mof (MOF): instance of a MOF objec
+        indices (set): set of indices that we identified to belong to the group
+
+    Returns:
+       _SitesAndIndicesOutput
     """
     new_positions = []
     persistent_non_metal_bridged_components = []

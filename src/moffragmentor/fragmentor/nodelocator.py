@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-"""Some pure functions that are used to perform the node identification
+"""Some pure functions that are used to perform the node identification.
+
 Node classification techniques described
 in https://pubs.acs.org/doi/pdf/10.1021/acs.cgd.8b00126.
 
-Note that we currently only place one vertex for every linker which might loose some
-information about isomers
+Note that we currently only place one vertex for every linker which might loose some information about isomers
 """
 from collections import namedtuple
-from typing import List
+from typing import List, Optional
 
 import networkx as nx
 from loguru import logger
@@ -33,22 +33,21 @@ NodelocationResult = namedtuple(
 
 
 def find_node_clusters(  # pylint:disable=too-many-locals
-    mof, unbound_solvent_indices=None
+    mof, unbound_solvent_indices: Optional[List[int]] = None
 ) -> NodelocationResult:
-    """This function locates the branchin indices, and node clusters in MOFs.
-    Starting from the metal indices it performs depth first search on the structure
-    graph up to branching points.
+    """Locate the branching indices, and node clusters in MOFs.
+
+    Starting from the metal indices it performs depth first search
+    on the structure graph up to branching points.
 
     Args:
         mof (MOF): moffragmentor MOF instance
+        unbound_solvent_indices (List[int], optionl):
+            indices of unbound solvent atoms. Defaults to None.
 
     Returns:
         NodelocationResult: nametuple with the slots "nodes", "branching_indices" and
             "connecting_paths"
-
-    Raises:
-        NoMetalError: In case the structure does not contain any metal. The presence of
-            a metal is crucial for the fragmentation algorithm.
     """
     paths = []
     branch_sites = []
@@ -141,7 +140,9 @@ def create_node_collection(mof, node_location_result: NodelocationResult) -> Nod
 
 
 def identify_node_binding_indices(mof, indices, connecting_paths, binding_indices) -> List[int]:
-    """For the metal clusters, our rule for binding indices is quite simple.
+    """Identify the binding indices of a node.
+
+    For the metal clusters, our rule for binding indices is quite simple.
     We simply take the metal that is part of the connecting path.
     We then additionally filter based on the constraint that
     the nodes we want to identify need to bee bound to what

@@ -6,9 +6,7 @@ from rdkit.Chem import rdFMCS
 
 
 def tanimoto_rank(smiles_reference, smiles, additional_attributes=None):
-    """
-    Rank SMILES based on the Tanimoto similarity to the reference smiles.
-    """
+    """Rank SMILES based on the Tanimoto similarity to the reference smiles."""
     distances = []
     mol = Chem.MolFromSmiles(smiles_reference)
     fp = Chem.RDKFingerprint(mol)
@@ -25,9 +23,7 @@ def tanimoto_rank(smiles_reference, smiles, additional_attributes=None):
 def mcs_rank(
     smiles_reference, smiles, additional_attributes=None
 ):  # pylint:disable=too-many-locals
-    """
-    Rank SMILES based on the maximum common substructure to the reference smiles.
-    """
+    """Rank SMILES based on the maximum common substructure to the reference smiles."""
     distances = []
     mol = Chem.MolFromSmiles(smiles_reference)
     num_atoms = mol.GetNumAtoms()

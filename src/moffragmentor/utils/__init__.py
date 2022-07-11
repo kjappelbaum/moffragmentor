@@ -50,6 +50,7 @@ def _get_metal_sublists(
     periodic_index_map: Union[dict, None] = None,
 ) -> List[List[int]]:
     """This helper function is useful to recover the metal fragments from the nodes.
+
      We need it, for example, in the node filtering step where we analyze
      if the removal of a node creates new connected components.
 
@@ -59,6 +60,7 @@ def _get_metal_sublists(
         periodic_index_map (dict): If not None, then we will also
             add the periodic images according to this map.
             Defaults to None.
+
     Returns:
         List[List[int]]: filtered input list,
             that now only contains indices of atoms that are metals
@@ -262,13 +264,14 @@ def make_if_not_exists(directory):
 
 def is_tool(name):
     """Check whether `name` is on PATH and marked as executable.
+
     https://stackoverflow.com/questions/11210104/check-if-a-program-exists-from-a-python-script"""
 
     return which(name) is not None
 
 
 def _not_relevant_structure_indices(structure: Structure, indices: Collection[int]) -> List[int]:
-    """Returns the indices of the structure that are *not* in the indices
+    """Return the indices of the structure that are *not* in the indices
     collection
 
     Args:
@@ -384,6 +387,7 @@ def remove_all_nodes_not_in_indices(graph: nx.Graph, indices) -> nx.Graph:
 
 class IStructure(pymatgen.core.structure.IStructure):
     """pymatgen IStructure with faster equality comparison.
+
     This dramatically speeds up lookups in the LRU cache when an object
     with the same __hash__ is already in the cache.
     """

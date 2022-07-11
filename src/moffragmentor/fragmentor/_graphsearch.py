@@ -9,11 +9,13 @@ from ..utils import _flatten_list_of_sets
 
 
 def _has_path_to_any_other_metal(mof, index: int, this_metal_index: int) -> bool:
-    """Check if some neighbor at index is only connected to this_metal_index
-        or if we have some path to some other metal.
+    """
+    Check if some neighbor at index is only connected to this_metal_index.
 
-        A valid linker will have a path to another metal wheras a solvent molecule will only have a bond
-        to `this_metal_index`
+    Or if we have some path to some other metal.
+
+    A valid linker will have a path to another metal
+    wheras a solvent molecule will only have a bond to `this_metal_index`
 
     Args:
         mof (MOF): A MOF instance that must provide
@@ -40,8 +42,7 @@ def recursive_dfs_until_terminal(  # pylint:disable=dangerous-default-value
     path: List[int] = [],
     skip_list: List[int] = [],
 ) -> List[int]:
-    """From a given starting point perform depth-first search
-    until leaf nodes are reached
+    """From a given starting point perform depth-first search until leaf nodes are reached.
 
     Args:
         mof (MOF): A MOF instance
@@ -105,7 +106,7 @@ def recursive_dfs_until_branch(  # pylint:disable=dangerous-default-value
     branching_nodes=[],
 ) -> List[int]:
     """From a given starting point perform depth-first search
-    until branch nodes are reached
+    until branch nodes are reached.
 
     Args:
         mof (MOF): A MOF instance
@@ -138,7 +139,7 @@ def recursive_dfs_until_cn3(  # pylint:disable=dangerous-default-value
     branching_nodes=[],
 ) -> List[int]:
     """From a given starting point perform depth-first search
-    until CN=3 nodes are reaches
+    until CN=3 nodes are reaches.
 
     Args:
         mof (MOF): A MOF instance

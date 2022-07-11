@@ -1,16 +1,20 @@
 # -*- coding: utf-8 -*-
-"""This module contains functions that perform filtering on
-indices or fragments obtained from the other fragmentation modules"""
+"""This module contains functions that perform filtering on indices or fragments.
+
+Those fragments are typically obtained from the other fragmentation modules"""
+
+from typing import Iterable
 
 import networkx as nx
 import numpy as np
 from loguru import logger
+from pymatgen.core import Lattice
 from scipy.spatial.qhull import Delaunay, QhullError  # pylint:disable=no-name-in-module
 
 from ..utils import unwrap
 
 
-def bridges_across_cell(mof, indices) -> bool:
+def bridges_across_cell(mof: "MOF", indices: Iterable[int]) -> bool:  # noqa: F821
     """Check if a molecule of indices bridges across the cell"""
     bridges = {}
 
@@ -27,16 +31,15 @@ def bridges_across_cell(mof, indices) -> bool:
     return False
 
 
-def point_in_mol_coords(point, points, lattice):
-
+def point_in_mol_coords(point: np.array, points: np.array, lattice: Lattice) -> bool:
     # perhaps rather do via the COM
     new_coords = unwrap(points, lattice)
     return in_hull(point, new_coords) or in_hull(point, points)
 
 
-def in_hull(pointcloud, hull):
+def in_hull(pointcloud, hull) -> bool:
     """
-    Test if points in `p` are in `hull`b
+    Test if points in `p` are in `hull`.
 
     `p` should be a `NxK` coordinates of `N` points in `K` dimensions
     `hull` is either a scipy.spatial.Delaunay object or the `MxK` array of the
@@ -45,7 +48,6 @@ def in_hull(pointcloud, hull):
 
     https://stackoverflow.com/a/16898636
     """
-
     try:
         if not isinstance(hull, Delaunay):
             hull = Delaunay(hull)
@@ -61,10 +63,13 @@ def in_hull(pointcloud, hull):
 
 
 def _filter_branch_points(branch_indices: list, metal_indices: list, graph: nx.Graph) -> list:
-    """In a MOF structure there might be many sites with
+    """Filter incorrectly identified branch points.
+
+    In a MOF structure there might be many sites with
     more than three neighbors that do not lead to a tree or
     leaf node. The relevant branching indices are those that
     are not between other ones.
+
     That is, we want to filter out branching indices for which the shortest
     path to a metal goes via another branching index.
 

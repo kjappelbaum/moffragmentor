@@ -9,10 +9,9 @@ from contextlib import contextmanager
 from tempfile import NamedTemporaryFile
 from typing import List, Tuple
 
-import numpy as np
 from loguru import logger
 
-from . import is_tool, unwrap
+from . import is_tool
 from .errors import JavaNotFoundError
 
 __all__ = ["run_systre"]

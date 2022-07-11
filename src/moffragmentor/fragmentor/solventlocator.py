@@ -13,8 +13,7 @@ __all__ = ["get_floating_solvent_molecules", "get_all_bound_solvent_molecules"]
 
 
 def get_floating_solvent_molecules(mof) -> NonSbuMoleculeCollection:
-    """Create a collection of NonSbuMolecules
-    from a MOF
+    """Create a collection of NonSbuMolecules from a MOF.
 
     Args:
         mof (MOF): instance of MOF
@@ -33,6 +32,7 @@ def get_floating_solvent_molecules(mof) -> NonSbuMoleculeCollection:
 
 def _get_solvent_molecules_bound_to_node(mof, node_atoms: Set[int]) -> NonSbuMoleculeCollection:
     """Locate solvent molecules bound to one MOF node.
+
     Bound solvent is defined as being connected via one bridge
     to one metal center.
 
@@ -60,8 +60,8 @@ def _get_solvent_molecules_bound_to_node(mof, node_atoms: Set[int]) -> NonSbuMol
 def get_all_bound_solvent_molecules(
     mof, node_atom_sets: List[Set[int]]
 ) -> NonSbuMoleculeCollection:
-    """Given a MOF object and a collection of node atoms,
-    identify all bound solvent molecules.
+    """Identify all bound solvent molecules.
+
     Bound solvent is defined as being connected via one bridge
     to one metal center.
 
@@ -81,7 +81,7 @@ def get_all_bound_solvent_molecules(
 
 
 def find_solvent_molecule_indices(mof, index: int, starting_metal: int) -> List[int]:
-    """Finds all the indices that belong to a solvent molecule
+    """Finds all the indices that belong to a solvent molecule.
 
     Args:
         mof (MOF) index
