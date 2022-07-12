@@ -188,12 +188,7 @@ def is_periodic_image(a: np.array, b: np.array, lattice: Lattice, tolerance: flo
 
 
 class Net:
-    def __init__(
-        self,
-        nodes: Dict[str, Tuple[NetNode, int]],
-        edges: Iterable[VoltageEdge],
-        skip_2c_contraction: bool = False,
-    ):
+    def __init__(self, nodes: Dict[str, Tuple[NetNode, int]], edges: Iterable[VoltageEdge], skip_2c_contraction: bool = False):
         """Initialize a Net object.
 
         Args:
@@ -487,16 +482,13 @@ def has_edge(metal_cluster: SBU, linker: SBU, lattice: Lattice) -> Tuple[bool, L
     return len(images) > 0, images
 
 
-def build_net(metal_clusters: NodeCollection, linkers: LinkerCollection, lattice: Lattice, skip_2c_contractions: bool =False) -> Net:
+def build_net(metal_clusters: NodeCollection, linkers: LinkerCollection, lattice: Lattice) -> Net:
     """Given a metal cluster and linker collection from the fragmentation, build a net.
 
     Args:
         metal_clusters (NodeCollection): The metal clusters from the fragmentation.
         linkers (LinkerCollection): The linkers from the fragmentation.
         lattice (Lattice): The lattice of the MOF (e.g. MOF.lattice).
-        skip_2c_contractions (bool): If True, do not perform 2C contractions.
-            This is useful for debugging.
-            Default is False.
 
     Returns:
         Net: An object representing the combinatorial net.
@@ -582,4 +574,4 @@ def build_net(metal_clusters: NodeCollection, linkers: LinkerCollection, lattice
                             found_edges.append(edge)
 
     found_metal_nodes.update(found_linker_nodes)
-    return Net(found_metal_nodes, found_edges, skip_2c_contractions=skip_2c_contractions)
+    return Net(found_metal_nodes, found_edges)
