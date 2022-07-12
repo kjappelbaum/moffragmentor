@@ -110,13 +110,22 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
             binding_indices (Collection[int]): Binding indices in the original structure.
             original_indices (Collection[int]): List of all indicies in the original
                 structure this SBU corresponds to.
-            persistent_non_metal_bridged (Optional[Collection[int]], optional): _description_. Defaults to None.
-            terminal_in_mol_not_terminal_in_struct (Optional[Collection[int]], optional): _description_. Defaults to None.
-            graph_branching_coords (Optional[Collection[np.ndarray]], optional): _description_. Defaults to None.
-            connecting_paths (Optional[Collection[int]], optional): _description_. Defaults to None.
+            persistent_non_metal_bridged (Optional[Collection[int]], optional):
+                components that are connected via a bridge both in the MOF structure
+                and building block molecule. No metal is part of the edge, i.e.,
+                bound solvents are not included in this set. Defaults to None.
+            terminal_in_mol_not_terminal_in_struct (Optional[Collection[int]], optional):
+                Tndices that are terminal in the molecule but not terminal in the structure.
+                Defaults to None.
+            graph_branching_coords (Optional[Collection[np.ndarray]], optional):
+                Branching indices according to the graph-based definition.
+                They might not be part of the molecule. Defaults to None.
+            connecting_paths (Optional[Collection[int]], optional):
+                Paths between node atoms and branching atoms. Defaults to None.
             coordinates (Optional[np.ndarray], optional): Coordinates of all atoms in the molecule.
                 Defaults to None.
-            lattice (Optional[Lattice], optional): Pymatgen Lattice object. Defaults to None.
+            lattice (Optional[Lattice], optional): Pymatgen Lattice object of the original structure.
+                Defaults to None.
         """
         self.molecule = molecule
         self.center = center

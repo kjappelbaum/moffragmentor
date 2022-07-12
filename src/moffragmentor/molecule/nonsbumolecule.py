@@ -41,7 +41,7 @@ class NonSbuMolecule:
         return self.molecule.composition.alphabetical_formula
 
     def __str__(self):
-        """String representation of the molecule (the composition)."""
+        """Return string representation of the molecule (the composition)."""
         return str(self.composition)
 
     def __len__(self):
@@ -51,7 +51,7 @@ class NonSbuMolecule:
     @classmethod
     def from_structure_graph_and_indices(
         cls, structure_graph: StructureGraph, indices: List[int]
-    ) -> object:
+    ) -> "NonSbuMolecule":
         """Create a a new NonSbuMolecule from a part of a structure graph.
 
         Args:

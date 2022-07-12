@@ -81,10 +81,10 @@ def get_all_bound_solvent_molecules(
 
 
 def find_solvent_molecule_indices(mof, index: int, starting_metal: int) -> List[int]:
-    """Finds all the indices that belong to a solvent molecule.
+    """Find all the indices that belong to a solvent molecule.
 
     Args:
-        mof (MOF) index
+        mof (MOF): index
         index (int): Starting index of solvent molecules
         starting_metal (int): Metal index to which solvent is bound to
 

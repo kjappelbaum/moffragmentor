@@ -16,6 +16,7 @@ Contents
 
    getting_started
    background
+   api
 
 
 Indices and tables

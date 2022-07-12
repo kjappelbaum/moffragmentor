@@ -267,7 +267,7 @@ def is_tool(name: str) -> bool:
 
     https://stackoverflow.com/questions/11210104/check-if-a-program-exists-from-a-python-script
 
-    Args
+    Args:
         name (str): The name of the tool to check for.
 
     Returns:
@@ -277,8 +277,7 @@ def is_tool(name: str) -> bool:
 
 
 def _not_relevant_structure_indices(structure: Structure, indices: Collection[int]) -> List[int]:
-    """Return the indices of the structure that are *not* in the indices
-    collection.
+    """Return the indices of the structure that are *not* in the indices collection.
 
     Args:
         structure (Structure): pymatgen Structure object

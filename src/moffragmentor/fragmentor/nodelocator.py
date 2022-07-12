@@ -7,7 +7,7 @@ in https://pubs.acs.org/doi/pdf/10.1021/acs.cgd.8b00126.
 Note that we currently only place one vertex for every linker which might loose some information about isomers
 """
 from collections import namedtuple
-from typing import List, Optional
+from typing import Iterable, List, Optional
 
 import networkx as nx
 from loguru import logger
@@ -139,14 +139,28 @@ def create_node_collection(mof, node_location_result: NodelocationResult) -> Nod
     return NodeCollection(nodes)
 
 
-def identify_node_binding_indices(mof, indices, connecting_paths, binding_indices) -> List[int]:
+def identify_node_binding_indices(
+    mof: "MOF",
+    indices: Iterable[int],
+    connecting_paths: Iterable[int],
+    binding_indices: Iterable[int],
+) -> List[int]:
     """Identify the binding indices of a node.
 
     For the metal clusters, our rule for binding indices is quite simple.
     We simply take the metal that is part of the connecting path.
     We then additionally filter based on the constraint that
     the nodes we want to identify need to bee bound to what
-    we have in the connecting path
+    we have in the connecting path.
+
+    Args:
+        mof (MOF): moffragmentor MOF instance
+        indices (Iterable[int]): indices of the node
+        connecting_paths (Iterable[int]): indices of the connecting path
+        binding_indices (Iterable[int]): indices of the binding indices
+
+    Returns:
+        List[int]: indices of the binding indices
     """
     filtered = []
     candidates = set(mof.metal_indices) & set(indices)

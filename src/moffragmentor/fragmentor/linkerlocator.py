@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""Based on the node location, locate the linkers"""
-from typing import List, Tuple
+"""Based on the node location, locate the linkers."""
+from typing import Iterable, List, Tuple
 
 import numpy as np
 from loguru import logger
@@ -15,13 +15,19 @@ __all__ = ["create_linker_collection", "identify_linker_binding_indices"]
 
 def _pick_linker_indices(
     idxs: List[List[int]],
-    centers,
-    coordinates,
-    all_node_branching_indices,
-    two_branching_indices=True,
+    centers: Iterable[np.array],
+    coordinates: Iterable[np.array],
+    all_node_branching_indices: Iterable[int],
+    two_branching_indices: bool = True,
 ) -> Tuple[List[int], List[int]]:
-    """Trying to have a more reasonable way to filter out linkers
-    (of multiple versions of the linker that might be wrapped across a unit cell)"""
+    """Pick the relevant linkers.
+
+    Trying to have a more reasonable way to filter out linkers
+    (of multiple versions of the linker that might be wrapped across a unit cell)
+
+    Args:
+        idxs (List[]): List of linker indices
+    """
     threshold = 2 if two_branching_indices else 1
     counter = 0
     unique_branching_site_centers = {}
@@ -46,7 +52,7 @@ def _pick_linker_indices(
 
 
 def _get_connected_linkers(
-    mof, branching_coordinates: List[np.array], linker_collection
+    mof: "MOF", branching_coordinates: List[np.array], linker_collection: LinkerCollection
 ) -> List[Tuple[int, np.array, np.array]]:
     """The insight of this function is that the branching
     indices outside the cell a node might
@@ -74,24 +80,7 @@ def _get_connected_linkers(
     return linked_to
 
 
-def _get_edge_dict(mof, node_collection, linker_collection):
-    edge_dict = {}
-    branching_coordinates = []
-
-    for node in node_collection:
-        branching_coordinates.append(node.branching_coords)
-
-    for i, node in enumerate(node_collection):
-        edge_dict[i] = _get_connected_linkers(
-            mof,
-            branching_coordinates[i],
-            linker_collection,
-        )
-
-    return edge_dict
-
-
-def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
+def _create_linkers_from_node_location_result(
     mof, node_location_result, node_collection, unbound_solvent
 ) -> Tuple[LinkerCollection, dict]:
     linkers = []
@@ -180,10 +169,7 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
             linkers.append(linker)
 
     linker_collection = LinkerCollection(linkers)
-
-    # Fith: the edge dict describes the connections between metal clusters and linkers
-    edge_dict = _get_edge_dict(mof, node_collection, linker_collection)
-    return linker_collection, edge_dict
+    return linker_collection
 
 
 def create_linker_collection(
@@ -193,10 +179,10 @@ def create_linker_collection(
     unbound_solvents,
 ) -> Tuple[LinkerCollection, dict]:
     """Based on MOF, node locaion and unbound solvent location locate the linkers"""
-    linker_collection, edge_dict = _create_linkers_from_node_location_result(
+    linker_collection = _create_linkers_from_node_location_result(
         mof, node_location_result, node_collection, unbound_solvents
     )
-    return linker_collection, edge_dict
+    return linker_collection
 
 
 def identify_linker_binding_indices(mof, connecting_paths, indices):

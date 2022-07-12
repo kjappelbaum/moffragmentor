@@ -24,13 +24,16 @@ class SBUCollection:
         if len(self._indices) != len(self.sbus):
             raise ValueError("Number of SBUs is inconsistent")
 
-    def __len__(self):
+    def __len__(self) -> int:
+        """Return number of SBUs."""
         return len(self.sbus)
 
-    def __getitem__(self, index):
+    def __getitem__(self, index) -> SBU:
+        """Return SBU at index."""
         return self.sbus[index]
 
     def __iter__(self):
+        """Generator for iterating over SBUs."""
         for sbu in self.sbus:
             yield sbu
 

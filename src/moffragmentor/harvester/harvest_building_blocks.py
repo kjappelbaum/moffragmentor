@@ -82,6 +82,7 @@ class Harvester:
             dimensionality = self.mof.dimensionality
         except Exception:  # pylint:disable=broad-except
             dimensionality = np.nan
+        # ToDo: Fixme for the new API
         edge_dict = parts.net_embedding.edge_dict
         linker_connectivity = get_linker_connectivity(edge_dict)
         for i, linker in enumerate(parts.linkers):

@@ -32,7 +32,7 @@ from typing import Dict, Iterable, List, Optional, Tuple, Union
 
 import networkx as nx
 import numpy as np
-from backports import cached_property
+from backports.cached_property import cached_property
 from pymatgen.core import IMolecule, Lattice, Molecule
 from pymatgen.util.coord import pbc_diff
 
@@ -201,7 +201,7 @@ class Net:
         self._remove_2c()
 
     @cached_property
-    def rcsr_code(self):
+    def rcsr_code(self) -> str:
         """Return the RCSR code of the net."""
         return run_systre(self.get_systre_string())["rcsr_code"]
 

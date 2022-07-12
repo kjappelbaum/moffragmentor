@@ -59,20 +59,24 @@ def run_systre(systre_string: str) -> dict:
         return ""
 
 
-def _parse_systre_lines(  # pylint:disable=too-many-locals, too-many-branches
+def _parse_systre_lines(
     lines: List[str],
 ) -> dict:
-    """Given the lines from a Systre output file, which might be created with
-    ```
+    """Parse the output of Systre.
+
+    Input for this function might be created with
+
+    ```python
     with open('systre.out', 'r') as handle:
         lines = handle.readlines()
     ```
 
     Args:
-        lines (List[str]): [description]
+        lines (List[str]): Output of systre run,
+            parsed into a list of strings (one line per string)
 
     Returns:
-        dict: [description]
+        dict: parsed output
     """
     rcsr_line = float("inf")
     cell_line = float("inf")

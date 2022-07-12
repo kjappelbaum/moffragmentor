@@ -8,7 +8,7 @@ from .filter import point_in_mol_coords
 from .linkerlocator import create_linker_collection
 from .nodelocator import NodelocationResult, create_node_collection, find_node_clusters
 from .solventlocator import get_all_bound_solvent_molecules, get_floating_solvent_molecules
-from ..net import NetEmbedding
+from ..net import Net
 from ..utils import _get_metal_sublist
 from ..utils.periodic_graph import is_periodic
 
@@ -29,9 +29,7 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
     # Find bound solvent
     bound_solvent = get_all_bound_solvent_molecules(mof, node_result.nodes)
     # Filter the linkers (valid linkers have at least two branch points)
-    linker_collection, edge_dict = create_linker_collection(
-        mof, node_result, node_collection, unbound_solvent
-    )
+    linker_collection = create_linker_collection(mof, node_result, node_collection, unbound_solvent)
 
     # filter for metal in linker case:
     ok_node = []
@@ -83,12 +81,12 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
         # Find bound solvent
         bound_solvent = get_all_bound_solvent_molecules(mof, node_result.nodes)
         # Filter the linkers (valid linkers have at least two branch points)
-        linker_collection, edge_dict = create_linker_collection(
+        linker_collection = create_linker_collection(
             mof, node_result, node_collection, unbound_solvent
         )
     logger.info("Constructing the embedding")
     # Now, get the net
-    net_embedding = NetEmbedding(linker_collection, node_collection, edge_dict, mof.lattice)
+    net_embedding = Net(linker_collection, node_collection, mof.lattice)
     fragmentation_results = FragmentationResult(
         node_collection,
         linker_collection,

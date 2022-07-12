@@ -69,7 +69,9 @@ def get_subgraphs_as_molecules(  # pylint:disable=too-many-locals
     return_unique: bool = True,
     disable_boundary_crossing_check: bool = False,
     filter_in_cell: bool = True,
-) -> Tuple[List[Molecule], List[MoleculeGraph], List[List[int]], List[np.ndarray]]:
+) -> Tuple[
+    List[Molecule], List[MoleculeGraph], List[List[int]], List[np.ndarray], List[np.ndarray]
+]:
     """Isolates connected components as molecules from a StructureGraph.
 
     Copied from http://pymatgen.org/_modules/pymatgen/analysis/graphs.html#StructureGraph.get_subgraphs_as_molecules
@@ -82,11 +84,15 @@ def get_subgraphs_as_molecules(  # pylint:disable=too-many-locals
             If False, it will return all molecules that
             are completely included in the unit cell
             and fragments of the ones that are only partly in the cell
+        disable_boundary_crossing_check (bool): If true, it will not check
+            if the molecules are crossing the boundary of the unit cell.
+            Default is False.
         filter_in_cell (bool): If True, it will only return molecules
             that have at least one atom in the cell
 
     Returns:
-        Tuple[List[Molecule], List[MoleculeGraph], List[List[int]], List[np.ndarray]]
+        Tuple[List[Molecule], List[MoleculeGraph], List[List[int]], List[np.ndarray], List[np.ndarray]]:
+            A tuple of (molecules, graphs, indices, centers, coordinates)
     """
     # creating a supercell is an easy way to extract
     # molecules (and not, e.g., layers of a 2D crystal)

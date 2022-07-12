@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Etraction of pymatgen Molecules from a structure for which we know the branching points."""
 from collections import namedtuple
-from typing import List, Tuple
 
 import networkx as nx
 import numpy as np
@@ -30,9 +29,7 @@ _SitesAndIndicesOutput = namedtuple(
 )
 
 
-def _sites_and_classified_indices_from_indices(  # pylint:disable=too-many-locals
-    mof, indices: set
-) -> _SitesAndIndicesOutput:
+def _sites_and_classified_indices_from_indices(mof, indices: set) -> _SitesAndIndicesOutput:
     """Extract the sites and indices of a molecule from a set of indices.
 
     Given the indices that we identified to belong to the group
@@ -54,7 +51,14 @@ def _sites_and_classified_indices_from_indices(  # pylint:disable=too-many-local
         indices (set): set of indices that we identified to belong to the group
 
     Returns:
-       _SitesAndIndicesOutput
+        _SitesAndIndicesOutput: namedtuple containing the following fields:
+            cartesian_coordinates (np.array): cartesian coordinates of the sites
+            species (list): species of the sites
+            edges (list): edges of the molecule
+            index_mapping (dict): mapping from indices in the structure to indices in the molecule
+            hidden_vertices (set): indices of vertices in the molecule that should be hidden
+                (num_neighbors_in_molecule == 1) and len(neighbors) > 1)
+            persistent_non_metal_bridged_components (set): indices of vertices in the molecule that are
     """
     new_positions = []
     persistent_non_metal_bridged_components = []

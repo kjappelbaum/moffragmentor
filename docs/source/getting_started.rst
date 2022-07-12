@@ -4,7 +4,7 @@ Getting started with moffragmentor
 Installation
 ---------------
 
-We recommend installing moffragmentor in a clean virtual environment environment (e.g., a `conda environment <https://docs.conda.io/projects/conda/en/latest/index.html>`_)
+We recommend installing moffragmentor in a clean virtual environment  (e.g., a `conda environment <https://docs.conda.io/projects/conda/en/latest/index.html>`_)
 
 
 You can install the latest stable release from PyPi using
@@ -46,15 +46,15 @@ To fragment a MOF you need to create an instance of :py:class:`~moffragmentor.mo
     mof = MOF.from_cif(<my_cif.cif>)
     fragmentation_result = mof.fragment()
 
-The result is an :code:`FragmentationResult` :code:`namedtuple` with the fields :code:`nodes`, :code:`linkers`,
-both subclasses of of a :py:class:`moffragmentor.sbu.SBUCollection` and  :code:`bound_solvent`, :code:`unbound_solvent`, both :py:class:`moffragmentor.molecule.NonSbuMoleculeCollection`, as well as a :py:class:`moffragmentor.net.Net`.
+The result is a :code:`FragmentationResult` :code:`namedtuple` with the fields :code:`nodes`, :code:`linkers`,
+both subclasses of a :py:class:`moffragmentor.sbu.SBUCollection` and  :code:`bound_solvent`, :code:`unbound_solvent`, both :py:class:`moffragmentor.molecule.NonSbuMoleculeCollection`, and a :py:class:`moffragmentor.net.Net`.
 
 .. warning::
 
     Note that moffragmentor currently does not automatically delete bound solvent. This is due to two observations:
 
     1. We have very little understanding of what solvent we can remove without affecting the structural integrity.
-    2. We (currently) do not have a way to estimate if a solvent is charged. We explore different implementation strategies but we do not have a robust one at this moment.
+    2. We (currently) do not have a way to estimate if a solvent is charged. We explore different implementation strategies, but we do not have a robust one at this moment.
 
 
 You might want a quick overview of the composition of the different components. You can access this via the :code:`composition` properties
@@ -67,26 +67,20 @@ which will return a dictionary of the counts of the compositions, for example :c
 
 Clearly, we do not consider floating solvent for the computation of the net.
 
-Known issues
-----------------
 
-For some structures in the CSD MOF subset, there will be problems with the fragmentation.
-One example is :code:`CAYSIE`, which is a metalloporphyrinate. Here, the code struggles to distinguish nodes and linkers as a core routine of the fragmentor is to check if a metal atom is inside another, potential linker, molecule.
+.. admonition:: Known issues
+    :class: warning
+    
+    For some structures in the CSD MOF subset, there will be problems with the fragmentation.
+    One example is :code:`CAYSIE`, which is a metalloporphyrinate. Here, the code struggles to distinguish nodes and linkers as a core routine of the moffragmentor is to check if a metal atom is inside another, potential linker, molecule.
 
-.. figure:: _static/RSM2943.png
-    :alt: RSM2943
-    :width: 400px
-    :align: center
+    .. figure:: _static/RSM2943.png
+        :alt: RSM2943
+        :width: 400px
+        :align: center
 
-    Example of a metalloporphyrinate for which the fragmentor fails.
+        Example of a metalloporphyrinate for which the fragmentor fails.
 
-Also note that there are problems with assigning RCSR codes for 1D-rod MOFs.
+    Also note that there are problems with analyzing the combinatorial topology of 1D rod MOFs.
+    `There only recently has been an algorithm proposed that is implemented in ToposPro <https://link.springer.com/article/10.1007/s11224-016-0774-1>`_.
 
-Calculating descriptors
---------------------------
-
-A key feature of moffragmentor is that it can compute relevant descriptors of building blocks.
-
-
-Modifying a building block
--------------------------------

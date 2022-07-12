@@ -36,18 +36,19 @@ def _has_path_to_any_other_metal(mof, index: int, this_metal_index: int) -> bool
     return False
 
 
-def recursive_dfs_until_terminal(  # pylint:disable=dangerous-default-value
+def recursive_dfs_until_terminal(
     mof,
     start: int,
-    path: List[int] = [],
-    skip_list: List[int] = [],
+    path: List[int] = [],  # noqa: B006
+    skip_list: List[int] = [],  # noqa: B006
 ) -> List[int]:
     """From a given starting point perform depth-first search until leaf nodes are reached.
 
     Args:
         mof (MOF): A MOF instance
         start (int): Starting index for the search
-        path (List[int], optional): Starting path. Defaults to [].
+        path (List[int]): Starting path. Defaults to [].
+        skip_list (List[int]): List of indices to skip. Defaults to [].
 
     Returns:
         List[int]: Path between start and the leaf node
@@ -99,24 +100,24 @@ def _complete_graph(
     return completed_edges
 
 
-def recursive_dfs_until_branch(  # pylint:disable=dangerous-default-value
+def recursive_dfs_until_branch(
     mof,
     start: int,
-    path: List[int] = [],
-    branching_nodes=[],
+    path: List[int] = [],  # noqa: B006
+    branching_nodes: List[int] = [],  # noqa: B006
 ) -> List[int]:
-    """From a given starting point perform depth-first search
-    until branch nodes are reached.
+    """From a starting point perform DFS until branch nodes are reached.
 
     Args:
         mof (MOF): A MOF instance
         start (int): Starting index for the search
         path (List[int], optional): Starting path. Defaults to [].
+        branching_nodes (List[int], optional): List of branching nodes.
+            Defaults to [].
 
     Returns:
         List[int]: Path between start and the leaf node
     """
-
     if start not in path:
         path.append(start)
 
@@ -132,24 +133,24 @@ def recursive_dfs_until_branch(  # pylint:disable=dangerous-default-value
     return path, branching_nodes
 
 
-def recursive_dfs_until_cn3(  # pylint:disable=dangerous-default-value
+def recursive_dfs_until_cn3(
     mof,
     start: int,
-    path: List[int] = [],
-    branching_nodes=[],
+    path: List[int] = [],  # noqa: B006
+    branching_nodes: List[int] = [],  # noqa: B006
 ) -> List[int]:
-    """From a given starting point perform depth-first search
-    until CN=3 nodes are reaches.
+    """From starting point perform DFS until CN=3 nodes are reached.
 
     Args:
         mof (MOF): A MOF instance
         start (int): Starting index for the search
         path (List[int], optional): Starting path. Defaults to [].
+        branching_nodes (List[int], optional): List of branching nodes.
+            Defaults to [].
 
     Returns:
         List[int]: Path between start and the leaf node
     """
-
     if start not in path:
         path.append(start)
 
@@ -166,13 +167,15 @@ def recursive_dfs_until_cn3(  # pylint:disable=dangerous-default-value
 
 
 def _to_graph(mof, paths, branch_sites):
-    """https://stackoverflow.com/questions/4842613/merge-lists-that-share-common-elements"""  # pylint:disable=line-too-long
-    G = nx.Graph()
+    """https://stackoverflow.com/questions/4842613/merge-lists-that-share-common-elements"""
+    graph = nx.Graph()
     for part in paths:
-        G.add_nodes_from(part)
-        G.add_edges_from(_to_edges(part))
-    G.add_edges_from(_connect_connected_branching_indices(mof, _flatten_list_of_sets(branch_sites)))
-    return G
+        graph.add_nodes_from(part)
+        graph.add_edges_from(_to_edges(part))
+    graph.add_edges_from(
+        _connect_connected_branching_indices(mof, _flatten_list_of_sets(branch_sites))
+    )
+    return graph
 
 
 def _to_edges(paths):

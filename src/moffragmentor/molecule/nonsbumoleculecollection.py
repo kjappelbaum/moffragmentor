@@ -28,13 +28,16 @@ class NonSbuMoleculeCollection:
         return len(self.molecules)
 
     def __getitem__(self, index):
+        """Get a molecule from the collection."""
         return self.molecules[index]
 
     def __next__(self):
+        """Iterate over the molecules in the collection."""
         for molecule in self.molecules:
             yield molecule
 
-    def __add__(self, other):
+    def __add__(self, other: "NonSbuMoleculeCollection"):  # noqa: F821
+        """Add two collections of molecules."""
         molecules = self.molecules + other.molecules
         return NonSbuMoleculeCollection(molecules)
 
