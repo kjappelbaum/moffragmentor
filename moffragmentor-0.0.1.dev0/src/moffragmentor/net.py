@@ -188,7 +188,12 @@ def is_periodic_image(a: np.array, b: np.array, lattice: Lattice, tolerance: flo
 
 
 class Net:
-    def __init__(self, nodes: Dict[str, Tuple[NetNode, int]], edges: Iterable[VoltageEdge], skip_2c_contraction: bool = False):
+    def __init__(
+        self,
+        nodes: Dict[str, Tuple[NetNode, int]],
+        edges: Iterable[VoltageEdge],
+        skip_2c_contraction: bool = False,
+    ):
         """Initialize a Net object.
 
         Args:

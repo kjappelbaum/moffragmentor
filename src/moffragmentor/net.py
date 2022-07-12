@@ -487,7 +487,12 @@ def has_edge(metal_cluster: SBU, linker: SBU, lattice: Lattice) -> Tuple[bool, L
     return len(images) > 0, images
 
 
-def build_net(metal_clusters: NodeCollection, linkers: LinkerCollection, lattice: Lattice, skip_2c_contractions: bool =False) -> Net:
+def build_net(
+    metal_clusters: NodeCollection,
+    linkers: LinkerCollection,
+    lattice: Lattice,
+    skip_2c_contractions: bool = False,
+) -> Net:
     """Given a metal cluster and linker collection from the fragmentation, build a net.
 
     Args:

@@ -17,7 +17,6 @@ import sys
 sys.path.insert(0, os.path.abspath("../.."))
 
 
-
 # -- Project information -----------------------------------------------------
 
 project = "moffragmentor"
@@ -25,7 +24,7 @@ copyright = "2022, Kevin Maik Jablonka"
 author = "Kevin Maik Jablonka"
 
 # The full version, including alpha/beta/rc tags
-release = '0.0.1-dev'
+release = "0.0.1-dev"
 
 
 # -- General configuration ---------------------------------------------------
@@ -69,7 +68,7 @@ numfig = True
 # a list of builtin themes.
 #
 html_theme = "sphinx_book_theme"
-#html_logo = "../pyepal_logo.png"
+# html_logo = "../pyepal_logo.png"
 
 # Register the theme as an extension to generate a sitemap.xml
 
