@@ -12,6 +12,15 @@ class SBUCollection:
     """Container for a collection of SBUs"""
 
     def __init__(self, sbus: List[SBU]):
+        """Construct a SBUCollection.
+
+        Args:
+            sbus (List[SBU]): List of SBU objects.
+
+        Raises:
+            ValueError: If there is an unexpected number of SBUs
+                (inconsistency in the extracted indices and the SBUs).
+        """
         self.sbus = sbus
         self._sbu_types = None
         self._composition = None
@@ -19,8 +28,6 @@ class SBUCollection:
         self._centers = [sbu.center for sbu in self.sbus]
         self._indices = [sbu.get_indices() for sbu in self.sbus]
 
-        if len(self._indices) != len(self.sbus):
-            raise ValueError("Number of SBUs is inconsistent")
         if len(self._indices) != len(self.sbus):
             raise ValueError("Number of SBUs is inconsistent")
 
@@ -33,7 +40,7 @@ class SBUCollection:
         return self.sbus[index]
 
     def __iter__(self):
-        """Generator for iterating over SBUs."""
+        """Iterate over SBUs (generator)."""
         for sbu in self.sbus:
             yield sbu
 

@@ -1,7 +1,7 @@
 """
 Routines for finding branching points in a structure graph of a MOF.
 
-Note that those routines do not work for other reticular materials 
+Note that those routines do not work for other reticular materials
 as they assume the presence of a metal.
 """
 from operator import itemgetter

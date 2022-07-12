@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Describing the organic building blocks, i.e., linkers"""
+"""Describing the organic building blocks, i.e., linkers."""
 from copy import deepcopy
 
 from pymatgen.core import Molecule
@@ -9,7 +9,7 @@ from .sbu import SBU
 
 
 class Linker(SBU):
-    """Describing a linker in a MOF"""
+    """Describe a linker in a MOF"""
 
 
 def _get_edge_dict_from_rdkit_mol(mol):
@@ -20,7 +20,7 @@ def _get_edge_dict_from_rdkit_mol(mol):
 
 
 def _make_mol_from_rdkit_mol(mol):
-    """Takes the first conformer"""
+    """Take the first conformer"""
     molecule = deepcopy(mol)
     AllChem.EmbedMolecule(molecule)  # pylint:disable=no-member
     # not clear to me why pylint complains

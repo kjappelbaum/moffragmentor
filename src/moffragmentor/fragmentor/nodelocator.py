@@ -140,7 +140,7 @@ def create_node_collection(mof, node_location_result: NodelocationResult) -> Nod
 
 
 def identify_node_binding_indices(
-    mof: "MOF",
+    mof: "MOF",  # noqa: F821
     indices: Iterable[int],
     connecting_paths: Iterable[int],
     binding_indices: Iterable[int],

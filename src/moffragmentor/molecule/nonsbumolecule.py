@@ -45,7 +45,7 @@ class NonSbuMolecule:
         return str(self.composition)
 
     def __len__(self):
-        """Number of atoms in the molecule"""
+        """Return number of atoms in the molecule"""
         return len(self.molecule)
 
     @classmethod

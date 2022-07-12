@@ -21,6 +21,8 @@ or the latest development version using
     pip install git+https://github.com/kjappelbaum/moffragmentor.git
 
 
+If you want to determine RCSR codes, you will also need to install a `Java runtime environment (JRE) of version 1.5.0 or later <https://www.java.com/en/>`_ on your machine as we use the `Systre <http://gavrog.org>`_  (Symmetry, Structure (Recognition) and Refinement) code to perform analysis of the labeled quotient graphs we construct in moffragmentor.
+
 Extensions
 ...........
 

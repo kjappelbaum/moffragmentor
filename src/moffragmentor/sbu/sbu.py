@@ -160,6 +160,9 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         Often a molecule would appear broken because it
         is wrapped around the unit cell. This method attempts to center
         it as connected molecule in the center of the unit cell.
+
+        Returns:
+            Molecule: Molecule that is not wrapped around the unit cell.
         """
         # if we do not scale the cell, we struggle fitting large molecule
         atoms = Atoms(
@@ -188,6 +191,7 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
             listkey_counts (int): Number of list keys to return
                 (relevant for substructure search).
                 Defaults to 10.
+            kwargs: Additional arguments to pass to PubChem.search
 
         Returns:
             Tuple[List[str], bool]: List of pubchem ids and whether there was an identity match
@@ -226,9 +230,11 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         return self._indices
 
     def __len__(self):
+        """Return the number of atoms in the molecule."""
         return len(self.molecule)
 
     def __str__(self):
+        """Return the SMILES string for the molecule."""
         return self.smiles
 
     def dump(self, path):
@@ -319,7 +325,7 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         return nglview.show_pymatgen(self._get_binding_sites_structure())
 
     def to(self, fmt: str, filename: str):
-        return self.molecule.to(fmt, filename)
+        return self.centered_molecule.to(fmt, filename)
 
     @cached_property
     def smiles(self) -> str:
@@ -330,6 +336,9 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         molecule ends up as different canonical SMILES for openbabel.
         If RDKit cannot make a canonical SMILES (can happen with organometallics)
         we simply use the openbabel version.
+
+        Returns:
+            str: Canonical SMILES
         """
         mol = self.openbabel_mol
         smiles = mol.write("can").strip()

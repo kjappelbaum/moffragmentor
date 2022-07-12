@@ -12,7 +12,8 @@ from ..utils import _flatten_list_of_sets
 
 __all__ = ["create_linker_collection", "identify_linker_binding_indices"]
 
-
+# ToDo: reusue some of this computation when we get the net.
+# We do a similar loop there
 def _pick_linker_indices(
     idxs: List[List[int]],
     centers: Iterable[np.array],
@@ -23,10 +24,20 @@ def _pick_linker_indices(
     """Pick the relevant linkers.
 
     Trying to have a more reasonable way to filter out linkers
-    (of multiple versions of the linker that might be wrapped across a unit cell)
+    (of multiple versions of the linker that might be wrapped across a unit cell).
 
     Args:
-        idxs (List[]): List of linker indices
+        idxs (List[List[int]]): List of list of linker indices
+        centers (Iterable[np.array]): List of linker centers
+        coordinates (Iterable[np.array]): List of linker coordinates
+        all_node_branching_indices (Iterable[int]): List of all node branching indices
+        two_branching_indices (bool): If True, only linkers with
+            at least two branching indices are considers.
+            Defaults to True.
+
+    Returns:
+        Tuple[List[int], List[int]]: List of linker indices and list of
+            linker indices that have branching points
     """
     threshold = 2 if two_branching_indices else 1
     counter = 0
@@ -49,35 +60,6 @@ def _pick_linker_indices(
         counter += 1
 
     return unique_branching_sites_indices.values(), has_branch_point
-
-
-def _get_connected_linkers(
-    mof: "MOF", branching_coordinates: List[np.array], linker_collection: LinkerCollection
-) -> List[Tuple[int, np.array, np.array]]:
-    """The insight of this function is that the branching
-    indices outside the cell a node might
-    be bound to are periodic images of the ones in the cell"""
-    linked_to = []
-    added_coords = set()
-    for branching_coordinate in branching_coordinates:
-
-        frac_a = mof.lattice.get_fractional_coords(branching_coordinate)
-        for j, linker in enumerate(linker_collection):
-            for coord in linker.branching_coords:
-                frac_b = mof.lattice.get_fractional_coords(coord)
-                # wrap the coordinates to the unit cell
-                # frac_b = frac_b- np.floor(frac_b)
-                distance, image = mof.lattice.get_distance_and_image(frac_a, frac_b)
-
-                if distance < 0.001:
-                    # need to really carefully check that we get the correct COM and not only have an image
-                    center_frac = mof.lattice.get_fractional_coords(linker.center)
-                    image_coord = list(mof.lattice.get_cartesian_coords(center_frac + image))
-                    if tuple(center_frac) not in added_coords:
-                        linked_to.append((j, list(image), image_coord))
-                        added_coords.add(tuple(center_frac))
-
-    return linked_to
 
 
 def _create_linkers_from_node_location_result(

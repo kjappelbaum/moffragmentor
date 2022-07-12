@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """This module contains functions that perform filtering on indices or fragments.
 
-Those fragments are typically obtained from the other fragmentation modules"""
+Those fragments are typically obtained from the other fragmentation modules.
+"""
 
-from typing import Iterable
+from typing import Iterable, Union
 
 import networkx as nx
 import numpy as np
@@ -37,16 +38,20 @@ def point_in_mol_coords(point: np.array, points: np.array, lattice: Lattice) -> 
     return in_hull(point, new_coords) or in_hull(point, points)
 
 
-def in_hull(pointcloud, hull) -> bool:
+def in_hull(pointcloud: np.array, hull: Union[np.array, Delaunay]) -> bool:
     """
     Test if points in `p` are in `hull`.
 
-    `p` should be a `NxK` coordinates of `N` points in `K` dimensions
-    `hull` is either a scipy.spatial.Delaunay object or the `MxK` array of the
-    coordinates of `M` points in `K`dimensions for which Delaunay triangulation
-    will be computed
+    Taken from https://stackoverflow.com/a/16898636
 
-    https://stackoverflow.com/a/16898636
+    Args:
+        pointcloud (np.array): points to test (`NxK` coordinates of `N` points in `K` dimensions)
+        hull (np.array): Is either a scipy.spatial.Delaunay object
+            or the `MxK` array of the coordinates of `M` points in `K` dimensions
+            for which Delaunay triangulation will be computed
+
+    Returns:
+        bool: True if all points are in the hull, False otherwise
     """
     try:
         if not isinstance(hull, Delaunay):

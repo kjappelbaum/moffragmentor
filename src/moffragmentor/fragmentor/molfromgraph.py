@@ -78,7 +78,7 @@ def get_subgraphs_as_molecules(  # pylint:disable=too-many-locals
     and removed the duplicate check
 
     Args:
-        structure_graph (pymatgen.analysis.graphs.StructureGraph): Structuregraph
+        structure_graph (StructureGraph): Structuregraph
         use_weights (bool): If True, use weights for the edge matching
         return_unique (bool): If true, it only returns the unique molecules.
             If False, it will return all molecules that
@@ -146,9 +146,7 @@ def get_subgraphs_as_molecules(  # pylint:disable=too-many-locals
             if not any(already_present):
                 unique_subgraphs.append(subgraph)
 
-    def make_mols(
-        molecule_subgraphs=molecule_subgraphs, center=False
-    ):  # pylint:disable=dangerous-default-value
+    def make_mols(molecule_subgraphs=molecule_subgraphs, center=False):
         molecules = []
         indices = []
         indices_here = []
@@ -159,7 +157,7 @@ def get_subgraphs_as_molecules(  # pylint:disable=too-many-locals
             species = [supercell_sg.structure[n].specie for n in subgraph.nodes()]
             idx = [subgraph.nodes[n]["idx"] for n in subgraph.nodes()]
             idx_here = list(subgraph.nodes())
-            molecule = Molecule(species, coords)  #  site_properties={"binding": binding}
+            molecule = Molecule(species, coords)  # site_properties={"binding": binding}
 
             masses = np.array(
                 [get_mass(str(supercell_sg.structure[idx].specie)) for idx in idx_here]

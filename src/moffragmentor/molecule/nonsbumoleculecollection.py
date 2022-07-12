@@ -24,7 +24,7 @@ class NonSbuMoleculeCollection:
         self.indices = sum([molecule.indices for molecule in self.molecules], [])
 
     def __len__(self):
-        """Number of molecules in the collection."""
+        """Return number of molecules in the collection."""
         return len(self.molecules)
 
     def __getitem__(self, index):

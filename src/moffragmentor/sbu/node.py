@@ -85,7 +85,7 @@ def node_from_mof_and_indices(  # pylint:disable=too-many-locals, too-many-argum
         closest_branching_index_in_molecule=closest_branching_index_in_molecule,
         binding_indices=binding_indices,
         original_indices=[i for i in relevant_indices if i in node_indices],
-        persistent_non_metal_bridged=sites_and_indices.persistent_non_metal_bridged_components,  # pylint:disable=line-too-long
+        persistent_non_metal_bridged=sites_and_indices.persistent_non_metal_bridged_components,
         terminal_in_mol_not_terminal_in_struct=sites_and_indices.hidden_vertices,
         graph_branching_coords=sites_and_indices.cartesian_coordinates[
             [sites_and_indices.index_mapping[i] for i in graph_branching_indices]
@@ -123,6 +123,9 @@ class Node(SBU):
                 that belong to this node.
             connecting_paths: The indices of the connecting paths in the MOF
                 that belong to this node.
+
+        Returns:
+            A node object.
         """
         return node_from_mof_and_indices(
             cls,

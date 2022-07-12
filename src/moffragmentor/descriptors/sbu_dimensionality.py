@@ -20,7 +20,7 @@ def get_structure_graph_dimensionality(structure_graph: StructureGraph) -> int:
 
 
 def get_sbu_dimensionality(mof: "MOF", indices: Iterable[int]) -> int:  # noqa:F821
-    """Computer the dimensionality of an SBU.
+    """Compute the dimensionality of an SBU.
 
     SBU ischaracterized as a subset of indices of a MOF
 
