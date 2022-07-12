@@ -29,7 +29,7 @@ def test_fragmentation():
 
     assert (
         vejhez_parts.linkers.smiles[0]
-        == "[O]C(=O)c1cc(cc(c1)C1=C2C=CC3=[N]2[Zn@]24n5c1ccc5C(=C1[N]2=C(C=C1)C(=c1n4c(=C3c2cc(cc(c2)C(=O)[O])C(=O)[O])cc1)c1cc(cc(c1)C(=O)[O])C(=O)[O])c1cc(cc(c1)C(=O)[O])C(=O)[O])C(=O)[O]"  # pylint:disable=line-too-long
+        == "[O]C(=O)c1cc(cc(c1)C1=C2C=CC3=[N]2[Zn@]24n5c1ccc5C(=C1[N]2=C(C=C1)C(=c1n4c(=C3c2cc(cc(c2)C(=O)[O])C(=O)[O])cc1)c1cc(cc(c1)C(=O)[O])C(=O)[O])c1cc(cc(c1)C(=O)[O])C(=O)[O])C(=O)[O]"  # noqa: E501
     )
     assert len(set(vejhez_parts.linkers.smiles)) == 1
 

@@ -12,8 +12,7 @@ from ..utils import _flatten_list_of_sets
 
 __all__ = ["create_linker_collection", "identify_linker_binding_indices"]
 
-# ToDo: reusue some of this computation when we get the net.
-# We do a similar loop there
+
 def _pick_linker_indices(
     idxs: List[List[int]],
     centers: Iterable[np.array],
@@ -39,6 +38,8 @@ def _pick_linker_indices(
         Tuple[List[int], List[int]]: List of linker indices and list of
             linker indices that have branching points
     """
+    # ToDo: reusue some of this computation when we get the net.
+    # We do a similar loop there
     threshold = 2 if two_branching_indices else 1
     counter = 0
     unique_branching_site_centers = {}

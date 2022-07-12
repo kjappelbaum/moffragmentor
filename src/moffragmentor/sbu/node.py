@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """Create Python containers for node building blocks.
-Here we understand metal clusters as nodes."""
+
+Here we understand metal clusters as nodes.
+"""
 from collections import defaultdict
 from typing import Set
 

@@ -12,7 +12,7 @@ def test_unbound_solvent_identification(get_p_linker_with_floating):
         get_p_linker_with_floating.structure_graph
     )
     # we see pyrrolidinium, h2o and h3o+ as solvent,
-    # see https://www.ccdc.cam.ac.uk/structures/Search?Ccdcid=MAGBON&DatabaseToSearch=Published # pylint:disable=line-too-long
+    # see https://www.ccdc.cam.ac.uk/structures/Search?Ccdcid=MAGBON&DatabaseToSearch=Published
     assert len(unique_mols) == len(unique_graphs) == len(unique_indices) == 3
     compositions = [str(unique_mol.composition.alphabetical_formula) for unique_mol in unique_mols]
 

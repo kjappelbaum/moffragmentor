@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Compute dimensionality of MOF building blocks. 
+"""Compute dimensionality of MOF building blocks.
 
 One important piece of information about the SBUs is their dimenaionality,
 e.g., if they are clusters, if they form rods, or if they form sheets.
