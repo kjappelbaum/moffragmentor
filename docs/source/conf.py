@@ -69,19 +69,19 @@ numfig = True
 # a list of builtin themes.
 #
 html_theme = "sphinx_book_theme"
-html_logo = "../pyepal_logo.png"
+#html_logo = "../pyepal_logo.png"
 
 # Register the theme as an extension to generate a sitemap.xml
 
 
 html_theme_options = {
     "path_to_docs": "docs",
-    "repository_url": "https://github.com/kjappelbaum/pymoffragmentor",
+    "repository_url": "https://github.com/kjappelbaum/moffragmentor",
     "use_repository_button": True,
     "use_edit_page_button": True,
     "use_issues_button": True,
     "launch_buttons": {
-        "binderhub_url": "https://mybinder.org/v2/gh/kjappelbaum/pymoffragmentor/HEAD?filepath=examples",
+        "binderhub_url": "https://mybinder.org/v2/gh/kjappelbaum/moffragmentor/HEAD?filepath=examples",
     },
 }
 

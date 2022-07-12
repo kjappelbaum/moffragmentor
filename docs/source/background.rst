@@ -4,7 +4,10 @@ Background information
 
 Fragmentation
 ---------------
-For the fragmentation of a MOF structure we rely on a structure graph. In moffragmentor we use heuristics in pymatgen to construct the structure graph (which is a networkx multigraph with annotation about the periodic neighbors). If the structure graph does not contain a pair of bonds, moffragmentor cannot consider it in the fragmentation.
+For the fragmentation of a MOF structure we rely on a structure graph. 
+In moffragmentor we use heuristics in pymatgen to construct the structure graph 
+(which is a networkx multigraph with annotation about the periodic neighbors). 
+If the structure graph does not contain a pair of bonds, moffragmentor cannot consider it in the fragmentation.
 
 .. warning::
     The current implementation of the fragementation is in parts
@@ -18,7 +21,8 @@ For the fragmentation, there are a few definitions we have to make:
 
 .. topic:: **Bound solvent**
 
-    A bound solvent molecule is bound via a bridge egde to one metal. Accroding to this definition, M-OCH\ :sub:`3`, M-OH\ :sub:`2`, etc. are all bound solvents, whereas a bridging formate is not.
+    A bound solvent molecule is bound via a bridge edge to one metal. 
+    According to this definition, M-OCH\ :sub:`3`, M-OH\ :sub:`2`, etc. are all bound solvents, whereas a bridging formate is not.
 
 .. topic:: **Floating solvent**
 
@@ -26,8 +30,12 @@ For the fragmentation, there are a few definitions we have to make:
 
 .. topic:: **Branching site**
 
-    A branching site is a site with at least three non-bridge edges. A branching site is connected to at least two non-metal elements.
-    A branching site that can only be reached from a metal by crossing another branching site is not a valid branching site.
+    * has at minimum coordination number 3
+    * at least one path with maximum 2 edges that leads to metal and does not contain a bride 
+    * has at minimum 2 non-metal connections that are not bridges 
+    (not that in case the connection to a metal goes via 2 edges, then the first node of this path to the metal contributes to this count)
+
+    If there are multiple neighboring sites selecting according this definition, we pick the one closest to the metal (the fewest number of edges).
 
 .. topic:: **Capping site**
 
@@ -38,17 +46,19 @@ For the fragmentation, there are a few definitions we have to make:
 For the fragmentation branching sites define the places at which we make the split between node and linker.
 The fragmentation algorithm goes through the following steps:
 
-0. Extracting floating solvent.
-1. From metal sites perform depth-first search on the structure graph up to a branching site.
-2. "Complete graph" by traversing the graph from all non-branching sites traversed in step 1 up to a leaf node.
-3. Extracting nodes as separate connected components.
-4. Deleting nodes from the structure graph and extracting linkers as connected components.
+1. Extracting floating solvent.
+2. From metal sites perform depth-first search on the structure graph up to a branching site.
+3. "Complete graph" by traversing the graph from all non-branching sites traversed in step 1 up to a leaf node.
+4. Extracting nodes as separate connected components.
+5. Deleting nodes from the structure graph and extracting linkers as connected components.
 
 
 SBU dimensionality
 --------------------
 
-For many applications, the dimensionality of the SBUs can be of interest [Rosi2005]_. For example, one can hypothesize that 1D nodes can have favorable charge conductance properties. Also, such rod SBUs may prevent interpenetration [Rosi2005]_.
+For many applications, the dimensionality of the SBUs can be of interest [Rosi2005]_. 
+For example, one can hypothesize that 1D nodes can have favorable charge conductance properties. 
+Also, such rod SBUs may prevent interpenetration [Rosi2005]_.
 
 To compute the dimensionality of the building blocks we use the algorithm proposed by Larsen et al. [Larsen2019]_.
 
@@ -61,33 +71,14 @@ One key intuition MOF chemists have is that the shape of the building blocks dic
 .. image:: _static/descriptor_fragments.png
     :alt: Different sets of binding/connecting indices
 
-Chemical descriptors
-.......................
-
-From general chemistry we know that the hardness/softness of the connecting atoms are likely most relevant for predicting the bond formation tendency (see `HSAB principle <https://en.wikipedia.org/wiki/HSAB_theory>`_)
-
-
-Geometrical descriptors
-.........................
-
-- Based on the branching index coordinates, we calculated local structure order parameters [Zimmermann2020]_. One can think of those structure order parameters as similarity measures to "ideal" coordination polyhedra. That is, the octahedral order parameter would measure the distance of the actual coordination polyhedron to an "ideal" octahedron.
-
-Flexibility descriptors
-.........................
-
-To capture the flexibility of the building blocks we compute
-
-- the `rotable bond count <http://rdkit.org/docs/source/rdkit.Chem.rdMolDescriptors.html#rdkit.Chem.rdMolDescriptors.CalcNumRotatableBonds>`_
-- the :code:`nConf20` descriptor, proposed in [Wicker2016]_ which samples accessible conformer space.
-- the Kier flexibility index [Kier1989]_
-
-All those descriptors operator on RDKit molecules (with enumerated conformers) and hence are only reliable for the organic linkers.
 
 Net Embedding
 ----------------
 
-A key concept in reticular chemistry is the one of the net. Computing the topology of the net embedding is not entirely trivial as there is no specific rule of of clusters of atoms should be condensed to a vertex [Bureekaew2015]_ (for example, `one might place vertices on subfragments of large linkers <https://www.mofplus.org/content/show/generalnetinfo>`_.
-In moffragmentor, we use the centers of node and linker clusters as vertices. Using the `Systre code <http://gavrog.org/Systre-Help.html>`_ [DelagoFriedrichs2003]_, we can then determine the `RCSR <http://rcsr.anu.edu.au/rcsr_nets>`_ code of this net.
+A key concept in reticular chemistry is the one of the net. 
+Computing the topology of the net embedding is not entirely trivial as there is no specific rule of clusters of atoms should be condensed to a vertex [Bureekaew2015]_ (for example, `one might place vertices on subfragments of large linkers <https://www.mofplus.org/content/show/generalnetinfo>`_.
+In moffragmentor, we use the centers of node and linker clusters as vertices. 
+Using the `Systre code <http://gavrog.org/Systre-Help.html>`_ [DelagoFriedrichs2003]_, we can then determine the `RCSR <http://rcsr.anu.edu.au/rcsr_nets>`_ code of this net.
 
 
 References

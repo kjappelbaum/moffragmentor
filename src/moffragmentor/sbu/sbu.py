@@ -54,23 +54,23 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
 
     It also acts as container for site indices:
 
-        - graph_branching_indices: are the branching indices according
-        to the graph-based definition. They might not be part of the molecule.
-        - closest_branching_index_in_molecule: those are always part of the molecule.
-        In case the branching index is part of the molecule,
-        they are equal to to the graph_branching_indices.
-        Otherwise they are obtained as the closest vertex of the original
-        branching vertex that is part of the molecule.
-        - binding_indices: are the indices of the sites between
+        * graph_branching_indices: are the branching indices according
+            to the graph-based definition. They might not be part of the molecule.
+        * closest_branching_index_in_molecule: those are always part of the molecule.
+            In case the branching index is part of the molecule,
+            they are equal to to the graph_branching_indices.
+            Otherwise they are obtained as the closest vertex of the original
+            branching vertex that is part of the molecule.
+        * binding_indices: are the indices of the sites between
             the branching index and metal
-        - original_indices: complete original set of indices that has been selected
-        for this building blocks
-        - persistent_non_metal_bridged: components that are connected
-        via a bridge both in the MOF structure
-        and building block molecule. No metal is part of the edge,
-        i.e., bound solvents are not included in this set
-        - terminal_in_mol_not_terminal_in_struct: indices that are terminal
-        in the molecule but not terminal in the structure
+        * original_indices: complete original set of indices that has been selected
+            for this building blocks
+        * persistent_non_metal_bridged: components that are connected
+            via a bridge both in the MOF structure
+            and building block molecule. No metal is part of the edge,
+            i.e., bound solvents are not included in this set
+        * terminal_in_mol_not_terminal_in_struct: indices that are terminal
+            in the molecule but not terminal in the structure
 
     Examples:
         >>> # visualize the molecule

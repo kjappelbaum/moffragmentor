@@ -48,15 +48,21 @@ fragments.linkers[0].show_molecule()
 fragments.nodes[0].show_molecule()
 ```
 
+You can also search PubChem for the building blocks 
+
+```python
+fragments.linkers[0].search_pubchem()
+```
+
 To get the [RCSR code](http://rcsr.anu.edu.au/nets) run
 
 
 ```python
 fragments.net_embedding.rcsr_code
 ```
-## MOFfragmentor in the MOF decomposition tool landscape
+## moffragmentor in the MOF decomposition tool landscape
 
-While MOFfragmentor has some unique features, it might not be the right tool for your task. Due to some design choices (having a pymatgen representation of all fragments and the net) it is relatively slow in the current implementation (though there are obvious ways for fixing this). 
+While moffragmentor has some unique features, it might not be the right tool for your task. Due to some design choices (having a pymatgen representation of all fragments and the net) it is relatively slow in the current implementation (though there are obvious ways for fixing this). 
 
 Therefore, we encourage you to also consider alternative tools: 
 
@@ -69,7 +75,7 @@ Therefore, we encourage you to also consider alternative tools:
 pip install git+https://github.com/kjappelbaum/moffragmentor.git
 ```
 
-You need to have `openbabel` installed which you can install with `conda install -c conda-forge openbabel`. You will also need the RDKit which can be installed with `conda install -c conda-forge rdkit`.
+You need to have `openbabel` installed which you can install with `conda install -c conda-forge openbabel`. 
 
 You can also run `bash create_conda.sh`. Note that you might want to change the name of the name of the environment (defaults to `moffragmentor`).
 

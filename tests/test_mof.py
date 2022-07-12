@@ -2,6 +2,7 @@
 """Testing some attributes of the MOF class"""
 import os
 
+import pytest
 from pymatgen.core import Structure
 
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -26,6 +27,7 @@ def test__leads_to_terminal(get_cuiiibtc_mof):
     assert mof._leads_to_terminal((15, 183))  # pylint:disable=protected-access
 
 
+@pytest.mark.slow
 def test_fragmentation(get_cuiiibtc_mof):
     mof = get_cuiiibtc_mof
     fragments = mof.fragment()
@@ -34,6 +36,7 @@ def test_fragmentation(get_cuiiibtc_mof):
     assert fragments.net_embedding.space_group == "P4/nmm"
 
 
+@pytest.mark.slow
 def test_fragmentation_single_metal(get_single_metal_mof):
     mof = get_single_metal_mof
     fragments = mof.fragment()
@@ -42,7 +45,22 @@ def test_fragmentation_single_metal(get_single_metal_mof):
     assert fragments.net_embedding.rcsr_code == "dia"
 
 
+@pytest.mark.slow
 def test_fragmentation_ag_n_compound(get_agn_mof):
     mof = get_agn_mof
     fragments = mof.fragment()
     assert fragments.net_embedding.rcsr_code == "bex"
+
+
+@pytest.mark.slow
+def test_hkust(get_hkust_mof):
+    mof = get_hkust_mof
+    fragments = mof.fragment()
+    assert fragments.net_embedding.rcsr_code == "tbo"
+
+
+@pytest.mark.slow
+def test_mof5(get_mof5):
+    mof = get_mof5
+    fragments = mof.fragment()
+    assert fragments.net_embedding.rcsr_code == "pcu"

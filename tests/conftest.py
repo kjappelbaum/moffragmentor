@@ -417,6 +417,12 @@ def get_hkust_mof():
 
 
 @pytest.fixture(scope="module")
+def get_mof5():
+    mof = MOF.from_cif(os.path.join(THIS_DIR, "test_files", "mof-5_cellopt.cif"))
+    return mof
+
+
+@pytest.fixture(scope="module")
 def get_single_metal_mof():
     mof = MOF.from_cif(os.path.join(THIS_DIR, "test_files", "RSM3434.cif"))
     return mof

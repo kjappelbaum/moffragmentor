@@ -4,7 +4,9 @@ Getting started with moffragmentor
 Installation
 ---------------
 
-We recommend installing moffragmentor in a clean virtual environment  (e.g., a `conda environment <https://docs.conda.io/projects/conda/en/latest/index.html>`_)
+We recommend installing moffragmentor in a clean virtual environment 
+(e.g., a `conda environment <https://docs.conda.io/projects/conda/en/latest/index.html>`_)
+
 
 
 You can install the latest stable release from PyPi using
@@ -20,13 +22,20 @@ or the latest development version using
 
     pip install git+https://github.com/kjappelbaum/moffragmentor.git
 
+.. note::
+    
+    If you install via pip you will need to manually install openbabel (e.g. `conda install openbabel -c conda-forge`).
 
-If you want to determine RCSR codes, you will also need to install a `Java runtime environment (JRE) of version 1.5.0 or later <https://www.java.com/en/>`_ on your machine as we use the `Systre <http://gavrog.org>`_  (Symmetry, Structure (Recognition) and Refinement) code to perform analysis of the labeled quotient graphs we construct in moffragmentor.
+If you want to determine RCSR codes, 
+you will also need to install a `Java runtime environment (JRE) of version 1.5.0 or later <https://www.java.com/en/>`_ 
+on your machine as we use the `Systre <http://gavrog.org>`_  (Symmetry, Structure (Recognition) and Refinement) 
+code to perform analysis of the labeled quotient graphs we construct in moffragmentor.
 
 Extensions
 ...........
 
-In case you want to use the :py:meth:`~moffragmentor.SBU.Node.show_molecule`, or :py:meth:`~moffragmentor.mof.MOF.show_structure` function in Jupyter lab you have to
+In case you want to use the :py:meth:`~moffragmentor.SBU.Node.show_molecule`, 
+or :py:meth:`~moffragmentor.mof.MOF.show_structure` function in Jupyter lab you have to
 
 .. code-block:: bash
 
@@ -34,7 +43,8 @@ In case you want to use the :py:meth:`~moffragmentor.SBU.Node.show_molecule`, or
     jupyter-labextension install nglview-js-widgets
     jupyter-nbextension enable nglview --py --sys-prefix
 
-You also might find the `debugging help in the nglview documentation <https://github.com/nglviewer/nglview/blob/master/docs/FAQ.md#widget-not-shown>`_ useful.
+You also might find the 
+`debugging help in the nglview documentation <https://github.com/nglviewer/nglview/blob/master/docs/FAQ.md#widget-not-shown>`_ useful.
 
 Fragmenting a MOF
 -------------------
@@ -56,7 +66,8 @@ both subclasses of a :py:class:`moffragmentor.sbu.SBUCollection` and  :code:`bou
     Note that moffragmentor currently does not automatically delete bound solvent. This is due to two observations:
 
     1. We have very little understanding of what solvent we can remove without affecting the structural integrity.
-    2. We (currently) do not have a way to estimate if a solvent is charged. We explore different implementation strategies, but we do not have a robust one at this moment.
+    2. We (currently) do not have a way to estimate if a solvent is charged. 
+    We explore different implementation strategies, but we do not have a robust one at this moment.
 
 
 You might want a quick overview of the composition of the different components. You can access this via the :code:`composition` properties
@@ -74,7 +85,9 @@ Clearly, we do not consider floating solvent for the computation of the net.
     :class: warning
     
     For some structures in the CSD MOF subset, there will be problems with the fragmentation.
-    One example is :code:`CAYSIE`, which is a metalloporphyrinate. Here, the code struggles to distinguish nodes and linkers as a core routine of the moffragmentor is to check if a metal atom is inside another, potential linker, molecule.
+    One example is :code:`CAYSIE`, which is a metalloporphyrinate. 
+    Here, the code struggles to distinguish nodes and linkers 
+    as a core routine of the moffragmentor is to check if a metal atom is inside another, potential linker, molecule.
 
     .. figure:: _static/RSM2943.png
         :alt: RSM2943

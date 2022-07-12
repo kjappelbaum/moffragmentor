@@ -9,6 +9,11 @@ Most users will only need to deal with the :code:`MOF` class.
 .. automodule:: moffragmentor.mof
     :members:
 
+Command line interface
+-----------------------
+
+.. automodule:: moffragmentor.cli
+    :members:
 
 SBU subpackage
 ----------------
@@ -34,7 +39,7 @@ Defines datastructures for the building blocks as well as collections of buildin
     :members:
 
 molecule subpackage
-----------------
+-----------------------
 
 Defines datastructures for the non-building-block molecules (e.g. solvent) as well as collections of such molecules
 
