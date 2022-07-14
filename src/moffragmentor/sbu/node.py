@@ -10,6 +10,8 @@ import numpy as np
 from pymatgen.analysis.graphs import MoleculeGraph
 from pymatgen.core import Molecule, Structure
 
+from moffragmentor.fragmentor.molfromgraph import wrap_molecule
+
 from .sbu import SBU
 from ..fragmentor.splitter import _sites_and_classified_indices_from_indices
 from ..utils import (
@@ -78,15 +80,15 @@ def node_from_mof_and_indices(  # pylint:disable=too-many-locals, too-many-argum
             closest_branching_index_in_molecule.append(new_candidates)
         else:
             closest_branching_index_in_molecule.append(branching_index)
-
+    idx = [i for i in relevant_indices if i in node_indices]
     node = cls(
-        molecule=molecule,
+        molecule=wrap_molecule(idx, mof),
         molecule_graph=molecule_graph,
         center=center,
         graph_branching_indices=graph_branching_indices,
         closest_branching_index_in_molecule=closest_branching_index_in_molecule,
         binding_indices=binding_indices,
-        original_indices=[i for i in relevant_indices if i in node_indices],
+        original_indices=idx,
         persistent_non_metal_bridged=sites_and_indices.persistent_non_metal_bridged_components,
         terminal_in_mol_not_terminal_in_struct=sites_and_indices.hidden_vertices,
         graph_branching_coords=sites_and_indices.cartesian_coordinates[

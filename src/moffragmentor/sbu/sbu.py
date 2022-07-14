@@ -74,8 +74,8 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
 
     .. note::
 
-        The coordinates in the molecule object are not the ones directly 
-        extracted from the MOF. They are the coordinates of sites unwrapped 
+        The coordinates in the molecule object are not the ones directly
+        extracted from the MOF. They are the coordinates of sites unwrapped
         to ensure that there are no "broken molecules" .
 
         To obtain the "original" coordinates, use the `_coordinates` attribute.
@@ -160,7 +160,6 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
                 self.connecting_paths.append(self.mapping_from_original_indices[i])
             except KeyError:
                 pass
-
 
     def search_pubchem(self, listkey_counts: int = 10, **kwargs) -> Tuple[List[str], bool]:
         """Search for a molecule in pubchem
@@ -291,6 +290,7 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
 
     def show_molecule(self):
         import nglview  # pylint:disable=import-outside-toplevel
+
         return nglview.show_pymatgen(self.molecule)
 
     def show_connecting_structure(self):

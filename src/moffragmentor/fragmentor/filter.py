@@ -35,7 +35,9 @@ def bridges_across_cell(mof: "MOF", indices: Iterable[int]) -> bool:  # noqa: F8
 def point_in_mol_coords(point: np.array, points: np.array, lattice: Lattice) -> bool:
     # perhaps rather do via the COM
     new_coords = unwrap(points, lattice)
-    return in_hull(point, new_coords) or in_hull(point, points)
+    new_point = unwrap(point, lattice)
+
+    return in_hull(point, new_coords) or in_hull(point, points) or in_hull(new_point, points) 
 
 
 def in_hull(pointcloud: np.array, hull: Union[np.array, Delaunay]) -> bool:

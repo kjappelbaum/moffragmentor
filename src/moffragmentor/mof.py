@@ -69,13 +69,7 @@ class MOF:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         #     raise ValueError("Structure has atomic overlaps.")
 
         self._structure_graph = structure_graph
-        self._node_indices = None
-        self._linker_indices = None
         self._bridges = None
-        self._topology = None
-        self._connecting_node_indices = None
-        self._solvent_indices = None
-        self._branching_indices = None
         self._nx_graph = None
         nx.set_node_attributes(
             self._structure_graph.graph,
@@ -85,11 +79,6 @@ class MOF:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
 
     def _reset(self):
         """Reset all parameters that are computed at some point."""
-        self._node_indices = None
-        self._linker_indices = None
-        self._topology = None
-        self._connecting_node_indices = None
-        self._solvent_indices = None
         self._bridges = None
         self._nx_graph = None
 

@@ -33,7 +33,9 @@ NodelocationResult = namedtuple(
 
 
 def find_node_clusters(  # pylint:disable=too-many-locals
-    mof, unbound_solvent_indices: Optional[List[int]] = None
+    mof,
+    unbound_solvent_indices: Optional[List[int]] = None,
+    forbidden_indices: Optional[List[int]] = None,
 ) -> NodelocationResult:
     """Locate the branching indices, and node clusters in MOFs.
 
@@ -44,6 +46,9 @@ def find_node_clusters(  # pylint:disable=too-many-locals
         mof (MOF): moffragmentor MOF instance
         unbound_solvent_indices (List[int], optionl):
             indices of unbound solvent atoms. Defaults to None.
+        forbidden_indices (List[int], optional):
+            indices not considered as metals, for instance, because
+            they are part of a linker. Defaults to None.
 
     Returns:
         NodelocationResult: nametuple with the slots "nodes", "branching_indices" and
@@ -54,11 +59,16 @@ def find_node_clusters(  # pylint:disable=too-many-locals
 
     connecting_paths_ = set()
 
+    if forbidden_indices is None:
+        forbidden_indices = []
+
+    metal_indices = [i for i in mof.metal_indices if i not in forbidden_indices]
+
     if unbound_solvent_indices is None:
         unbound_solvent_indices = []
     # From every metal index in the structure perform DFS up to a
     # branch point
-    for metal_index in mof.metal_indices:
+    for metal_index in metal_indices:
         if metal_index not in unbound_solvent_indices:
             p, b = recursive_dfs_until_branch(mof, metal_index, [], [])
             paths.append(p)
@@ -74,7 +84,7 @@ def find_node_clusters(  # pylint:disable=too-many-locals
         connecting_paths_ = set()
         branch_sites = []
 
-        for metal_index in mof.metal_indices:
+        for metal_index in metal_indices:
             if metal_index not in unbound_solvent_indices:
                 p, b = recursive_dfs_until_cn3(mof, metal_index, [], [])
                 paths.append(p)
@@ -92,7 +102,7 @@ def find_node_clusters(  # pylint:disable=too-many-locals
 
     # we store the shortest paths between nodes and branching indices
     # ToDo: we can extract this from the DFS paths above
-    for metal, branch_sites_for_metal in zip(mof.metal_indices, branch_sites):
+    for metal, branch_sites_for_metal in zip(metal_indices, branch_sites):
         for branch_site in branch_sites_for_metal:
             paths = list(nx.all_shortest_paths(mof.nx_graph, metal, branch_site))
             for p in paths:
@@ -110,7 +120,7 @@ def find_node_clusters(  # pylint:disable=too-many-locals
 
     # from the connecting paths we remove the metal indices and the branching indices
     # we need to remove the metal indices as otherwise the fragmentation breaks
-    connecting_paths_ -= set(mof.metal_indices)
+    connecting_paths_ -= set(metal_indices)
 
     res = NodelocationResult(nodes, bs, connecting_paths_)
     return res

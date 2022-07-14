@@ -20,9 +20,7 @@ def fragment(cif):
 
 @pytest.mark.slow
 def test_fragmentation():
-    """On a set of structures from the review and beyond.
-    Not that we only give the parent net, not potential subnets.
-    """
+    """On a set of structures from the review and beyond."""
     vejhez_parts = fragment("VEJHEZ_clean.cif")
     assert vejhez_parts.nodes.smiles[0] == "[C]1O[Zn]2O[C]O[Zn](O1)O[C]O2"
     assert len(set(vejhez_parts.nodes.smiles)) == 1
