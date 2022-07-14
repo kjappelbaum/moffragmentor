@@ -54,6 +54,12 @@ class SBUCollection:
 
     @cached_property
     def smiles(self):
+        """
+        Return a list of the SMILES strings of the SBUs.
+
+        Returns:
+            List[str]: A list of smiles strings.
+        """
         return [sbu.smiles for sbu in self.sbus]
 
     @property

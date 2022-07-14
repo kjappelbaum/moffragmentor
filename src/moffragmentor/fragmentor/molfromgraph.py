@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """Generate molecules as the subgraphs from graphs"""
 from collections import defaultdict
-from typing import List, Tuple
+from typing import Iterable, List, Tuple
 
 import networkx as nx
 import numpy as np
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
-from pymatgen.core import Element, Molecule
+from pymatgen.core import Element, Molecule, Site
 
 
 def _is_in_cell(frac_coords: np.ndarray) -> bool:
@@ -207,3 +207,54 @@ def get_subgraphs_as_molecules(  # pylint:disable=too-many-locals
         )
 
     return mol, return_subgraphs, idx, centers, coordinates
+
+
+def wrap_molecule(
+    mol_idxs: Iterable[int], mof: "MOF", starting_index: int = 0
+) -> Molecule:  # noqa: F821
+    """Wrap a molecule in the cell of the MOF by walking along the structure graph.
+
+    For this we perform BFS from the starting index. That is, we use a queue to
+    keep track of the indices of the atoms that we still need to visit
+    (the neighbors of the current index).
+    We then compute new coordinates by computing the Cartesian coordinates
+    of the neighbor image closest to the new coordinates of the current atom.
+
+    To then create a Molecule with the correct ordering of sites, we walk
+    through the hash table in the order of the original indices.
+
+    Args:
+        mol_idxs (Iterable[int]): The indices of the atoms in the molecule in the MOF.
+        mof (MOF): MOF object that contains the mol_idxs.
+        starting_index (int, optional): Starting index for the walk.
+            Defaults to 0.
+
+    Returns:
+        Molecule: wrapped molecule
+    """
+    new_positions_cart = {}
+    new_positions_frac = {}
+    still_to_wrap_queue = [mol_idxs[starting_index]]
+    new_positions_cart[mol_idxs[starting_index]] = mof.cart_coords[mol_idxs[starting_index]]
+    new_positions_frac[mol_idxs[starting_index]] = mof.frac_coords[mol_idxs[starting_index]]
+
+    while still_to_wrap_queue:
+        current_index = still_to_wrap_queue.pop(0)
+        if current_index in mol_idxs:
+            neighbor_indices = mof.get_neighbor_indices(current_index)
+            for neighbor_index in neighbor_indices:
+                if (neighbor_index not in new_positions_cart) & (neighbor_index in mol_idxs):
+                    _, image = mof.structure[neighbor_index].distance_and_image_from_frac_coords(
+                        new_positions_frac[current_index]
+                    )
+                    new_positions_frac[neighbor_index] = mof.frac_coords[neighbor_index] - image
+                    new_positions_cart[neighbor_index] = mof.lattice.get_cartesian_coords(
+                        new_positions_frac[neighbor_index]
+                    )
+                    still_to_wrap_queue.append(neighbor_index)
+
+    new_sites = []
+    for idx in mol_idxs:
+        new_sites.append(Site(mof.structure[idx].species, new_positions_cart[idx]))
+
+    return Molecule.from_sites(new_sites)

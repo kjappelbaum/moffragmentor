@@ -48,6 +48,31 @@ def is_3d_parallel(v1: np.array, v2: np.array, eps: float = 1e-5) -> bool:
     return np.allclose(cp, np.zeros(3), atol=eps)
 
 
+_REPLICA_OFFSETS = np.array(
+    [
+        (0, 0, 0),
+        (1, 0, 0),
+        (-1, 0, 0),
+        (0, 1, 0),
+        (0, -1, 0),
+        (0, 0, 1),
+        (0, 0, -1),
+        (1, 1, 0),
+        (1, -1, 0),
+        (-1, 1, 0),
+        (-1, -1, 0),
+        (1, 0, 1),
+        (1, 0, -1),
+        (-1, 0, 1),
+        (-1, 0, -1),
+        (0, 1, 1),
+        (0, 1, -1),
+        (0, -1, 1),
+        (0, -1, -1),
+    ]
+)
+
+
 class VoltageEdge:
     """Representation of an edge in a labeled quotient graph (LQG).
 
@@ -163,14 +188,37 @@ class NetNode:
     def is_periodic_image(
         self, other: "NetNode", lattice: Lattice, tolerance: float = 1e-8
     ):  # noqa: F821 - forward reference
+        """
+        Return `True` if the two nodes are periodic images of each other.
+
+        Args:
+            other ("NetNode"): NetNode
+            lattice (Lattice): The lattice of the crystal.
+            tolerance (float): The tolerance for the distance between the two nodes.
+
+        Returns:
+            A boolean value.
+        """
         return is_periodic_image(self._coords, other._coords, lattice, tolerance)
 
     def periodic_image(self, other: "NetNode", lattice: Lattice):  # noqa: F821 - forward reference
+        """
+        `periodic_image` returns the periodic image of `other`
+        with respect to `self` in the given `lattice`
+
+        Args:
+            other ("NetNode"): NetNode
+            lattice (Lattice): The lattice of the crystal.
+
+        Returns:
+            np.array: The periodic image of the other node in the lattice.
+        """
         if not self.is_periodic_image(other, lattice):
             raise ValueError("Nodes are not periodic images")
         frac_self = lattice.get_fractional_coords(self._coords)
         frac_other = lattice.get_fractional_coords(other._coords)
-        image = frac_other / frac_self
+        # ToDo: fix that, this is wrong - the same position would return (1,1,1)
+        image = (frac_other - frac_self) / frac_self
         return image.astype(int)
 
     def __repr__(self) -> str:
@@ -181,6 +229,19 @@ class NetNode:
 
 
 def is_periodic_image(a: np.array, b: np.array, lattice: Lattice, tolerance: float = 1e-8):
+    """
+    Returns `True` if `a` and `b` are periodic images of each other.
+
+    Args:
+        a (np.array): np.array, b: np.array: The two points you want to compare.
+        b (np.array): np.array
+        lattice (Lattice): The lattice of the structure.
+        tolerance (float): The tolerance for the difference between
+            the fractional coordinates of the two points.
+
+    Returns:
+        bool: The function is_periodic_image returns a boolean value.
+    """
     a_frac_coords = lattice.get_fractional_coords(a)
     b_frac_coords = lattice.get_fractional_coords(b)
     frac_diff = pbc_diff(a_frac_coords, b_frac_coords)
@@ -192,25 +253,38 @@ class Net:
         self,
         nodes: Dict[str, Tuple[NetNode, int]],
         edges: Iterable[VoltageEdge],
-        skip_2c_contraction: bool = False,
+        skip_2c_contractions: bool = False,
     ):
         """Initialize a Net object.
 
         Args:
             nodes (Dict[str, Tuple[NetNode, int]]): A dictionary of NetNode objects.
             edges (Iterable[VoltageEdge]): An iterable of VoltageEdge objects.
-            skip_2c_contraction (bool): If True, do not contract 2C linkers.
+            skip_2c_contractions (bool): If True, do not contract 2C linkers.
                 Default is False.
         """
         self.nodes = nodes
         self.edges = edges
 
-        self._remove_2c()
+        if not skip_2c_contractions:
+            self._remove_2c()
 
     @cached_property
-    def rcsr_code(self) -> str:
+    def _systre_results(self) -> dict:
         """Return the RCSR code of the net."""
-        return run_systre(self.get_systre_string())["rcsr_code"]
+        return run_systre(self.get_systre_string())
+
+    @property
+    def rcsr_code(self) -> str:
+        return self._systre_results["rcsr_code"]
+
+    @property
+    def p(self) -> int:
+        return len(self._systre_results["relaxed_node_positions"])
+
+    @property
+    def q(self) -> int:
+        return len(self._systre_results["relaxed_edge_positions"])
 
     def _construct_nx_multigraph(self) -> nx.MultiGraph:
         graph = nx.MultiGraph()
@@ -322,19 +396,20 @@ class Net:
             total_vector = edge_list[0].vector + edge_list[1].vector
 
             terminal_1_image = (
-                edge_list[0].n1_image
+                edge_list[0].n2_image
                 if edge_list[0].n1 == original_index_that_is_now_dropped
-                else edge_list[0].n2_image
+                else edge_list[0].n1_image
             )
             terminal_2_image = (
-                edge_list[1].n1_image
+                edge_list[1].n2_image
                 if edge_list[1].n1 == original_index_that_is_now_dropped
-                else edge_list[1].n2_image
+                else edge_list[1].n1_image
             )
 
             new_egde = VoltageEdge(
                 total_vector, terminal_1, terminal_2, terminal_1_image, terminal_2_image
             )
+
             new_edges.append(new_egde)
 
             self.nodes = new_nodes
@@ -398,27 +473,6 @@ def which_periodic_images_of_images(
     a: np.array, b: np.array, lattice: Lattice, tolerance: float = 1e-8
 ):
     """Return the multiplier by which b must be multiplied to be a"""
-    potential_replicas = [
-        (0, 0, 0),
-        (1, 0, 0),
-        (-1, 0, 0),
-        (0, 1, 0),
-        (0, -1, 0),
-        (0, 0, 1),
-        (0, 0, -1),
-        (1, 1, 0),
-        (1, -1, 0),
-        (-1, 1, 0),
-        (-1, -1, 0),
-        (1, 0, 1),
-        (1, 0, -1),
-        (-1, 0, 1),
-        (-1, 0, -1),
-        (0, 1, 1),
-        (0, 1, -1),
-        (0, -1, 1),
-        (0, -1, -1),
-    ]
 
     a_frac_coords = lattice.get_fractional_coords(a)
     b_frac_coords = lattice.get_fractional_coords(b)
@@ -426,8 +480,8 @@ def which_periodic_images_of_images(
     found_replicas = []
 
     # TODO: potentially speed up with numba
-    for replica_a in potential_replicas:
-        for replica_b in potential_replicas:
+    for replica_a in _REPLICA_OFFSETS:
+        for replica_b in _REPLICA_OFFSETS:
             if np.allclose(
                 a_frac_coords + np.array(replica_a),
                 b_frac_coords + np.array(replica_b),
@@ -487,7 +541,12 @@ def has_edge(metal_cluster: SBU, linker: SBU, lattice: Lattice) -> Tuple[bool, L
     return len(images) > 0, images
 
 
-def build_net(metal_clusters: NodeCollection, linkers: LinkerCollection, lattice: Lattice, skip_2c_contractions: bool =False) -> Net:
+def build_net(
+    metal_clusters: NodeCollection,
+    linkers: LinkerCollection,
+    lattice: Lattice,
+    skip_2c_contractions: bool = False,
+) -> Net:
     """Given a metal cluster and linker collection from the fragmentation, build a net.
 
     Args:
@@ -549,7 +608,7 @@ def build_net(metal_clusters: NodeCollection, linkers: LinkerCollection, lattice
             if at_least_one_edge:
                 #   def __init__(self, vector: np.ndarray, n1: int, n2: int, n1_image: tuple, n2_image: tuple):
                 for image_a, image_b in images:
-                    if image_a == (0, 0, 0) or image_b == (0, 0, 0):
+                    if all(image_a == (0, 0, 0)) or all(image_b == (0, 0, 0)):
                         metal_center = lattice.get_fractional_coords(metal_node._coords) + image_a
                         linker_center = lattice.get_fractional_coords(linker_node._coords) + image_b
                         edge = VoltageEdge(
@@ -567,7 +626,7 @@ def build_net(metal_clusters: NodeCollection, linkers: LinkerCollection, lattice
             at_least_one_edge, images = has_edge(linker_node, metal_node, lattice)
             if at_least_one_edge:
                 for image_a, image_b in images:
-                    if image_a == (0, 0, 0) or image_b == (0, 0, 0):
+                    if all(image_a == (0, 0, 0)) or all(image_b == (0, 0, 0)):
                         metal_center = lattice.get_fractional_coords(metal_node._coords) + image_b
                         linker_center = lattice.get_fractional_coords(linker_node._coords) + image_a
                         edge = VoltageEdge(

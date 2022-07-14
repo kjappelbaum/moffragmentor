@@ -8,6 +8,7 @@ import networkx as nx
 import numpy as np
 import yaml
 from backports.cached_property import cached_property
+from mofchecker import MOFChecker
 from pymatgen.analysis.graphs import StructureGraph
 from pymatgen.analysis.local_env import CutOffDictNN
 from pymatgen.core import Lattice, Structure
@@ -63,6 +64,10 @@ class MOF:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
             structure_graph (StructureGraph): Pymatgen StructureGraph object
         """
         self._structure = structure
+        # checker = MOFChecker(structure)
+        # if checker.has_atomic_overlaps:
+        #     raise ValueError("Structure has atomic overlaps.")
+
         self._structure_graph = structure_graph
         self._node_indices = None
         self._linker_indices = None

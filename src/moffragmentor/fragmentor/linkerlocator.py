@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """Based on the node location, locate the linkers."""
-from typing import Iterable, List, Tuple
+from typing import Iterable, List, Optional, Tuple
 
 import numpy as np
 from loguru import logger
-from pymatgen.core import Structure
+from pymatgen.core import Lattice, Structure
 
-from .molfromgraph import get_subgraphs_as_molecules
+from .molfromgraph import _is_any_atom_in_cell, get_subgraphs_as_molecules, wrap_molecule
 from ..sbu import Linker, LinkerCollection
 from ..utils import _flatten_list_of_sets
 
@@ -19,6 +19,7 @@ def _pick_linker_indices(
     coordinates: Iterable[np.array],
     all_node_branching_indices: Iterable[int],
     two_branching_indices: bool = True,
+    lattice: Optional[Lattice] = None,
 ) -> Tuple[List[int], List[int]]:
     """Pick the relevant linkers.
 
@@ -33,6 +34,7 @@ def _pick_linker_indices(
         two_branching_indices (bool): If True, only linkers with
             at least two branching indices are considers.
             Defaults to True.
+        lattice (Optional[Lattice]): Lattice of the MOF.
 
     Returns:
         Tuple[List[int], List[int]]: List of linker indices and list of
@@ -42,23 +44,21 @@ def _pick_linker_indices(
     # We do a similar loop there
     threshold = 2 if two_branching_indices else 1
     counter = 0
-    unique_branching_site_centers = {}
+
     unique_branching_sites_indices = {}
     has_branch_point = []
-    for idx, center, coords in zip(idxs, centers, coordinates):
+    for idx, coords in zip(idxs, coordinates):
         intersection = set(idx) & all_node_branching_indices
-        if len(intersection) >= threshold:
-            has_branch_point.append(counter)
-            intersection = tuple(sorted(tuple(intersection)))
-            norm = np.linalg.norm(coords - center)
-            if intersection in unique_branching_site_centers:
-                if unique_branching_site_centers[intersection] > norm:
-                    unique_branching_site_centers[intersection] = norm
+        if intersection:
+            branching_coords = lattice.get_fractional_coords(
+                [coord for i, coord in enumerate(coords) if idx[i] in intersection]
+            )
+            if len(intersection) >= threshold:
+                if _is_any_atom_in_cell(branching_coords):
+                    has_branch_point.append(counter)
+                    intersection = tuple(sorted(tuple(intersection)))
                     unique_branching_sites_indices[intersection] = counter
-            else:
-                unique_branching_site_centers[intersection] = norm
-                unique_branching_sites_indices[intersection] = counter
-        counter += 1
+            counter += 1
 
     return unique_branching_sites_indices.values(), has_branch_point
 
@@ -103,14 +103,14 @@ def _create_linkers_from_node_location_result(
     mols, graphs, idxs, centers, coordinates = get_subgraphs_as_molecules(
         graph_,
         return_unique=False,
-        filter_in_cell=False,
+        filter_in_cell=True,
         disable_boundary_crossing_check=True,
     )
 
     # Third: pick those molecules that are closest to the UC
     # ToDo: we should be able to skip this
     linker_indices, _ = _pick_linker_indices(
-        idxs, centers, coordinates, node_location_result.branching_indices
+        idxs, centers, coordinates, node_location_result.branching_indices, lattice=mof.lattice
     )
     if len(linker_indices) == 0:
         logger.warning(
@@ -123,6 +123,7 @@ def _create_linkers_from_node_location_result(
             coordinates,
             node_location_result.branching_indices,
             two_branching_indices=False,
+            lattice=mof.lattice,
         )
 
     # Fourth: collect all linkers in a linker collection
@@ -132,7 +133,7 @@ def _create_linkers_from_node_location_result(
         idxs = set(idx)
         branching_indices = node_location_result.branching_indices & idxs
         linker = Linker(
-            molecule=mol,
+            molecule=wrap_molecule(list(idxs), mof),
             molecule_graph=graph,
             center=center,
             graph_branching_indices=branching_indices,

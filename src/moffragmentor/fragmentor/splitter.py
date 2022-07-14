@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Etraction of pymatgen Molecules from a structure for which we know the branching points."""
+"""Extraction of pymatgen Molecules from a structure for which we know the branching points."""
 from collections import namedtuple
 
 import networkx as nx

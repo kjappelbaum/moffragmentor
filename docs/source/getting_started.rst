@@ -23,7 +23,7 @@ or the latest development version using
     pip install git+https://github.com/kjappelbaum/moffragmentor.git
 
 .. note::
-    
+
     If you install via pip you will need to manually install openbabel (e.g. `conda install openbabel -c conda-forge`).
 
 If you want to determine RCSR codes, 
@@ -60,6 +60,12 @@ To fragment a MOF you need to create an instance of :py:class:`~moffragmentor.mo
 
 The result is a :code:`FragmentationResult` :code:`namedtuple` with the fields :code:`nodes`, :code:`linkers`,
 both subclasses of a :py:class:`moffragmentor.sbu.SBUCollection` and  :code:`bound_solvent`, :code:`unbound_solvent`, both :py:class:`moffragmentor.molecule.NonSbuMoleculeCollection`, and a :py:class:`moffragmentor.net.Net`.
+
+.. warning:: 
+
+    If you use the :code:`MOF.from_cif` method, we will run :py:obj:`pymatgen.analysis.spacegroup.SpacegroupAnalyzer` on the input structure.
+    This might take some time, and we also have encountered cases where it can be really slow. 
+    If you do not want this, you can either "manually" call the constructor or tune the tolerance parameters.
 
 .. warning::
 

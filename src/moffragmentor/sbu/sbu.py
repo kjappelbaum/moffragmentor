@@ -72,6 +72,14 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         * terminal_in_mol_not_terminal_in_struct: indices that are terminal
             in the molecule but not terminal in the structure
 
+    .. note::
+
+        The coordinates in the molecule object are not the ones directly 
+        extracted from the MOF. They are the coordinates of sites unwrapped 
+        to ensure that there are no "broken molecules" .
+
+        To obtain the "original" coordinates, use the `_coordinates` attribute.
+
     Examples:
         >>> # visualize the molecule
         >>> sbu_object.show_molecule()
@@ -153,34 +161,6 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
             except KeyError:
                 pass
 
-    @cached_property
-    def centered_molecule(self) -> Molecule:
-        """Return a molecule that is not wrapped around the unit cell.
-
-        Often a molecule would appear broken because it
-        is wrapped around the unit cell. This method attempts to center
-        it as connected molecule in the center of the unit cell.
-
-        Returns:
-            Molecule: Molecule that is not wrapped around the unit cell.
-        """
-        # if we do not scale the cell, we struggle fitting large molecule
-        atoms = Atoms(
-            map(str, self.molecule.species),
-            self.cart_coords,
-            cell=self._lattice.matrix * 1.5,
-            pbc=True,
-        )
-        for _ in range(1):
-            atoms.translate(
-                atoms.cell.array
-                * 1.5
-                @ (np.array([0.5, 0.5, 0.5]) - atoms.get_center_of_mass(scaled=True))
-            )
-            atoms.wrap()
-
-        mol = AseAtomsAdaptor.get_molecule(atoms)
-        return mol
 
     def search_pubchem(self, listkey_counts: int = 10, **kwargs) -> Tuple[List[str], bool]:
         """Search for a molecule in pubchem
@@ -305,14 +285,13 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         return self.get_openbabel_mol()
 
     def get_openbabel_mol(self):
-        a = BabelMolAdaptor(self.centered_molecule)
+        a = BabelMolAdaptor(self.molecule)
         pm = pb.Molecule(a.openbabel_mol)
         return pm
 
     def show_molecule(self):
         import nglview  # pylint:disable=import-outside-toplevel
-
-        return nglview.show_pymatgen(self.centered_molecule)
+        return nglview.show_pymatgen(self.molecule)
 
     def show_connecting_structure(self):
         import nglview  # pylint:disable=import-outside-toplevel
@@ -325,7 +304,7 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         return nglview.show_pymatgen(self._get_binding_sites_structure())
 
     def to(self, fmt: str, filename: str):
-        return self.centered_molecule.to(fmt, filename)
+        return self.molecule.to(fmt, filename)
 
     @cached_property
     def smiles(self) -> str:
