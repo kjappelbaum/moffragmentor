@@ -81,8 +81,9 @@ def node_from_mof_and_indices(  # pylint:disable=too-many-locals, too-many-argum
         else:
             closest_branching_index_in_molecule.append(branching_index)
     idx = [i for i in relevant_indices if i in node_indices]
+    mol = wrap_molecule(idx, mof)
     node = cls(
-        molecule=wrap_molecule(idx, mof),
+        molecule=mol,
         molecule_graph=molecule_graph,
         center=center,
         graph_branching_indices=graph_branching_indices,
@@ -91,11 +92,12 @@ def node_from_mof_and_indices(  # pylint:disable=too-many-locals, too-many-argum
         original_indices=idx,
         persistent_non_metal_bridged=sites_and_indices.persistent_non_metal_bridged_components,
         terminal_in_mol_not_terminal_in_struct=sites_and_indices.hidden_vertices,
-        graph_branching_coords=sites_and_indices.cartesian_coordinates[
-            [sites_and_indices.index_mapping[i] for i in graph_branching_indices]
-        ],
+        # graph_branching_coords=sites_and_indices.cartesian_coordinates[
+        #    [sites_and_indices.index_mapping[i] for i in graph_branching_indices]
+        # ],
         connecting_paths=connecting_paths,
         lattice=mof.lattice,
+        # coordinates=mof.cart_coords[idx],
     )
 
     return node

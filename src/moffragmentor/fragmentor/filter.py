@@ -37,7 +37,12 @@ def point_in_mol_coords(point: np.array, points: np.array, lattice: Lattice) -> 
     new_coords = unwrap(points, lattice)
     new_point = unwrap(point, lattice)
 
-    return in_hull(point, new_coords) or in_hull(point, points) or in_hull(new_point, points) 
+    return (
+        in_hull(point, new_coords)
+        or in_hull(point, points)
+        or in_hull(new_point, points)
+        or in_hull(new_point, new_coords)
+    )
 
 
 def in_hull(pointcloud: np.array, hull: Union[np.array, Delaunay]) -> bool:

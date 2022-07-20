@@ -6,27 +6,17 @@ from typing import Dict, List, Optional, Union
 
 import networkx as nx
 import numpy as np
-import yaml
 from backports.cached_property import cached_property
-from mofchecker import MOFChecker
 from pymatgen.analysis.graphs import StructureGraph
-from pymatgen.analysis.local_env import CutOffDictNN
 from pymatgen.core import Lattice, Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+
+from moffragmentor.utils.periodic_graph import VestaCutoffDictNN
 
 from .descriptors.sbu_dimensionality import get_structure_graph_dimensionality
 from .fragmentor import FragmentationResult, run_fragmentation
 from .fragmentor.branching_points import get_branch_points
 from .utils import IStructure, pickle_dump, write_cif
-
-THIS_DIR = os.path.dirname(os.path.realpath(__file__))
-
-with open(
-    os.path.join(THIS_DIR, "utils", "data", "tuned_vesta.yml"), "r", encoding="utf8"
-) as handle:
-    VESTA_CUTOFFS = yaml.load(handle, Loader=yaml.UnsafeLoader)  # noqa: S506
-
-VestaCutoffDictNN = CutOffDictNN(cut_off_dict=VESTA_CUTOFFS)
 
 __all__ = ["MOF"]
 

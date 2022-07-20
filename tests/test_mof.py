@@ -33,7 +33,6 @@ def test_fragmentation(get_cuiiibtc_mof):
     fragments = mof.fragment()
     # topocryst.com fails here
     assert fragments.net_embedding.rcsr_code == "mmm"
-    assert fragments.net_embedding.space_group == "P4/nmm"
 
 
 @pytest.mark.slow

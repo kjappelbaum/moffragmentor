@@ -6,7 +6,7 @@ import os
 import pickle
 from collections import defaultdict
 from shutil import which
-from typing import Collection, Dict, List, Union
+from typing import Collection, Dict, Iterable, List, Union
 
 import networkx as nx
 import numpy as np
@@ -303,6 +303,16 @@ def visualize_part(mof, indices: Collection):
     s = Structure.from_sites(sites, to_unit_cell=True)
 
     return nglview.show_pymatgen(s)
+
+
+def joint_visualize_mols(mols: Iterable[Molecule]):
+    import nglview as nv
+
+    sites = []
+    for mol in mols:
+        sites.extend(mol.sites)
+    super_mol = Molecule.from_sites(sites)
+    return nv.show_pymatgen(super_mol)
 
 
 def _flatten_list_of_sets(parts):

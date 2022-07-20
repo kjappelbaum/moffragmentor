@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Representation for a secondary building block."""
 import warnings
+from collections import defaultdict
 from typing import Collection, List, Optional, Tuple
 
 import networkx as nx
@@ -145,10 +146,12 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         self._persistent_non_metal_bridged = persistent_non_metal_bridged
         self._terminal_in_mol_not_terminal_in_struct = terminal_in_mol_not_terminal_in_struct
         self.graph_branching_coords = graph_branching_coords
-
         self._original_binding_indices = binding_indices
 
-        self.mapping_from_original_indices = dict(zip(original_indices, range(len(molecule))))
+        # ToDo: This is not correct in general. We might map multiple times to one original index (as we might consider the original index as well as some image)
+        self.mapping_from_original_indices = defaultdict(list)
+        for ori_index, index in zip(self._original_indices, range(len(molecule))):
+            self.mapping_from_original_indices[ori_index].append(index)
         self.mapping_to_original_indices = dict(zip(range(len(molecule)), original_indices))
         self._indices = original_indices
         self._original_connecting_paths = connecting_paths
@@ -157,7 +160,8 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         self._lattice = lattice
         for i in connecting_paths:
             try:
-                self.connecting_paths.append(self.mapping_from_original_indices[i])
+                for index in self.mapping_from_original_indices[i]:
+                    self.connecting_paths.append(index)
             except KeyError:
                 pass
 
@@ -236,7 +240,17 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
 
     @property
     def cart_coords(self):
+        # if self._coordinates is not None:
+        #    return self._coordinates
         return self.molecule.cart_coords
+        # return np.array(self._coordinates)
+
+    @cached_property
+    def mol_with_coords(self):
+        mol = self.molecule.copy()
+        mol.coords = self.cart_coords
+        sites = mol.sites
+        return Molecule.from_sites(sites)
 
     @property
     def coordination(self):
@@ -248,9 +262,27 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
 
     @property
     def graph_branching_indices(self):
-        return [
-            self.mapping_from_original_indices[i] for i in self.original_graph_branching_indices
-        ]
+        indices = []
+        for i in self.original_graph_branching_indices:
+            for index in self.mapping_from_original_indices[i]:
+                indices.append(index)
+        return indices
+
+    @cached_property
+    def weisfeiler_lehman_graph_hash(self):
+        return nx.weisfeiler_lehman_graph_hash(self.molecule_graph.graph, node_attr="specie")
+
+    @cached_property
+    def hash(self) -> str:
+        """Combination of Weisfeiler-Lehman graph hash and center"""
+        wl_hash = self.weisfeiler_lehman_graph_hash
+        center = self.molecule.cart_coords.mean(axis=0)
+        return f"{wl_hash}-{center[0]:.2f}-{center[1]:.2f}-{center[2]:.2f}"
+
+    def __eq__(self, other) -> bool:
+        if hash(self) != hash(other):
+            return False
+        return True
 
     @cached_property
     def branching_coords(self):
@@ -262,10 +294,13 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
 
     @cached_property
     def connecting_indices(self):
-        return [
-            self.mapping_from_original_indices[i]
-            for i in self._original_closest_branching_index_in_molecule
-        ]
+        indices = []
+
+        for p in self._original_closest_branching_index_in_molecule:
+            for index in self.mapping_from_original_indices[p]:
+                indices.append(index)
+
+        return indices
 
     @property
     def original_binding_indices(self):
@@ -273,7 +308,11 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
 
     @cached_property
     def binding_indices(self):
-        return [self.mapping_from_original_indices[i] for i in self.original_binding_indices]
+        indices = []
+        for i in self.original_binding_indices:
+            for index in self.mapping_from_original_indices[i]:
+                indices.append(index)
+        return indices
 
     @cached_property
     def rdkit_mol(self):

@@ -30,6 +30,7 @@ def test_fragmentation():
         == "[O]C(=O)c1cc(cc(c1)C1=C2C=CC3=[N]2[Zn@]24n5c1ccc5C(=C1[N]2=C(C=C1)C(=c1n4c(=C3c2cc(cc(c2)C(=O)[O])C(=O)[O])cc1)c1cc(cc(c1)C(=O)[O])C(=O)[O])c1cc(cc(c1)C(=O)[O])C(=O)[O])C(=O)[O]"  # noqa: E501
     )
     assert len(set(vejhez_parts.linkers.smiles)) == 1
+    assert vejhez_parts.net_embedding.rcsr_code == "the"
 
     hkust_parts = fragment("HKUST-1.cif")
     assert hkust_parts.linkers[0].smiles == "[O]C(=O)c1cc(C([O])=O)cc(C([O])=O)c1"

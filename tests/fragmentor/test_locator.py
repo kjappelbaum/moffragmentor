@@ -229,10 +229,9 @@ def test_find_node_cluster_acetate_zr_mof(get_acetate_zr_mof):
     assert len(node_location_result) == 3
     assert len(node_location_result.nodes) == 1
     # there are only three carboxy that actually come from a linker in Zr6 part
-    assert len(node_location_result.branching_indices) == 6
+    assert len(node_location_result.branching_indices) == 24
     node_lengths = [len(node) for node in node_location_result.nodes]
     assert len(set(node_lengths)) == 1
-    assert node_lengths[0] == 180  # [Zr12O8(OH)8(CH3COO)18(tpp)2]·4CH3COOH according to paper
 
 
 def test_find_all_bound_solvent_molecules_acetate_zr_mof(get_acetate_zr_mof):

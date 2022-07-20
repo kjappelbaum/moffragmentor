@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 """Generate molecules as the subgraphs from graphs"""
 from collections import defaultdict
-from typing import Iterable, List, Tuple
+from copy import deepcopy
+from typing import Iterable, List, Optional, Tuple
 
 import networkx as nx
 import numpy as np
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
-from pymatgen.core import Element, Molecule, Site
+from pymatgen.core import Element, Molecule, Site, Structure
+
+from moffragmentor.utils.periodic_graph import VestaCutoffDictNN
 
 
 def _is_in_cell(frac_coords: np.ndarray) -> bool:
@@ -69,6 +72,7 @@ def get_subgraphs_as_molecules(  # pylint:disable=too-many-locals
     return_unique: bool = True,
     disable_boundary_crossing_check: bool = False,
     filter_in_cell: bool = True,
+    prune_long_edges: bool = False,
 ) -> Tuple[
     List[Molecule], List[MoleculeGraph], List[List[int]], List[np.ndarray], List[np.ndarray]
 ]:
@@ -89,6 +93,9 @@ def get_subgraphs_as_molecules(  # pylint:disable=too-many-locals
             Default is False.
         filter_in_cell (bool): If True, it will only return molecules
             that have at least one atom in the cell
+        prune_long_edges (bool): If True, it will remove long edges.
+            This is somewhat of a hack to workaround a bug i suspect
+            in the __mul__ method of StructureGraph.
 
     Returns:
         Tuple[List[Molecule], List[MoleculeGraph], List[List[int]], List[np.ndarray], List[np.ndarray]]:
@@ -97,10 +104,44 @@ def get_subgraphs_as_molecules(  # pylint:disable=too-many-locals
     # creating a supercell is an easy way to extract
     # molecules (and not, e.g., layers of a 2D crystal)
     # without adding extra logic
-    supercell_sg = structure_graph * (3, 3, 3)
+
+    sg = structure_graph.__copy__()
+    sg.structure = Structure.from_sites(sg.structure.sites)
+
+    # This the __mul__ method seems buggy.
+    supercell_sg = sg * (3, 3, 3)
+    s_indices = np.arange(len(supercell_sg.structure))
+    nx.set_node_attributes(
+        supercell_sg.graph, dict(zip(s_indices, supercell_sg.structure.cart_coords)), "coords"
+    )
 
     # make undirected to find connected subgraphs
     supercell_sg.graph = nx.Graph(supercell_sg.graph)
+
+    # nodes_in_center = []
+    # def is_site_in_cell(coord):
+    #     return np.all((coord >= 1) & (coord <= 2))
+
+    # for i, coord in enumerate(sg.structure.lattice.get_fractional_coords(sg.structure.cart_coords)):
+    #     if is_site_in_cell(coord):
+    #         nodes_in_center.append(i)
+
+    if prune_long_edges:
+        edges_to_remove = []
+        for u, v, d in supercell_sg.graph.edges(data=True):
+            # if (d['to_jimage'] == (0, 0, 0)) or (u in nodes_in_center) or (v in nodes_in_center):
+            if (
+                np.linalg.norm(
+                    supercell_sg.graph.nodes(data=True)[u]["coords"]
+                    - supercell_sg.graph.nodes(data=True)[v]["coords"]
+                )
+                > 3
+            ):
+                edges_to_remove.append((u, v))
+
+        # print('removing edges:', edges_to_remove)
+        for edge_to_remove in edges_to_remove:
+            supercell_sg.graph.remove_edge(*edge_to_remove)
 
     # find subgraphs
     all_subgraphs = [
@@ -124,7 +165,11 @@ def get_subgraphs_as_molecules(  # pylint:disable=too-many-locals
     # add specie names to graph to be able to test for isomorphism
     for subgraph in molecule_subgraphs:
         for node in subgraph:
-            subgraph.add_node(node, specie=str(supercell_sg.structure[node].specie))
+            subgraph.add_node(
+                node,
+                specie=str(supercell_sg.structure[node].specie),
+                coord=supercell_sg.structure[node].coords,
+            )
 
     unique_subgraphs = []
 
@@ -153,9 +198,9 @@ def get_subgraphs_as_molecules(  # pylint:disable=too-many-locals
         mol_centers = []
         coordinates = []
         for subgraph in molecule_subgraphs:
-            coords = [supercell_sg.structure[n].coords for n in subgraph.nodes()]
-            species = [supercell_sg.structure[n].specie for n in subgraph.nodes()]
             idx = [subgraph.nodes[n]["idx"] for n in subgraph.nodes()]
+            coords = [subgraph.nodes()[i]["coord"] for i in subgraph.nodes()]
+            species = [supercell_sg.structure[n].specie for n in subgraph.nodes()]
             idx_here = list(subgraph.nodes())
             molecule = Molecule(species, coords)  # site_properties={"binding": binding}
 
@@ -170,6 +215,7 @@ def get_subgraphs_as_molecules(  # pylint:disable=too-many-locals
             molecules.append(molecule)
             indices_here.append(idx_here)
             coordinates.append(coords)
+            assert len(subgraph) == len(coords) == len(idx) == len(idx_here)
         return molecules, indices, indices_here, mol_centers, coordinates
 
     def relabel_graph(multigraph):
@@ -200,17 +246,15 @@ def get_subgraphs_as_molecules(  # pylint:disable=too-many-locals
             idx,
             indices_here,
             centers,
-            structure_graph.structure.lattice.get_fractional_coords(
-                supercell_sg.structure.cart_coords
-            ),
+            sg.structure.lattice.get_fractional_coords(supercell_sg.structure.cart_coords),
             coordinates,
         )
 
-    return mol, return_subgraphs, idx, centers, coordinates
+    return mol, return_subgraphs, idx, centers, coordinates  # , supercell_sg
 
 
 def wrap_molecule(
-    mol_idxs: Iterable[int], mof: "MOF", starting_index: int = 0
+    mol_idxs: Iterable[int], mof: "MOF", starting_index: Optional[int] = None
 ) -> Molecule:  # noqa: F821
     """Wrap a molecule in the cell of the MOF by walking along the structure graph.
 
@@ -232,6 +276,16 @@ def wrap_molecule(
     Returns:
         Molecule: wrapped molecule
     """
+    if starting_index is None:
+        if len(mol_idxs) == 1:
+            starting_index = 0
+        # take the index of the atom which coordinates are closest to the origin
+        else:
+            starting_index = min(
+                (np.arange(len(mol_idxs)), mof.structure.cart_coords[mol_idxs]),
+                key=lambda x: np.linalg.norm(x[1]),
+            )[0]
+
     new_positions_cart = {}
     new_positions_frac = {}
     still_to_wrap_queue = [mol_idxs[starting_index]]

@@ -273,7 +273,7 @@ class Net:
         return graph
 
     def get_systre_string(self) -> str:
-        """Return a PERIODIC_GRAPGH systre representation of the net."""
+        """Return a PERIODIC_GRAPH systre representation of the net."""
         lines = []
         template = "   {start} {end} {voltage_0} {voltage_1} {voltage_2}"
         header = "PERIODIC_GRAPH\nID moffragmentor\nEDGES"
@@ -469,14 +469,14 @@ def which_periodic_image(
     return False, None
 
 
-def in_cell(node: NetNode, lattice: Lattice) -> Tuple[bool, List[np.array]]:
+def in_cell(node: "SBU", lattice: Lattice) -> Tuple[bool, List[np.array]]:
     """
     Check if a node is in the unit cell.
 
     It does so by checking if any branching coordinate is in the unit cell.
 
     Args:
-        node (NetNode): The node to check.
+        node (S): The node to check.
         lattice (Lattice): The lattice to use for checking.
 
     Returns:
@@ -492,15 +492,17 @@ def in_cell(node: NetNode, lattice: Lattice) -> Tuple[bool, List[np.array]]:
     return True, branching_coords_in_cell
 
 
-def has_edge(metal_cluster: SBU, linker: SBU, lattice: Lattice) -> Tuple[bool, List[np.array]]:
+def has_edge(
+    metal_cluster: NetNode, linker: NetNode, lattice: Lattice
+) -> Tuple[bool, List[np.array]]:
     """Check if the linker has an edge to the metal cluster.
 
     It does so by checking if there is any connecting between the branching indices
     - either in the cell or between periodic replica.
 
     Args:
-        metal_cluster (SBU): The metal cluster to check.
-        linker (SBU): The linker to check.
+        metal_cluster (NetNode): The metal cluster to check.
+        linker (NetNode): The linker to check.
         lattice (Lattice): The lattice to use for checking.
 
     Returns:
@@ -544,8 +546,8 @@ def build_net(
     for metal_cluster in metal_clusters:
 
         found_in_cell, coordinates = in_cell(metal_cluster, lattice)
-        if not found_in_cell:
-            continue
+        # if not found_in_cell:
+        #     continue
         # there seems to be a mismatch between branching coords and the centers in some cases.
         # ToDo: fix this at the source of the problem.
         center = lattice.get_fractional_coords(metal_cluster.center)
