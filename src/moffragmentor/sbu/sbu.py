@@ -137,7 +137,7 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
                 Defaults to None.
         """
         self.molecule = molecule
-        self.center = center
+        self._center = center
         self._original_indices = original_indices
         self.molecule_graph = molecule_graph
         self._original_graph_branching_indices = graph_branching_indices
@@ -164,6 +164,10 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
                     self.connecting_paths.append(index)
             except KeyError:
                 pass
+
+    @property
+    def center(self):
+        return self.molecule.center_of_mass
 
     def search_pubchem(self, listkey_counts: int = 10, **kwargs) -> Tuple[List[str], bool]:
         """Search for a molecule in pubchem

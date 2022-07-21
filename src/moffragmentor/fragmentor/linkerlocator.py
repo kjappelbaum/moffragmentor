@@ -105,9 +105,11 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
     not_linker_indices = (
         (
             all_node_indices
-            - node_location_result.connecting_paths
-            - node_location_result.branching_indices
-            - all_persistent_non_metal_bridges
+            & (
+                node_location_result.connecting_paths
+                - node_location_result.branching_indices
+                - node_location_result.binding_indices
+            )
         )
         | set(unbound_solvent.indices)
         | set(mof.metal_indices) & all_node_indices
@@ -131,48 +133,7 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
     # Third: pick those molecules that are closest to the UC
     # ToDo: we should be able to skip this
     linker_indices, coords = _pick_central_linker_indices(mof, coordinates)
-    # for i , coords in enumerate(coordinates):
-    #     if number_branching_points_in_cell(coords, mof.lattice) >0:
-    #         linker_indices.append(i)
-    # #linker_indices = np.arange(len(idxs)) # linker_indices, , _ = _pick_linker_indices(
-    # #     idxs, centers, coordinates, node_location_result.branching_indices, lattice=mof.lattice
-    # # )
-    # if len(linker_indices) == 0:
-    #     logger.warning(
-    #         "No linkers with two branching sites in molecule found. \
-    #              Looking for molecules with one branching site."
-    #     )
-    #     linker_indices, _ = _pick_linker_indices(
-    #         idxs,
-    #         centers,
-    #         coordinates,
-    #         node_location_result.branching_indices,
-    #         lattice=mof.lattice,
-    #         two_branching_indices=False,
-    #     )
 
-    # Fourth: collect all linkers in a linker collection
-    # for i, (mol, graph, idx, center, coords) in enumerate(zip(mols, graphs, idxs, centers, coordinates)):
-    #     idxs = set(idx)
-    #     branching_indices = node_location_result.branching_indices & idxs
-    #     linker = Linker(
-    #         molecule=wrap_molecule(idx, mof),
-    #         molecule_graph=graph,
-    #         center=center,
-    #         graph_branching_indices=branching_indices,
-    #         closest_branching_index_in_molecule=branching_indices,
-    #         binding_indices=identify_linker_binding_indices(
-    #             mof,
-    #             node_location_result.connecting_paths,
-    #             idx,
-    #         ),
-    #         coordinates=coords,
-    #         original_indices=idx,
-    #         connecting_paths=[],
-    #     )
-
-    #     if i in linker_indices:
-    #         linkers.append(linker)
     found_hashes = set()
     for i, linker_index in enumerate(linker_indices):
         idx = idxs[linker_index]

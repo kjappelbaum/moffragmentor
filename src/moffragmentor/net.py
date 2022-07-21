@@ -33,14 +33,17 @@ from typing import Dict, Iterable, List, Optional, Tuple, Union
 import networkx as nx
 import numpy as np
 from backports.cached_property import cached_property
-from pymatgen.core import IMolecule, Lattice, Molecule
+from loguru import logger
+from pymatgen.analysis.graphs import StructureGraph
+from pymatgen.core import IMolecule, Lattice, Molecule, Structure
 from pymatgen.util.coord import pbc_diff
 
 from moffragmentor.sbu import SBU
 from moffragmentor.sbu.linkercollection import LinkerCollection
 from moffragmentor.sbu.nodecollection import NodeCollection
 
-from .utils.systre import run_systre
+from .utils import unwrap
+from .utils.systre import _get_systre_input_from_pmg_structure_graph, run_systre
 
 
 def is_3d_parallel(v1: np.array, v2: np.array, eps: float = 1e-5) -> bool:
@@ -192,7 +195,7 @@ class NetNode:
             raise ValueError("Nodes are not periodic images")
         frac_self = lattice.get_fractional_coords(self._coords)
         frac_other = lattice.get_fractional_coords(other._coords)
-        return which_periodic_image(frac_self, frac_other, lattice)[0][1]
+        return which_periodic_image(frac_self, frac_other, lattice)[-1][0][1]
 
     def __repr__(self) -> str:
         """Return a string representation for a NetNode."""
@@ -233,26 +236,62 @@ class Net:
         self,
         nodes: Dict[str, Tuple[NetNode, int]],
         edges: Iterable[VoltageEdge],
-        skip_2c_contractions: bool = False,
+        lattice: Lattice,
     ):
         """Initialize a Net object.
 
         Args:
             nodes (Dict[str, Tuple[NetNode, int]]): A dictionary of NetNode objects.
             edges (Iterable[VoltageEdge]): An iterable of VoltageEdge objects.
-            skip_2c_contractions (bool): If True, do not contract 2C linkers.
-                Default is False.
+            lattice (Lattice): The lattice of the crystal.
         """
         self.nodes = nodes
         self.edges = edges
+        self.lattice = lattice
 
-        if not skip_2c_contractions:
-            self._remove_2c()
+    def get_dummy_structure(self) -> Structure:
+        coords = []
+        symbols = []
+        for node, _ in self.nodes.values():
+            if "metal" in node._flavor:
+                coords.append(node._coords)
+                symbols.append("Si")
+            else:
+                coords.append(node._coords)
+                symbols.append("O")
+
+        return Structure(
+            lattice=self.lattice, species=symbols, coords=coords, coords_are_cartesian=True
+        )
+
+    def get_pmg_structure_graph(self, simplify: bool = True) -> StructureGraph:
+        """
+        Return a StructureGraph object from the Net object.
+        """
+        s = self.get_dummy_structure()
+        edge_dict = {}
+
+        for edge in self.edges:
+            edge_dict[
+                (
+                    edge.n1,
+                    edge.n2,
+                    (edge.n1_image[0], edge.n1_image[1], edge.n1_image[2]),
+                    (edge.n2_image[0], edge.n2_image[1], edge.n2_image[2]),
+                )
+            ] = None
+
+        structure_graph = StructureGraph.with_edges(s, edge_dict)
+        if simplify:
+            structure_graph = _simplify_structure_graph(structure_graph)
+        return structure_graph
 
     @cached_property
     def _systre_results(self) -> dict:
         """Return the RCSR code of the net."""
-        return run_systre(self.get_systre_string())
+        return run_systre(
+            _get_systre_input_from_pmg_structure_graph(self.get_pmg_structure_graph(), self.lattice)
+        )
 
     @property
     def rcsr_code(self) -> str:
@@ -272,49 +311,6 @@ class Net:
             graph.add_edge(edge.n1, edge.n2, voltage=edge.voltage, vector=edge.vector)
         return graph
 
-    def get_systre_string(self) -> str:
-        """Return a PERIODIC_GRAPH systre representation of the net."""
-        lines = []
-        template = "   {start} {end} {voltage_0} {voltage_1} {voltage_2}"
-        header = "PERIODIC_GRAPH\nID moffragmentor\nEDGES"
-        for edge in self.edges:
-            lines.append(
-                template.format(
-                    start=edge.n1,
-                    end=edge.n2,
-                    voltage_0=edge.voltage[0],
-                    voltage_1=edge.voltage[1],
-                    voltage_2=edge.voltage[2],
-                )
-            )
-        tail = "END"
-        return "\n".join([header, "\n".join(lines), tail])
-
-    def get_cgd(self, lattice) -> str:
-        """Return a CGD systre representation of the net."""
-        header = "CRYSTAL\nNAME\nGROUP P1"
-        cell_line = "CELL {cell.a} {cell.b} {cell.c} {cell.alpha} {cell.beta} {cell.gamma}".format(
-            cell=lattice
-        )
-        tail = "END"
-        lines = []
-        node_template = "NODE {i} {cn} {coords[0]:.2f} {coords[1]:.2f} {coords[2]:.2f}"
-        edge_template = "EDGE {coords_a[0]:.2f} {coords_a[1]:.2f} {coords_a[2]:.2f} {coords_b[0]:.2f} {coords_b[1]:.2f} {coords_b[2]:.2f}"  # noqa: E501
-        g = self._construct_nx_multigraph()
-        node_list = [n for n, i in self.nodes.values()]
-        for i, node in enumerate(node_list):
-            lines.append(
-                node_template.format(
-                    i=i, cn=g.degree(i), coords=lattice.get_fractional_coords(node._coords)
-                )
-            )
-        for edge in self.edges:
-            b_coord = lattice.get_fractional_coords(node_list[edge.n2]._coords)
-            b_coord = b_coord + edge.n2_image
-            a_coord = lattice.get_fractional_coords(node_list[edge.n1]._coords)
-            lines.append(edge_template.format(coords_a=a_coord, coords_b=b_coord))
-        return "\n".join([header, cell_line, "\n".join(lines), tail])
-
     @property
     def _cns(self) -> Dict[str, int]:
         """Return a list of the number of nodes in each edge."""
@@ -327,78 +323,6 @@ class Net:
             edge_dict[edge.n1].append(edge)
             edge_dict[edge.n2].append(edge)
         return edge_dict
-
-    def _remove_2c(self) -> None:
-        """Remove all vertices that have degree 2.
-
-        Those "vertices" are not really nodes but edge centers.
-        This method overrides the self.nodes dictionary
-        and the self.edges list.
-        """
-        # not sure that i really want to re-index the nodes
-        nodes_to_remove = []
-        edges_to_reconnect = []
-        # we make new lists to also re-index
-        new_nodes = OrderedDict()
-        new_edges = []
-
-        # First, we use the edge dict to find the 2c centers
-        # we drop those nodes and their edges, but reconnect the
-        # vertices to which they were bound to
-        # i.e. for every removed 2c, we remove 1 vertex, 2 edges
-        # and add 1 vertex.
-
-        edge_dict = self._edge_dict
-        for k, v in edge_dict.items():
-            if len(v) == 2:
-                nodes_to_remove.append(k)
-                edges_to_reconnect.append((k, v))
-
-        # given that we know now which vertices are 2c we copy all the good o
-        for node_key, (node, index) in self.nodes.items():
-            if node_key not in nodes_to_remove:
-                new_nodes[node_key] = (node, index)
-
-        # now, prune the edges that are involved with those nodes
-        for edge in self.edges:
-            if edge.n1 in nodes_to_remove or edge.n2 in nodes_to_remove:
-                continue
-            new_edges.append(edge)
-
-        # now, we need to reconnect the edges
-        for key, edge_list in edges_to_reconnect:
-            original_index_that_is_now_dropped = key
-            terminal_1 = (
-                edge_list[0].n1
-                if edge_list[0].n1 != original_index_that_is_now_dropped
-                else edge_list[0].n2
-            )
-            terminal_2 = (
-                edge_list[1].n1
-                if edge_list[1].n1 != original_index_that_is_now_dropped
-                else edge_list[1].n2
-            )
-            total_vector = edge_list[0].vector + edge_list[1].vector
-
-            terminal_1_image = (
-                edge_list[0].n2_image
-                if edge_list[0].n1 == original_index_that_is_now_dropped
-                else edge_list[0].n1_image
-            )
-            terminal_2_image = (
-                edge_list[1].n2_image
-                if edge_list[1].n1 == original_index_that_is_now_dropped
-                else edge_list[1].n1_image
-            )
-
-            new_egde = VoltageEdge(
-                total_vector, terminal_1, terminal_2, terminal_1_image, terminal_2_image
-            )
-
-            new_edges.append(new_egde)
-
-            self.nodes = new_nodes
-            self.edges = new_edges
 
 
 def add_node_to_collection(
@@ -455,7 +379,7 @@ def branching_index_match(linker, metal_cluster, lattice: Lattice, tolerance: fl
 
 
 def which_periodic_image(
-    a: np.ndarray, b: np.ndarray, lattice: Lattice, tolerance: float = 1e-8, is_frac: bool = True
+    a: np.ndarray, b: np.ndarray, lattice: Lattice, tolerance: float = 1e-2, is_frac: bool = True
 ):
     """
     Use pymatgens get_distance_and_image to find which periodic image of a is closest to b.
@@ -464,9 +388,9 @@ def which_periodic_image(
         a = lattice.get_fractional_coords(a)
         b = lattice.get_fractional_coords(b)
     if is_periodic_image(a, b, lattice, tolerance, is_frac=True):
-        d, image = lattice.get_distance_and_image(a, b)
-        return True, [(np.array([0, 0, 0]), -image), (image, np.array([0, 0, 0]))]
-    return False, None
+        _, image = lattice.get_distance_and_image(a, b)
+        return True, a, [(np.array([0, 0, 0]), -image), (image, np.array([0, 0, 0]))]
+    return False, None, None
 
 
 def in_cell(node: "SBU", lattice: Lattice) -> Tuple[bool, List[np.array]]:
@@ -492,6 +416,14 @@ def in_cell(node: "SBU", lattice: Lattice) -> Tuple[bool, List[np.array]]:
     return True, branching_coords_in_cell
 
 
+def com_in_cell(node: "SBU", lattice: Lattice):
+    com = node.molecule.center_of_mass
+    com_frac = lattice.get_fractional_coords(com)
+    if np.all(com_frac < 1) & np.all(com_frac >= 0):
+        return True
+    return False
+
+
 def has_edge(
     metal_cluster: NetNode, linker: NetNode, lattice: Lattice
 ) -> Tuple[bool, List[np.array]]:
@@ -512,10 +444,12 @@ def has_edge(
 
     for metal_coord in metal_cluster._all_branching_coord:
         for linker_coord in linker._all_branching_coord:
-            match, images_ = which_periodic_image(metal_coord, linker_coord, lattice, is_frac=False)
+            match, coord, images_ = which_periodic_image(
+                metal_coord, linker_coord, lattice, is_frac=False
+            )
             if match:
-                for image_a, image_b in images_:
-                    images.append((image_a, image_b))
+                for image_a, image_b in images_[:1]:
+                    images.append((coord, image_a, image_b))
 
     return len(images) > 0, images
 
@@ -524,7 +458,6 @@ def build_net(
     metal_clusters: NodeCollection,
     linkers: LinkerCollection,
     lattice: Lattice,
-    skip_2c_contractions: bool = False,
 ) -> Net:
     """Given a metal cluster and linker collection from the fragmentation, build a net.
 
@@ -532,9 +465,6 @@ def build_net(
         metal_clusters (NodeCollection): The metal clusters from the fragmentation.
         linkers (LinkerCollection): The linkers from the fragmentation.
         lattice (Lattice): The lattice of the MOF (e.g. MOF.lattice).
-        skip_2c_contractions (bool): If True, do not perform 2C contractions.
-            This is useful for debugging.
-            Default is False.
 
     Returns:
         Net: An object representing the combinatorial net.
@@ -581,12 +511,14 @@ def build_net(
         _, _, metal_index = add_node_to_collection(net_node, lattice, found_linker_nodes)
 
     linker_index_offset = len(found_metal_nodes)
+
+    egde_candiates = defaultdict(list)
+
     for metal_node, metal_index in found_metal_nodes.values():
         for linker_node, linker_index in found_linker_nodes.values():
             at_least_one_edge, images = has_edge(metal_node, linker_node, lattice)
             if at_least_one_edge:
-                #   def __init__(self, vector: np.ndarray, n1: int, n2: int, n1_image: tuple, n2_image: tuple):
-                for image_a, image_b in images:
+                for coord, image_a, image_b in images:
                     metal_center = lattice.get_fractional_coords(metal_node._coords) + image_a
                     linker_center = lattice.get_fractional_coords(linker_node._coords) + image_b
                     edge = VoltageEdge(
@@ -596,14 +528,15 @@ def build_net(
                         image_a,
                         image_b,
                     )
-                    if not contains_edge(edge, found_edges):
-                        found_edges.append(edge)
+                    egde_candiates[
+                        (round(coord[0], 2), round(coord[1], 2), round(coord[2], 2))
+                    ].append((edge, np.abs(image_b).sum()))
 
     for linker_node, linker_index in found_linker_nodes.values():
         for metal_node, metal_index in found_metal_nodes.values():
             at_least_one_edge, images = has_edge(linker_node, metal_node, lattice)
             if at_least_one_edge:
-                for image_a, image_b in images:
+                for coord, image_a, image_b in images:
                     metal_center = lattice.get_fractional_coords(metal_node._coords) + image_b
                     linker_center = lattice.get_fractional_coords(linker_node._coords) + image_a
                     edge = VoltageEdge(
@@ -613,9 +546,78 @@ def build_net(
                         image_a,
                         image_b,
                     )
+                    egde_candiates[
+                        (round(coord[0], 2), round(coord[1], 2), round(coord[2], 2))
+                    ].append((edge, np.abs(image_b).sum()))
 
-                    if not contains_edge(edge, found_edges):
-                        found_edges.append(edge)
+    edge_selection = []
+    for _, edges in egde_candiates.items():
+        if len(edges) == 1:
+            edge_selection.append(edges[0][0])
+        else:
+            # sort ascending by second element in tuple in the list
+            edge_selection.append(sorted(edges, key=lambda x: x[1])[0][0])
+
+    for edge in edge_selection:
+        if not contains_edge(edge, found_edges):
+            found_edges.append(edge)
 
     found_metal_nodes.update(found_linker_nodes)
-    return Net(found_metal_nodes, found_edges, skip_2c_contractions=skip_2c_contractions)
+    return Net(found_metal_nodes, found_edges, lattice)
+
+
+def _simplify_structure_graph(structure_graph: StructureGraph) -> StructureGraph:
+    """Simplifies a structure graph by removing two-connected nodes.
+    We will place an edge between the nodes that were connected
+    by the two-connected node.
+
+    The function does not touch the input graph (it creates a deep copy).
+    Using the deep copy simplifies the implementation a lot as we can
+    add the edges in a first loop where we check for two-connected nodes
+    and then remove the nodes. This avoids the need for dealing with indices
+    that might change when one creates a new graph.
+
+    Args:
+        structure_graph (StructureGraph): Input structure graph.
+            Usually this is a "net graph". That is, a structure graph for
+            a structure in which the atoms are MOF SBUs
+
+    Returns:
+        StructureGraph: simplified structure graph, where we removed the
+            two-connected nodes.
+    """
+    graph_copy = structure_graph.__copy__()
+    to_remove = []
+    added_edges = set()
+
+    # in the first iteration we just add the edge
+    # and collect the nodes to delete
+    for i, _ in enumerate(structure_graph.structure):
+        if structure_graph.get_coordination_of_site(i) == 2:
+            if str(structure_graph.structure[i].specie) != "Si":
+                indices = []
+                images = []
+                for neighbor in structure_graph.get_connected_sites(i):
+                    indices.append(neighbor.index)
+                    images.append(neighbor.jimage)
+                    try:
+                        graph_copy.break_edge(i, neighbor.index, neighbor.jimage)
+                    except ValueError:
+                        logger.warning("Edge cannot be broken")
+                sorted_images = [x for _, x in sorted(zip(indices, images))]
+                edge_tuple = (tuple(sorted(indices)), tuple(sorted_images))
+                # in principle, this check should not be needed ...
+                if edge_tuple not in added_edges:
+                    added_edges.add(edge_tuple)
+                    graph_copy.add_edge(indices[0], indices[1], images[0], images[1])
+
+                to_remove.append(i)
+            else:
+                logger.warning(
+                    "Metal cluster with low coodination number detected.\
+                    Results might be incorrect."
+                )
+
+    # after we added all the edges, we can remove the nodes
+    graph_copy.remove_nodes(to_remove)
+    return graph_copy

@@ -10,6 +10,8 @@ from tempfile import NamedTemporaryFile
 from typing import List, Tuple
 
 from loguru import logger
+from pymatgen.analysis.graphs import StructureGraph
+from pymatgen.core import Lattice
 
 from . import is_tool
 from .errors import JavaNotFoundError
@@ -147,3 +149,63 @@ def _parse_node_line(line: str) -> Tuple[int, List[float]]:
     coords = _line_to_coords(line)
 
     return node_number, coords
+
+
+def _get_systre_input_from_pmg_structure_graph(  # pylint: disable=too-many-locals
+    structure_graph: StructureGraph, lattice: Lattice = None
+) -> str:
+    """
+    Loop over all atoms in a StructureGraph and use them as nodes.
+    Place edges such that all nodes are represented with their
+    full connectivity.
+
+    Args:
+        structure_graph (StrucutureGraph): pymatgen StructureGraph
+            object representing the net. This will correspond to having
+            one atom per SBU in the structure graph.
+        lattice (Lattice): pymatgen lattice object. Needed for the cell dimension
+
+    Returns:
+        str: systre input string. Does not contain the optional edge centers
+    """
+    lattice = structure_graph.structure.lattice if lattice is None else lattice
+    vertices = []
+    edges = []
+
+    symmetry_group = "   GROUP P1"
+
+    cell_line = f"   CELL {lattice.a} {lattice.b} {lattice.c} {lattice.alpha} {lattice.beta} {lattice.gamma}"
+
+    frac_coords = structure_graph.structure.frac_coords
+
+    for i in range(len(structure_graph)):
+        vertices.append((structure_graph.get_coordination_of_site(i), frac_coords[i]))
+
+    for edge in structure_graph.graph.edges(data=True):
+        start = frac_coords[edge[0]]
+        end = frac_coords[edge[1]] + edge[2]["to_jimage"]
+        edges.append((tuple(start), tuple(end)))
+
+    def _create_vertex_string(counter, coordination, coordinate):
+        return f"   NODE {counter} {coordination} {coordinate[0]:.4f} {coordinate[1]:.4f} {coordinate[2]:.4f}"
+
+    def _create_edge_string(coordinate_0, coordinate_1):
+        return f"   EDGE {coordinate_0[0]:.4f} {coordinate_0[1]:.4f} {coordinate_0[2]:.4f} {coordinate_1[0]:.4f} {coordinate_1[1]:.4f} {coordinate_1[2]:.4f}"
+
+    edge_lines = set()
+    vertex_lines = set()
+
+    for i, vertex in enumerate(vertices):
+        vertex_lines.add(_create_vertex_string(i, vertex[0], vertex[1]))
+
+    for i, edge in enumerate(edges):
+        edge_lines.add(_create_edge_string(edge[0], edge[1]))
+
+    file_lines = (
+        ["CRYSTAL", "   NAME", symmetry_group, cell_line]
+        + list(vertex_lines)
+        + list(edge_lines)
+        + ["END"]
+    )
+
+    return "\n".join(file_lines)

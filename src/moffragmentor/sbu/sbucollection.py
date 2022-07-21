@@ -107,3 +107,6 @@ class SBUCollection:
     @property
     def composition(self):
         return self._get_composition()
+
+    def __repr__(self) -> str:
+        return f"SBUCollection({self.composition})"

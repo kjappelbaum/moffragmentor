@@ -18,6 +18,7 @@ from ._graphsearch import (
     recursive_dfs_until_branch,
     recursive_dfs_until_cn3,
 )
+from .branching_points import has_metal_in_path
 from ..sbu import Node, NodeCollection
 from ..utils import _flatten_list_of_sets
 
@@ -28,8 +29,35 @@ __all__ = [
 ]
 
 NodelocationResult = namedtuple(
-    "NodelocationResult", ["nodes", "branching_indices", "connecting_paths"]
+    "NodelocationResult", ["nodes", "branching_indices", "connecting_paths", "binding_indices"]
 )
+
+
+def _count_metals_in_path(path, metal_indices):
+    """Count the number of metals in a path.
+
+    Args:
+        path (List[int]): path to check
+        metal_indices (List[int]): indices of metals
+
+    Returns:
+        int: number of metals in the path
+    """
+    return len(set(path) & set(metal_indices))
+
+
+def _path_without_metal_and_branching_sites(path, metal_indices, branching_indices):
+    """Remove the metal indices and the branching indices from a path.
+
+    Args:
+        path (List[int]): path to remove the indices from
+        metal_indices (List[int]): indices of metals
+        branching_indices (List[int]): indices of branching sites
+
+    Returns:
+        List[int]: path without metal indices and branching indices
+    """
+    return [i for i in path if i not in metal_indices and i not in branching_indices]
 
 
 def find_node_clusters(  # pylint:disable=too-many-locals
@@ -99,16 +127,19 @@ def find_node_clusters(  # pylint:disable=too-many-locals
     nodes = list(nx.connected_components(g))
 
     bs = set(sum(branch_sites, []))
-
+    binding_sites = set()
     # we store the shortest paths between nodes and branching indices
     # ToDo: we can extract this from the DFS paths above
     for metal, branch_sites_for_metal in zip(metal_indices, branch_sites):
         for branch_site in branch_sites_for_metal:
             paths = list(nx.all_shortest_paths(mof.nx_graph, metal, branch_site))
             for p in paths:
-                metal_in_path = [i for i in p if i in mof.metal_indices]
-                if len(metal_in_path) == 1:
+                metals_in_path = _count_metals_in_path(p, metal_indices)
+                if metals_in_path >= 1:
                     connecting_paths_.update(p)
+                if metals_in_path == 1:
+                    binding_path = _path_without_metal_and_branching_sites(p, metal_indices, bs)
+                    binding_sites.update(binding_path)
 
     all_neighbors = []
     for node in nodes:
@@ -122,7 +153,7 @@ def find_node_clusters(  # pylint:disable=too-many-locals
     # we need to remove the metal indices as otherwise the fragmentation breaks
     connecting_paths_ -= set(metal_indices)
 
-    res = NodelocationResult(nodes, bs, connecting_paths_)
+    res = NodelocationResult(nodes, bs, connecting_paths_, binding_sites)
     return res
 
 
@@ -136,46 +167,9 @@ def create_node_collection(mof, node_location_result: NodelocationResult) -> Nod
             mof=mof,
             node_indices=node_indices,
             branching_indices=node_location_result.branching_indices & node_indices,
-            binding_indices=identify_node_binding_indices(
-                mof,
-                node_indices,
-                node_location_result.connecting_paths,
-                node_location_result.branching_indices,
-            ),
+            binding_indices=node_location_result.binding_indices & node_indices,
             connecting_paths=node_location_result.connecting_paths & node_indices,
         )
         nodes.append(node)
 
     return NodeCollection(nodes)
-
-
-def identify_node_binding_indices(
-    mof: "MOF",  # noqa: F821
-    indices: Iterable[int],
-    connecting_paths: Iterable[int],
-    binding_indices: Iterable[int],
-) -> List[int]:
-    """Identify the binding indices of a node.
-
-    For the metal clusters, our rule for binding indices is quite simple.
-    We simply take the metal that is part of the connecting path.
-    We then additionally filter based on the constraint that
-    the nodes we want to identify need to bee bound to what
-    we have in the connecting path.
-
-    Args:
-        mof (MOF): moffragmentor MOF instance
-        indices (Iterable[int]): indices of the node
-        connecting_paths (Iterable[int]): indices of the connecting path
-        binding_indices (Iterable[int]): indices of the binding indices
-
-    Returns:
-        List[int]: indices of the binding indices
-    """
-    filtered = []
-    candidates = set(mof.metal_indices) & set(indices)
-    for candidate in candidates:
-        if len(set(mof.get_neighbor_indices(candidate)) & connecting_paths | binding_indices):
-            filtered.append(candidate)
-
-    return filtered

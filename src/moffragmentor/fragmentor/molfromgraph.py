@@ -139,7 +139,6 @@ def get_subgraphs_as_molecules(  # pylint:disable=too-many-locals
             ):
                 edges_to_remove.append((u, v))
 
-        # print('removing edges:', edges_to_remove)
         for edge_to_remove in edges_to_remove:
             supercell_sg.graph.remove_edge(*edge_to_remove)
 

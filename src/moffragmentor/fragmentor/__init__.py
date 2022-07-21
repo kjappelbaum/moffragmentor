@@ -21,7 +21,7 @@ FragmentationResult = namedtuple(
 )
 
 
-def metal_and_branching_coplanar(node, mof, tol=0.01):
+def metal_and_branching_coplanar(node, mof, tol=0.1):
     branching_idx = list(node._original_graph_branching_indices)
     coords = mof.frac_coords[list(node._original_indices) + branching_idx]
     points = Points(coords)
@@ -56,7 +56,7 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
             # ToDo: check and think if this can handle the general case
             # it should, at least if we only look at the metals
             if len(metal_in_node) == 1:
-                print(
+                logger.debug(
                     "metal_in_node",
                     i,
                     metal_in_node,
@@ -84,7 +84,7 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
 
     logger.info("Constructing the embedding")
     # Now, get the net
-    net_embedding = build_net(linker_collection, node_collection, mof.lattice)
+    net_embedding = build_net(node_collection, linker_collection, mof.lattice)
     fragmentation_results = FragmentationResult(
         node_collection,
         linker_collection,
