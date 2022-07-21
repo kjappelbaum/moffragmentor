@@ -7,13 +7,11 @@ from typing import Collection, List, Optional, Tuple
 import networkx as nx
 import numpy as np
 import pubchempy as pcp
-from ase import Atoms
 from backports.cached_property import cached_property
 from loguru import logger
 from openbabel import pybel as pb
 from pymatgen.analysis.graphs import MoleculeGraph
 from pymatgen.core import Lattice, Molecule, Structure
-from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.io.babel import BabelMolAdaptor
 from rdkit import Chem
 from scipy.spatial.distance import pdist

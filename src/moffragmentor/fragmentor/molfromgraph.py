@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
 """Generate molecules as the subgraphs from graphs"""
 from collections import defaultdict
-from copy import deepcopy
 from typing import Iterable, List, Optional, Tuple
 
 import networkx as nx
 import numpy as np
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 from pymatgen.core import Element, Molecule, Site, Structure
-
-from moffragmentor.utils.periodic_graph import VestaCutoffDictNN
 
 
 def _is_in_cell(frac_coords: np.ndarray) -> bool:
@@ -117,14 +114,6 @@ def get_subgraphs_as_molecules(  # pylint:disable=too-many-locals
 
     # make undirected to find connected subgraphs
     supercell_sg.graph = nx.Graph(supercell_sg.graph)
-
-    # nodes_in_center = []
-    # def is_site_in_cell(coord):
-    #     return np.all((coord >= 1) & (coord <= 2))
-
-    # for i, coord in enumerate(sg.structure.lattice.get_fractional_coords(sg.structure.cart_coords)):
-    #     if is_site_in_cell(coord):
-    #         nodes_in_center.append(i)
 
     if prune_long_edges:
         edges_to_remove = []

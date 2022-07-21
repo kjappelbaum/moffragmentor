@@ -3,10 +3,7 @@
 from typing import List, Tuple
 
 import numpy as np
-from loguru import logger
 from pymatgen.core import Lattice, Structure
-
-from moffragmentor.net import in_cell
 
 from .molfromgraph import get_subgraphs_as_molecules, wrap_molecule
 from ..sbu import Linker, LinkerCollection

@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """Describing a collection of nodes"""
-from hashlib import sha1
-
 from pymatgen.core import Molecule
 
 from .sbucollection import SBUCollection

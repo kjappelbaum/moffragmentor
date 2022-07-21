@@ -42,7 +42,6 @@ from moffragmentor.sbu import SBU
 from moffragmentor.sbu.linkercollection import LinkerCollection
 from moffragmentor.sbu.nodecollection import NodeCollection
 
-from .utils import unwrap
 from .utils.systre import _get_systre_input_from_pmg_structure_graph, run_systre
 
 
@@ -180,9 +179,7 @@ class NetNode:
         return is_periodic_image(self._coords, other._coords, lattice, tolerance)
 
     def periodic_image(self, other: "NetNode", lattice: Lattice):  # noqa: F821 - forward reference
-        """
-        `periodic_image` returns the periodic image of `other`
-        with respect to `self` in the given `lattice`
+        """`periodic_image` returns the periodic image of `other` w.r.t to `self`.
 
         Args:
             other ("NetNode"): NetNode
@@ -190,6 +187,9 @@ class NetNode:
 
         Returns:
             np.array: The periodic image of the other node in the lattice.
+
+        Raises:
+            ValueError: If the two nodes are not periodic images of each other.
         """
         if not self.is_periodic_image(other, lattice):
             raise ValueError("Nodes are not periodic images")
@@ -208,7 +208,7 @@ def is_periodic_image(
     a: np.array, b: np.array, lattice: Lattice, tolerance: float = 1e-8, is_frac: bool = False
 ) -> bool:
     """
-    Returns `True` if `a` and `b` are periodic images of each other.
+    Return `True` if `a` and `b` are periodic images of each other.
 
     Args:
         a (np.array): np.array, b: np.array: The two points you want to compare.
@@ -265,8 +265,14 @@ class Net:
         )
 
     def get_pmg_structure_graph(self, simplify: bool = True) -> StructureGraph:
-        """
-        Return a StructureGraph object from the Net object.
+        """Return a StructureGraph object from the Net object
+
+        Args:
+            simplify (bool, optional): Whether to simplify the graph. Defaults to True.
+                If True, 2c vertices are removed.
+
+        Returns:
+            StructureGraph: The StructureGraph object.
         """
         s = self.get_dummy_structure()
         edge_dict = {}

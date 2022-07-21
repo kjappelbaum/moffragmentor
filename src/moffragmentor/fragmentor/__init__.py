@@ -5,13 +5,11 @@ from collections import namedtuple
 from loguru import logger
 from skspatial.objects import Points
 
-from .filter import point_in_mol_coords
 from .linkerlocator import create_linker_collection
-from .nodelocator import NodelocationResult, create_node_collection, find_node_clusters
+from .nodelocator import create_node_collection, find_node_clusters
 from .solventlocator import get_all_bound_solvent_molecules, get_floating_solvent_molecules
 from ..net import build_net
 from ..utils import _get_metal_sublist
-from ..utils.periodic_graph import is_periodic
 
 __all__ = ["FragmentationResult"]
 
