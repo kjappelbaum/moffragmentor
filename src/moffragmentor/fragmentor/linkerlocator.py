@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """Based on the node location, locate the linkers"""
-from typing import List, Tuple
+from typing import Tuple
 
 import numpy as np
-from pymatgen.core import Lattice, Structure
+from pymatgen.core import Structure
 
 from .molfromgraph import get_subgraphs_as_molecules, wrap_molecule
 from ..sbu import Linker, LinkerCollection
@@ -44,40 +44,6 @@ def number_branching_points_in_cell(coordinates, lattice):
             in_cell += 1
 
     return in_cell
-
-
-def _pick_linker_indices(
-    idxs: List[List[int]],
-    centers,
-    coordinates,
-    all_node_branching_indices,
-    lattice: Lattice,
-    two_branching_indices=True,
-) -> Tuple[List[int], List[int]]:
-    """Trying to have a more reasonable way to filter out linkers
-    (of multiple versions of the linker that might be wrapped across a unit cell)"""
-    threshold = 2 if two_branching_indices else 1
-    counter = 0
-    unique_branching_site_centers = {}
-    unique_branching_sites_indices = {}
-    has_branch_point = []
-    for idx, center, coords in zip(idxs, centers, coordinates):
-        intersection = set(idx) & all_node_branching_indices
-        if len(intersection) >= threshold:
-            has_branch_point.append(counter)
-            intersection = tuple(sorted(tuple(intersection)))
-            norm = number_branching_points_in_cell(coords, lattice)
-            if not (np.abs(lattice.get_fractional_coords(coords)) >= 2).any():
-                if intersection in unique_branching_site_centers:
-                    if unique_branching_site_centers[intersection] < norm:
-                        unique_branching_site_centers[intersection] = norm
-                        unique_branching_sites_indices[intersection] = counter
-                else:
-                    unique_branching_site_centers[intersection] = norm
-                    unique_branching_sites_indices[intersection] = counter
-        counter += 1
-
-    return unique_branching_sites_indices.values(), has_branch_point
 
 
 def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals

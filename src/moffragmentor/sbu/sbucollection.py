@@ -109,4 +109,5 @@ class SBUCollection:
         return self._get_composition()
 
     def __repr__(self) -> str:
+        """Return string representation."""
         return f"SBUCollection({self.composition})"

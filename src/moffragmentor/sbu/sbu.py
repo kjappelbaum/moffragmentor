@@ -146,7 +146,6 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         self.graph_branching_coords = graph_branching_coords
         self._original_binding_indices = binding_indices
 
-        # ToDo: This is not correct in general. We might map multiple times to one original index (as we might consider the original index as well as some image)
         self.mapping_from_original_indices = defaultdict(list)
         for ori_index, index in zip(self._original_indices, range(len(molecule))):
             self.mapping_from_original_indices[ori_index].append(index)
@@ -214,6 +213,10 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
     def get_indices(self):
         return self._indices
 
+    @property
+    def is_edge(self):
+        return len(self.branching_coords) == 2
+
     def __len__(self):
         """Return the number of atoms in the molecule."""
         return len(self.molecule)
@@ -276,12 +279,28 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
 
     @cached_property
     def hash(self) -> str:
-        """Combination of Weisfeiler-Lehman graph hash and center"""
+        """Return hash.
+
+        The hash is a combination of Weisfeiler-Lehman graph hash and center.
+
+        Returns:
+            str: Hash.
+        """
         wl_hash = self.weisfeiler_lehman_graph_hash
         center = self.molecule.cart_coords.mean(axis=0)
         return f"{wl_hash}-{center[0]:.2f}-{center[1]:.2f}-{center[2]:.2f}"
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: "SBU") -> bool:
+        """Check if two molecules are equal.
+
+        Based on the Weisfeiler-Lehman graph hash and center of mass.
+
+        Args:
+            other (SBU): SBU to compare to.
+
+        Returns:
+            bool: True if equal, False otherwise.
+        """
         if hash(self) != hash(other):
             return False
         return True

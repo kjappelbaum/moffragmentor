@@ -151,16 +151,17 @@ def _parse_node_line(line: str) -> Tuple[int, List[float]]:
     return node_number, coords
 
 
-def _get_systre_input_from_pmg_structure_graph(  # pylint: disable=too-many-locals
+def _get_systre_input_from_pmg_structure_graph(
     structure_graph: StructureGraph, lattice: Lattice = None
 ) -> str:
     """
     Loop over all atoms in a StructureGraph and use them as nodes.
+
     Place edges such that all nodes are represented with their
     full connectivity.
 
     Args:
-        structure_graph (StrucutureGraph): pymatgen StructureGraph
+        structure_graph (StructureGraph): pymatgen StructureGraph
             object representing the net. This will correspond to having
             one atom per SBU in the structure graph.
         lattice (Lattice): pymatgen lattice object. Needed for the cell dimension
@@ -190,7 +191,7 @@ def _get_systre_input_from_pmg_structure_graph(  # pylint: disable=too-many-loca
         return f"   NODE {counter} {coordination} {coordinate[0]:.4f} {coordinate[1]:.4f} {coordinate[2]:.4f}"
 
     def _create_edge_string(coordinate_0, coordinate_1):
-        return f"   EDGE {coordinate_0[0]:.4f} {coordinate_0[1]:.4f} {coordinate_0[2]:.4f} {coordinate_1[0]:.4f} {coordinate_1[1]:.4f} {coordinate_1[2]:.4f}"
+        return f"   EDGE {coordinate_0[0]:.4f} {coordinate_0[1]:.4f} {coordinate_0[2]:.4f} {coordinate_1[0]:.4f} {coordinate_1[1]:.4f} {coordinate_1[2]:.4f}"  # noqa:E501
 
     edge_lines = set()
     vertex_lines = set()
@@ -198,7 +199,7 @@ def _get_systre_input_from_pmg_structure_graph(  # pylint: disable=too-many-loca
     for i, vertex in enumerate(vertices):
         vertex_lines.add(_create_vertex_string(i, vertex[0], vertex[1]))
 
-    for i, edge in enumerate(edges):
+    for _, edge in enumerate(edges):
         edge_lines.add(_create_edge_string(edge[0], edge[1]))
 
     file_lines = (

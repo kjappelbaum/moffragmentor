@@ -63,7 +63,7 @@ def com(xyz, mass):
     return (xyz * mass).mean(0)
 
 
-def get_subgraphs_as_molecules(  # pylint:disable=too-many-locals
+def get_subgraphs_as_molecules(  # noqa:C901
     structure_graph: StructureGraph,
     use_weights: bool = False,
     return_unique: bool = True,
@@ -117,7 +117,7 @@ def get_subgraphs_as_molecules(  # pylint:disable=too-many-locals
 
     if prune_long_edges:
         edges_to_remove = []
-        for u, v, d in supercell_sg.graph.edges(data=True):
+        for u, v, _ in supercell_sg.graph.edges(data=True):
             # if (d['to_jimage'] == (0, 0, 0)) or (u in nodes_in_center) or (v in nodes_in_center):
             if (
                 np.linalg.norm(
@@ -242,8 +242,8 @@ def get_subgraphs_as_molecules(  # pylint:disable=too-many-locals
 
 
 def wrap_molecule(
-    mol_idxs: Iterable[int], mof: "MOF", starting_index: Optional[int] = None
-) -> Molecule:  # noqa: F821
+    mol_idxs: Iterable[int], mof: "MOF", starting_index: Optional[int] = None  # noqa: F821
+) -> Molecule:
     """Wrap a molecule in the cell of the MOF by walking along the structure graph.
 
     For this we perform BFS from the starting index. That is, we use a queue to

@@ -268,7 +268,7 @@ class Net:
         """Return a StructureGraph object from the Net object
 
         Args:
-            simplify (bool, optional): Whether to simplify the graph. Defaults to True.
+            simplify (bool): Whether to simplify the graph. Defaults to True.
                 If True, 2c vertices are removed.
 
         Returns:
@@ -386,9 +386,21 @@ def branching_index_match(linker, metal_cluster, lattice: Lattice, tolerance: fl
 
 def which_periodic_image(
     a: np.ndarray, b: np.ndarray, lattice: Lattice, tolerance: float = 1e-2, is_frac: bool = True
-):
+) -> Tuple[bool, Optional[np.array], Optional[List[Tuple]]]:
     """
-    Use pymatgens get_distance_and_image to find which periodic image of a is closest to b.
+    Find which periodic image of a is closest to b.
+
+    Uses pymatgens get_distance_and_image.
+
+    Args:
+        a (np.ndarray): The first vector.
+        b (np.ndarray): The second vector.
+        lattice (Lattice): The lattice to use for finding the periodic image.
+        tolerance (float): The tolerance for finding the periodic image.
+        is_frac (bool): Whether the vectors are in fractional coordinates.
+
+    Returns:
+        Tuple[bool, Optional[np.array], Optional[List[Tuple]]]: A tuple of (is_new, image, image_list).
     """
     if not is_frac:
         a = lattice.get_fractional_coords(a)
@@ -574,6 +586,7 @@ def build_net(
 
 def _simplify_structure_graph(structure_graph: StructureGraph) -> StructureGraph:
     """Simplifies a structure graph by removing two-connected nodes.
+
     We will place an edge between the nodes that were connected
     by the two-connected node.
 

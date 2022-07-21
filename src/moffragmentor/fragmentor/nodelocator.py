@@ -7,7 +7,7 @@ in https://pubs.acs.org/doi/pdf/10.1021/acs.cgd.8b00126.
 Note that we currently only place one vertex for every linker which might loose some information about isomers
 """
 from collections import namedtuple
-from typing import Iterable, List, Optional
+from typing import List, Optional
 
 import networkx as nx
 from loguru import logger
@@ -18,7 +18,6 @@ from ._graphsearch import (
     recursive_dfs_until_branch,
     recursive_dfs_until_cn3,
 )
-from .branching_points import has_metal_in_path
 from ..sbu import Node, NodeCollection
 from ..utils import _flatten_list_of_sets
 

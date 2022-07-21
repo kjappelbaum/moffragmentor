@@ -66,7 +66,6 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
                         "Metal in linker found, current node: {}, indices: {}".format(
                             node,
                             node_collection[i]._original_indices,
-                            node_collection[i]._original_graph_branching_indices,
                         )
                     )
                     need_rerun = True
