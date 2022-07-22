@@ -47,7 +47,7 @@ def number_branching_points_in_cell(coordinates, lattice):
 
 
 def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
-    mof, node_location_result, node_collection, unbound_solvent
+    mof, node_location_result, node_collection, unbound_solvent, bound_solvent
 ) -> Tuple[LinkerCollection, dict]:
     linkers = []
 
@@ -75,6 +75,7 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
             )
         )
         | set(unbound_solvent.indices)
+        | set(bound_solvent.indices)
         | set(mof.metal_indices) & all_node_indices
         # some metals might also be in the linker, e.g., in porphyrins
     )
@@ -132,10 +133,11 @@ def create_linker_collection(
     node_location_result,
     node_collection,
     unbound_solvents,
+    bound_solvents,
 ) -> Tuple[LinkerCollection, dict]:
     """Based on MOF, node locaion and unbound solvent location locate the linkers"""
     linker_collection = _create_linkers_from_node_location_result(
-        mof, node_location_result, node_collection, unbound_solvents
+        mof, node_location_result, node_collection, unbound_solvents, bound_solvents
     )
     return linker_collection
 

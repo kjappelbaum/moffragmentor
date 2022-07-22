@@ -34,7 +34,6 @@ def node_from_mof_and_indices(  # pylint:disable=too-many-locals, too-many-argum
     graph_.remove_nodes(to_delete)
 
     sites_and_indices = _sites_and_classified_indices_from_indices(mof, node_indices)
-
     relevant_indices = node_indices - set(sites_and_indices.hidden_vertices)
 
     selected_positions, selected_species, selected_edge_indices = [], [], []
@@ -81,23 +80,19 @@ def node_from_mof_and_indices(  # pylint:disable=too-many-locals, too-many-argum
         else:
             closest_branching_index_in_molecule.append(branching_index)
     idx = [i for i in relevant_indices if i in node_indices]
-    mol = wrap_molecule(idx, mof)
+    mol_w_hidden = wrap_molecule(idx + sites_and_indices.hidden_vertices, mof)
     node = cls(
-        molecule=mol,
+        molecule=mol_w_hidden,
         molecule_graph=molecule_graph,
         center=center,
         graph_branching_indices=graph_branching_indices,
         closest_branching_index_in_molecule=closest_branching_index_in_molecule,
         binding_indices=binding_indices,
-        original_indices=idx,
+        original_indices=idx + sites_and_indices.hidden_vertices,
         persistent_non_metal_bridged=sites_and_indices.persistent_non_metal_bridged_components,
         terminal_in_mol_not_terminal_in_struct=sites_and_indices.hidden_vertices,
-        # graph_branching_coords=sites_and_indices.cartesian_coordinates[
-        #    [sites_and_indices.index_mapping[i] for i in graph_branching_indices]
-        # ],
         connecting_paths=connecting_paths,
         lattice=mof.lattice,
-        # coordinates=mof.cart_coords[idx],
     )
 
     return node

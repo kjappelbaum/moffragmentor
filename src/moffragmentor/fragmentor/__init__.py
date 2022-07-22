@@ -5,6 +5,8 @@ from collections import namedtuple
 from loguru import logger
 from skspatial.objects import Points
 
+from moffragmentor.sbu.linkercollection import LinkerCollection
+
 from .linkerlocator import create_linker_collection
 from .nodelocator import create_node_collection, find_node_clusters
 from .solventlocator import get_all_bound_solvent_molecules, get_floating_solvent_molecules
@@ -15,7 +17,7 @@ __all__ = ["FragmentationResult"]
 
 FragmentationResult = namedtuple(
     "FragmentationResult",
-    ["nodes", "linkers", "bound_solvent", "unbound_solvent", "net_embedding"],
+    ["nodes", "linkers", "bound_solvent", "unbound_solvent", "capping_molecules", "net_embedding"],
 )
 
 
@@ -28,26 +30,30 @@ def metal_and_branching_coplanar(node, mof, tol=0.1):
 
 def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-locals
     """Take a MOF and split it into building blocks."""
+    logger.debug("Starting fragmentation with location of unbound solvent")
     unbound_solvent = get_floating_solvent_molecules(mof)
     need_rerun = True
     forbidden_indices = []
     counter = 0
     while need_rerun:
         not_node = []
-        logger.info(f"Fragmenting MOF for the {counter} time")
+        logger.debug(f"Fragmenting MOF for the {counter} time")
         # Find nodes
         node_result = find_node_clusters(
             mof, unbound_solvent.indices, forbidden_indices=forbidden_indices
         )
         node_collection = create_node_collection(mof, node_result)
         # Find bound solvent
+        logger.debug("Locating bound solvent")
         bound_solvent = get_all_bound_solvent_molecules(mof, node_result.nodes)
+        logger.debug(f"Found bound solvent {len(bound_solvent.indices)>0}")
         # Filter the linkers (valid linkers have at least two branch points)
+        logger.debug("Locating linkers")
         linker_collection = create_linker_collection(
-            mof, node_result, node_collection, unbound_solvent
+            mof, node_result, node_collection, unbound_solvent, bound_solvent
         )
 
-        logger.info("Checking for metal in linker")
+        logger.debug("Checking for metal in linker")
         # ToDo: factor this out into its own function
         for i, node in enumerate(node_result.nodes):  # pylint:disable=too-many-nested-blocks
             metal_in_node = _get_metal_sublist(node, mof.metal_indices)
@@ -62,7 +68,7 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
                     node_collection[i]._original_graph_branching_indices,
                 )
                 if metal_and_branching_coplanar(node_collection[i], mof):
-                    logger.info(
+                    logger.debug(
                         "Metal in linker found, current node: {}, indices: {}".format(
                             node,
                             node_collection[i]._original_indices,
@@ -79,7 +85,24 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
             break
         counter += 1
 
-    logger.info("Constructing the embedding")
+    logger.debug("Move the capping molecules from the linkercollection into their own collection")
+    is_linker = []
+    is_capping = []
+    for linker in linker_collection:
+        if len(linker._original_graph_branching_indices) >= 2:
+            is_linker.append(linker)
+        else:
+            if len(linker.molecule) > 1:
+                is_capping.append(linker)
+            else:
+                logger.warning(
+                    "Capping molecule with only one atom. Perhaps something funny happened in the fragmentation."
+                )
+
+    linker_collection = LinkerCollection(is_linker)
+    capping_molecules = LinkerCollection(is_capping)
+
+    logger.debug("Constructing the embedding")
     # Now, get the net
     net_embedding = build_net(node_collection, linker_collection, mof.lattice)
     fragmentation_results = FragmentationResult(
@@ -87,6 +110,7 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
         linker_collection,
         bound_solvent,
         unbound_solvent,
+        capping_molecules,
         net_embedding,
     )
 

@@ -22,10 +22,10 @@ from ..utils.mol_compare import mcs_rank
 
 def ob_mol_without_metals(obmol):
     """Remove metals from an OpenBabel molecule."""
-    import openbabel as ob  # pylint: disable=import-outside-toplevel
+    import openbabel as ob
 
     mol = obmol.clone
-    for atom in ob.OBMolAtomIter(mol.OBMol):  # pylint:disable=no-member
+    for atom in ob.OBMolAtomIter(mol.OBMol):
         if atom.IsMetal():
             mol.OBMol.DeleteAtom(atom)
 
@@ -38,17 +38,17 @@ __all__ = ["SBU"]
 def obmol_to_rdkit_mol(obmol):
     """Convert an OpenBabel molecule to a RDKit molecule."""
     smiles = obmol.write("can").strip()
-    mol = Chem.MolFromSmiles(smiles, sanitize=True)  # pylint: disable=no-member
+    mol = Chem.MolFromSmiles(smiles, sanitize=True)
     if mol is None:
         warnings.warn("Attempting to remove metals to generate RDKit molecule")
         new_obmol = ob_mol_without_metals(obmol)
         smiles = new_obmol.write("can").strip()
-        mol = Chem.MolFromSmiles(smiles, sanitize=True)  # pylint: disable=no-member
+        mol = Chem.MolFromSmiles(smiles, sanitize=True)
 
     return mol
 
 
-class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-methods
+class SBU:
     """Representation for a secondary building block.
 
     It also acts as container for site indices:
@@ -69,7 +69,11 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
             and building block molecule. No metal is part of the edge,
             i.e., bound solvents are not included in this set
         * terminal_in_mol_not_terminal_in_struct: indices that are terminal
-            in the molecule but not terminal in the structure
+            in the molecule but not terminal in the structure.
+            This is for instance, the case for carboxy groups that are only
+            coordinated with one O. In this case, a chemically more faithful
+            representation might be to not include the C of the carboxy
+            in the node. This collection allows us to do so.
 
     .. note::
 
@@ -124,9 +128,6 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
             terminal_in_mol_not_terminal_in_struct (Optional[Collection[int]], optional):
                 Tndices that are terminal in the molecule but not terminal in the structure.
                 Defaults to None.
-            graph_branching_coords (Optional[Collection[np.ndarray]], optional):
-                Branching indices according to the graph-based definition.
-                They might not be part of the molecule. Defaults to None.
             connecting_paths (Optional[Collection[int]], optional):
                 Paths between node atoms and branching atoms. Defaults to None.
             coordinates (Optional[np.ndarray], optional): Coordinates of all atoms in the molecule.
@@ -143,7 +144,6 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
 
         self._persistent_non_metal_bridged = persistent_non_metal_bridged
         self._terminal_in_mol_not_terminal_in_struct = terminal_in_mol_not_terminal_in_struct
-        self.graph_branching_coords = graph_branching_coords
         self._original_binding_indices = binding_indices
 
         self.mapping_from_original_indices = defaultdict(list)
@@ -167,7 +167,7 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
         return self.molecule.center_of_mass
 
     def search_pubchem(self, listkey_counts: int = 10, **kwargs) -> Tuple[List[str], bool]:
-        """Search for a molecule in pubchem
+        """Search for a molecule in pubchem # noqa: DAR401
 
         Second element of return tuple is true if there was an identity match
 
@@ -181,13 +181,17 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
             Tuple[List[str], bool]: List of pubchem ids and whether there was an identity match
         """
         try:
-            return (
-                pcp.get_compounds(
-                    self.smiles, namespace="smiles", searchtype="fastidentity", **kwargs
-                ),
-                True,
+            matches = pcp.get_compounds(
+                self.smiles, namespace="smiles", searchtype="fastidentity", **kwargs
             )
-        except Exception:  # pylint: disable=broad-except
+            if matches:
+                return (
+                    matches,
+                    True,
+                )
+            else:
+                raise ValueError("No matches found")
+        except Exception:
             logger.warning(
                 f"Could not find {self.smiles} in pubchem, \
                     now performing substructure search"
@@ -267,6 +271,12 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
 
     @property
     def graph_branching_indices(self):
+        # todo: we need a mechanism if the branching site is not
+        # included in the representation of the node
+        # we should at least add a warning here
+        # we also should have a fallback, when we create the node,
+        # that we have those coordinates wrapped in the same way
+        # perhaps we can wrap one where we include this
         indices = []
         for i in self.original_graph_branching_indices:
             for index in self.mapping_from_original_indices[i]:
@@ -307,10 +317,6 @@ class SBU:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
 
     @cached_property
     def branching_coords(self):
-        if self.graph_branching_coords is not None:
-            return self.graph_branching_coords
-        # ToDo: add here also a try capture for the case that the graph
-        # branching indices are not part of the molecule
         return self.cart_coords[self.graph_branching_indices]
 
     @cached_property

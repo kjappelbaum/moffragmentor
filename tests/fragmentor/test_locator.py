@@ -351,7 +351,7 @@ def test__create_linkers_from_node_location_result(get_hkust_mof):
     node_location_result = find_node_clusters(mof)
     node_collection = create_node_collection(mof, node_location_result)
     linkers = _create_linkers_from_node_location_result(
-        mof, node_location_result, node_collection, unbound_solvent
+        mof, node_location_result, node_collection, unbound_solvent, unbound_solvent
     )
     assert len(linkers) == 32
     linker_lengths = [len(linker) for linker in linkers]

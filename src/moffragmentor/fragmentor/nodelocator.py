@@ -81,6 +81,7 @@ def find_node_clusters(  # pylint:disable=too-many-locals
         NodelocationResult: nametuple with the slots "nodes", "branching_indices" and
             "connecting_paths"
     """
+    logger.debug("Locating node clusters")
     paths = []
     branch_sites = []
 
@@ -89,7 +90,7 @@ def find_node_clusters(  # pylint:disable=too-many-locals
     if forbidden_indices is None:
         forbidden_indices = []
 
-    metal_indices = [i for i in mof.metal_indices if i not in forbidden_indices]
+    metal_indices = set([i for i in mof.metal_indices if i not in forbidden_indices])
 
     if unbound_solvent_indices is None:
         unbound_solvent_indices = []
@@ -126,12 +127,15 @@ def find_node_clusters(  # pylint:disable=too-many-locals
     nodes = list(nx.connected_components(g))
 
     bs = set(sum(branch_sites, []))
+
+    logger.debug("Locating binding sites and connecting paths")
     binding_sites = set()
     # we store the shortest paths between nodes and branching indices
     # ToDo: we can extract this from the DFS paths above
     for metal, branch_sites_for_metal in zip(metal_indices, branch_sites):
         for branch_site in branch_sites_for_metal:
-            paths = list(nx.all_shortest_paths(mof.nx_graph, metal, branch_site))
+            # note: using all_simple_paths here is computationally prohibitive
+            paths = nx.all_shortest_paths(mof.nx_graph, metal, branch_site)
             for p in paths:
                 metals_in_path = _count_metals_in_path(p, metal_indices)
                 if metals_in_path >= 1:
@@ -139,6 +143,11 @@ def find_node_clusters(  # pylint:disable=too-many-locals
                 if metals_in_path == 1:
                     binding_path = _path_without_metal_and_branching_sites(p, metal_indices, bs)
                     binding_sites.update(binding_path)
+                    # traverse to also add things like Hs in the binding path
+                    for site in binding_path:
+                        for neighbor in g.neighbors(site):
+                            if neighbor not in metal_indices | bs:
+                                binding_sites.add(neighbor)
 
     all_neighbors = []
     for node in nodes:

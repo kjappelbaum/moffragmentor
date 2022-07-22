@@ -21,7 +21,7 @@ from .utils import IStructure, pickle_dump, write_cif
 __all__ = ["MOF"]
 
 
-class MOF:  # pylint:disable=too-many-instance-attributes, too-many-public-methods
+class MOF:
     """Main representation for a MOF structure.
 
     This container holds a structure and its associated graph.
@@ -118,7 +118,7 @@ class MOF:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
 
     @classmethod
     def from_cif(
-        cls, cif: Union[str, os.PathLike], symprec: float = 0.5, angle_tolerance: float = 10
+        cls, cif: Union[str, os.PathLike], symprec: float = 0.1, angle_tolerance: float = 5
     ):
         """Initialize a MOF object from a cif file.
 
@@ -144,8 +144,8 @@ class MOF:  # pylint:disable=too-many-instance-attributes, too-many-public-metho
     def from_structure(
         cls,
         structure: Structure,
-        symprec: Optional[float] = 0.5,
-        angle_tolerance: Optional[float] = 10,
+        symprec: Optional[float] = 0.1,
+        angle_tolerance: Optional[float] = 5,
     ):
         if (symprec is not None) and (angle_tolerance is not None):
             spga = SpacegroupAnalyzer(structure, symprec=symprec, angle_tolerance=angle_tolerance)
