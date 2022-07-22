@@ -39,8 +39,8 @@ def _has_path_to_any_other_metal(mof, index: int, this_metal_index: int) -> bool
 def recursive_dfs_until_terminal(
     mof,
     start: int,
-    path: List[int] = [],  # noqa: B006
-    skip_list: List[int] = [],  # noqa: B006
+    path: List[int] = None,  # noqa: B006
+    skip_list: List[int] = None,  # noqa: B006
 ) -> List[int]:
     """From a given starting point perform depth-first search until leaf nodes are reached.
 
@@ -53,6 +53,10 @@ def recursive_dfs_until_terminal(
     Returns:
         List[int]: Path between start and the leaf node
     """
+    if path is None:
+        path = []
+    if skip_list is None:
+        skip_list = []
     if (start not in path) and (start not in skip_list):
         path.append(start)
         if mof._is_terminal(start):  # pylint:disable=protected-access
@@ -103,8 +107,8 @@ def _complete_graph(
 def recursive_dfs_until_branch(
     mof,
     start: int,
-    path: List[int] = [],  # noqa: B006
-    branching_nodes: List[int] = [],  # noqa: B006
+    path: List[int] = None,  # noqa: B006
+    branching_nodes: List[int] = None,  # noqa: B006
 ) -> List[int]:
     """From a starting point perform DFS until branch nodes are reached.
 
@@ -118,6 +122,10 @@ def recursive_dfs_until_branch(
     Returns:
         List[int]: Path between start and the leaf node
     """
+    if path is None:
+        path = []
+    if branching_nodes is None:
+        branching_nodes = []
     if start not in path:
         path.append(start)
 
@@ -136,8 +144,8 @@ def recursive_dfs_until_branch(
 def recursive_dfs_until_cn3(
     mof,
     start: int,
-    path: List[int] = [],  # noqa: B006
-    branching_nodes: List[int] = [],  # noqa: B006
+    path: List[int] = None,  # noqa: B006
+    branching_nodes: List[int] = None,  # noqa: B006
 ) -> List[int]:
     """From starting point perform DFS until CN=3 nodes are reached.
 
@@ -151,6 +159,10 @@ def recursive_dfs_until_cn3(
     Returns:
         List[int]: Path between start and the leaf node
     """
+    if path is None:
+        path = []
+    if branching_nodes is None:
+        branching_nodes = []
     if start not in path:
         path.append(start)
 
