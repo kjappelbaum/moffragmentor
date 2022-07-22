@@ -60,14 +60,6 @@ To get the [RCSR code](http://rcsr.anu.edu.au/nets) run
 ```python
 fragments.net_embedding.rcsr_code
 ```
-## moffragmentor in the MOF decomposition tool landscape
-
-While moffragmentor has some unique features, it might not be the right tool for your task. Due to some design choices (having a pymatgen representation of all fragments and the net) it is relatively slow in the current implementation (though there are obvious ways for fixing this). 
-
-Therefore, we encourage you to also consider alternative tools: 
-
-- [mofid](https://github.com/snurr-group/mofid)
-- [mBUD](https://github.com/gdev7/mBUD)
 
 ## 🚀 Installation
 
@@ -77,7 +69,20 @@ pip install git+https://github.com/kjappelbaum/moffragmentor.git
 
 You need to have `openbabel` installed which you can install with `conda install -c conda-forge openbabel`. 
 
-You can also run `bash create_conda.sh`. Note that you might want to change the name of the name of the environment (defaults to `moffragmentor`).
+As a utility, you can also run `bash create_conda.sh` to create a conda environment with all dependencies.
+Note that you might want to change the name of the name of the environment (defaults to `moffragmentor`).
+
+
+## moffragmentor in the MOF decomposition tool landscape
+
+While moffragmentor has some unique features, it might not be the right tool for your task. Due to some design choices (having a pymatgen representation of all fragments and the net) it is relatively slow in the current implementation (though there are obvious ways for fixing this). 
+
+Therefore, we encourage you to also consider alternative tools: 
+
+- [mofid](https://github.com/snurr-group/mofid)
+- [mBUD](https://github.com/gdev7/mBUD)
+
+
 
 ## 👐 Contributing
 

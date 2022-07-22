@@ -93,8 +93,8 @@ def test_formatte_mof(get_formate_structure_and_graph):
     mof = MOF(s, sg)
     bbs = mof.fragment()
     assert len(bbs.nodes) == 1
-    assert len(bbs.linkers) == 8
-    assert bbs.linkers.composition == {"C1 H1 O2": 8}
+    assert len(bbs.capping_molecules) == 8
+    assert bbs.capping_molecules.composition == {"C1 H1 O2": 8}
 
 
 def test__get_solvent_molecules_bound_to_node(get_li_mof_with_floating):

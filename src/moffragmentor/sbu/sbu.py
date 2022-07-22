@@ -101,7 +101,6 @@ class SBU:
         original_indices: Collection[int],
         persistent_non_metal_bridged: Optional[Collection[int]] = None,
         terminal_in_mol_not_terminal_in_struct: Optional[Collection[int]] = None,
-        graph_branching_coords: Optional[Collection[np.ndarray]] = None,
         connecting_paths: Optional[Collection[int]] = None,
         coordinates: Optional[np.ndarray] = None,
         lattice: Optional[Lattice] = None,
@@ -271,12 +270,6 @@ class SBU:
 
     @property
     def graph_branching_indices(self):
-        # todo: we need a mechanism if the branching site is not
-        # included in the representation of the node
-        # we should at least add a warning here
-        # we also should have a fallback, when we create the node,
-        # that we have those coordinates wrapped in the same way
-        # perhaps we can wrap one where we include this
         indices = []
         for i in self.original_graph_branching_indices:
             for index in self.mapping_from_original_indices[i]:
