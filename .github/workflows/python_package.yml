@@ -27,8 +27,7 @@ jobs:
           conda-channels: anaconda, conda-forge
       - name: Install dependencies
         run: |
-          conda install jupyterlab=3 nglview -c conda-forge -y
-          conda install openbabel rdkit ase click -c conda-forge
+          conda install openbabel -c conda-forge
           pip install -e .
           pip install pytest pytest-cov
       - name: Test with pytest
