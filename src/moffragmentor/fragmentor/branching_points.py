@@ -96,9 +96,8 @@ def _is_branch_point(
     if len(connected_sites) < 3:
         return False
 
-    if not allow_metal:
-        if index in mof.metal_indices:
-            return False
+    if not allow_metal and index in mof.metal_indices:
+        return False
 
     # lets store all the info in a numpy array
     sites = []
