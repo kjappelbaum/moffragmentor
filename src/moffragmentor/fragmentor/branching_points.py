@@ -66,7 +66,10 @@ def has_metal_in_path(mof: "MOF", path: List[int]) -> bool:  # noqa: F821 - forw
 
 def has_non_bridge_path_with_metal(mof: "MOF", site: int) -> bool:  # noqa: F821 - forward reference
     """Return True if the MOF has a non-bridge path with a meta.l"""
-    return any(not has_bridge_in_path(mof, path) and has_metal_in_path(mof, path) for path in get_two_edge_paths_from_site(mof, site))
+    return any(
+        not has_bridge_in_path(mof, path) and has_metal_in_path(mof, path)
+        for path in get_two_edge_paths_from_site(mof, site)
+    )
 
 
 def _is_branch_point(
