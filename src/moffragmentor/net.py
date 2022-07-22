@@ -361,11 +361,7 @@ def add_node_to_collection(
 
 def contains_edge(edge: VoltageEdge, collection: Iterable[VoltageEdge]) -> bool:
     """Return True if the edge is in the collection."""
-    for e in collection:
-        if e == edge:
-            return True
-
-    return False
+    return any(e == edge for e in collection)
 
 
 def branching_index_match(linker, metal_cluster, lattice: Lattice, tolerance: float = 1e-8):

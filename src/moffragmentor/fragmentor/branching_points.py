@@ -29,10 +29,7 @@ def get_distances_to_metal(mof: "MOF", site: int) -> List[float]:  # noqa: F821 
 
 def has_bridge_in_path(mof: "MOF", path: List[int]) -> bool:  # noqa: F821 - forward reference
     """Return True if the path contains a bridge."""
-    for edge in pairwise(path):
-        if mof._leads_to_terminal(edge):
-            return True
-    return False
+    return any(mof._leads_to_terminal(edge) for edge in pairwise(path))
 
 
 def get_two_edge_paths_from_site(
@@ -64,18 +61,12 @@ def get_two_edge_paths_from_site(
 
 def has_metal_in_path(mof: "MOF", path: List[int]) -> bool:  # noqa: F821 - forward reference
     """Return True if the path contains a metal."""
-    for site in path:
-        if site in mof.metal_indices:
-            return True
-    return False
+    return any(site in mof.metal_indices for site in path)
 
 
 def has_non_bridge_path_with_metal(mof: "MOF", site: int) -> bool:  # noqa: F821 - forward reference
     """Return True if the MOF has a non-bridge path with a meta.l"""
-    for path in get_two_edge_paths_from_site(mof, site):
-        if not has_bridge_in_path(mof, path) and has_metal_in_path(mof, path):
-            return True
-    return False
+    return any(not has_bridge_in_path(mof, path) and has_metal_in_path(mof, path) for path in get_two_edge_paths_from_site(mof, site))
 
 
 def _is_branch_point(
@@ -190,10 +181,7 @@ def remove_not_closest_neighbor(
 
 def has_bond_to_metal(mof: "MOF", index: int) -> bool:  # noqa: F821 - forward reference
     """Return True if the site has a bond to a metal."""
-    for i in mof.get_neighbor_indices(index):
-        if i in mof.metal_indices:
-            return True
-    return False
+    return any(i in mof.metal_indices for i in mof.get_neighbor_indices(index))
 
 
 def rank_by_metal_distance(idx, mof) -> Tuple[np.ndarray, np.ndarray]:
