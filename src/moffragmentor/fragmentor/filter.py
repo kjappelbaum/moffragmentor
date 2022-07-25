@@ -12,10 +12,11 @@ from loguru import logger
 from pymatgen.core import Lattice
 from scipy.spatial.qhull import Delaunay, QhullError  # pylint:disable=no-name-in-module
 
+from .. import mof
 from ..utils import unwrap
 
 
-def bridges_across_cell(mof: "MOF", indices: Iterable[int]) -> bool:  # noqa: F821
+def bridges_across_cell(mof: "mof.MOF", indices: Iterable[int]) -> bool:
     """Check if a molecule of indices bridges across the cell"""
     bridges = {}
 

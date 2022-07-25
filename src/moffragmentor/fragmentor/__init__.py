@@ -83,6 +83,14 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
         if len(not_node) == 0:
             need_rerun = False
             break
+        if len(not_node) == len(node_result.nodes):
+            logger.warning(
+                "We have metal in plane with the organic part. \
+                Which would indicate a prophyrin. \
+                However, there is no other metal cluster, so we will treat it as metal cluster."
+            )
+            need_rerun = False
+            break
         counter += 1
 
     logger.debug("Move the capping molecules from the linkercollection into their own collection")

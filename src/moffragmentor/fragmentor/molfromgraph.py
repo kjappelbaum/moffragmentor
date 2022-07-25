@@ -8,6 +8,8 @@ import numpy as np
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 from pymatgen.core import Element, Molecule, Site, Structure
 
+from .. import mof
+
 
 def _is_in_cell(frac_coords: np.ndarray) -> bool:
     return (frac_coords <= 1).all()
@@ -242,7 +244,7 @@ def get_subgraphs_as_molecules(  # noqa:C901
 
 
 def wrap_molecule(
-    mol_idxs: Iterable[int], mof: "MOF", starting_index: Optional[int] = None  # noqa: F821
+    mol_idxs: Iterable[int], mof: "mof.MOF", starting_index: Optional[int] = None  # noqa: F821
 ) -> Molecule:
     """Wrap a molecule in the cell of the MOF by walking along the structure graph.
 

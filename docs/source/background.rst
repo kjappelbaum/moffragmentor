@@ -4,10 +4,11 @@ Background information
 
 Fragmentation
 ---------------
-For the fragmentation of a MOF structure we rely on a structure graph. 
-In moffragmentor we use heuristics in pymatgen to construct the structure graph 
-(which is a networkx multigraph with annotation about the periodic neighbors). 
-If the structure graph does not contain a pair of bonds, moffragmentor cannot consider it in the fragmentation.
+For the fragmentation of a MOF structure we rely on a structure graph.
+In moffragmentor we use heuristics in pymatgen to construct the structure graph
+(which is a networkx multigraph with annotation about the periodic neighbors).
+If the structure graph does not contain a pair of bonds,
+moffragmentor cannot consider it in the fragmentation.
 
 .. warning::
     The current implementation of the fragementation is in parts
@@ -21,19 +22,21 @@ For the fragmentation, there are a few definitions we have to make:
 
 .. topic:: **Bound solvent**
 
-    A bound solvent molecule is bound via a bridge edge to one metal. 
+    A bound solvent molecule is bound via a bridge edge to one metal.
     According to this definition, M-OCH\ :sub:`3`, M-OH\ :sub:`2`, etc. are all bound solvents, whereas a bridging formate is not.
 
 .. topic:: **Floating solvent**
 
-    Floating solvent is an isolated connected component in the structure graph that does not lie across periodic boundaries in a supercell.
+    Floating solvent is an isolated connected component
+    in the structure graph that does not lie across periodic boundaries in a supercell.
 
 .. topic:: **Branching site**
 
     * has at minimum coordination number 3
-    * at least one path with maximum 2 edges that leads to metal and does not contain a bride 
-    * has at minimum 2 non-metal connections that are not bridges 
-    (not that in case the connection to a metal goes via 2 edges, then the first node of this path to the metal contributes to this count)
+    * at least one path with maximum 2 edges that leads to metal and does not contain a bride
+    * has at minimum 2 non-metal connections that are not bridges
+       (note that in case the connection to a metal goes via 2 edges,
+       then the first node of this path to the metal contributes to this count)
 
     If there are multiple neighboring sites selecting according this definition, we pick the one closest to the metal (the fewest number of edges).
 
@@ -43,12 +46,14 @@ For the fragmentation, there are a few definitions we have to make:
 
 
 
-For the fragmentation branching sites define the places at which we make the split between node and linker.
+For the fragmentation branching sites define the places at which
+we make the split between node and linker.
 The fragmentation algorithm goes through the following steps:
 
 1. Extracting floating solvent.
 2. From metal sites perform depth-first search on the structure graph up to a branching site.
-3. "Complete graph" by traversing the graph from all non-branching sites traversed in step 1 up to a leaf node.
+3. "Complete graph" by traversing the graph from all non-branching sites traversed in step 1
+    up to a leaf node.
 4. Extracting nodes as separate connected components.
 5. Deleting nodes from the structure graph and extracting linkers as connected components.
 
@@ -56,50 +61,42 @@ The fragmentation algorithm goes through the following steps:
 SBU dimensionality
 --------------------
 
-For many applications, the dimensionality of the SBUs can be of interest [Rosi2005]_. 
-For example, one can hypothesize that 1D nodes can have favorable charge conductance properties. 
+For many applications, the dimensionality of the SBUs can be of interest [Rosi2005]_.
+For example, one can hypothesize that 1D nodes can have favorable charge conductance properties.
 Also, such rod SBUs may prevent interpenetration [Rosi2005]_.
 
 To compute the dimensionality of the building blocks we use the algorithm proposed by Larsen et al. [Larsen2019]_.
 
 
-SBU descriptors
-------------------
-
-One key intuition MOF chemists have is that the shape of the building blocks dictates which MOF will form. This is discussed in great detail in [Kalmutzki2018]_. Also, chemists know that it can be difficult to form MOFs with highly flexible linkers [Lin2014]_. In other contexts, it already has been shown that flexibility is associated with a molecules tendency to form crystals [Wicker2015]_.
-
-.. image:: _static/descriptor_fragments.png
-    :alt: Different sets of binding/connecting indices
-
-
 Net Embedding
 ----------------
 
-A key concept in reticular chemistry is the one of the net. 
-Computing the topology of the net embedding is not entirely trivial as there is no specific rule of clusters of atoms should be condensed to a vertex [Bureekaew2015]_ (for example, `one might place vertices on subfragments of large linkers <https://www.mofplus.org/content/show/generalnetinfo>`_.
-In moffragmentor, we use the centers of node and linker clusters as vertices. 
-Using the `Systre code <http://gavrog.org/Systre-Help.html>`_ [DelagoFriedrichs2003]_, we can then determine the `RCSR <http://rcsr.anu.edu.au/rcsr_nets>`_ code of this net.
+A key concept in reticular chemistry is the one of the net.
+Computing the topology of the net embedding is not entirely trivial
+as there is no specific rule of clusters of atoms should be condensed to a vertex [Bureekaew2015]_
+(for example, `one might place vertices on subfragments of large linkers <https://www.mofplus.org/content/show/generalnetinfo>`_.
+In moffragmentor, we use the centers of node and linker clusters as vertices.
+Using the `Systre code <http://gavrog.org/Systre-Help.html>`_ [DelagoFriedrichs2003]_,
+we can then determine the `RCSR <http://rcsr.anu.edu.au/rcsr_nets>`_ code of this net.
 
 
 References
 -------------
 
-.. [Rosi2005] Rosi, N. L. et al. Rod Packings and Metal−Organic Frameworks Constructed from Rod-Shaped Secondary Building Units. J. Am. Chem. Soc. 127, 1504–1518 (2005).
+.. [Rosi2005] Rosi, N. L. et al.
+    Rod Packings and Metal−Organic Frameworks
+    Constructed from Rod-Shaped Secondary Building Units.
+    J. Am. Chem. Soc. 127, 1504–1518 (2005).
 
-.. [Larsen2019] Larsen, P. M., Pandey, M., Strange, M. & Jacobsen, K. W. Definition of a scoring parameter to identify low-dimensional materials components. Phys. Rev. Materials 3, (2019).
+.. [Larsen2019] Larsen, P. M., Pandey, M., Strange, M. & Jacobsen, K. W.
+    Definition of a scoring parameter to identify low-dimensional materials components.
+    Phys. Rev. Materials 3, (2019).
 
-.. [Kalmutzki2018] Kalmutzki, M. J., Hanikel, N. & Yaghi, O. M. Secondary building units as the turning point in the development of the reticular chemistry of MOFs. Sci. Adv. 4, eaat9180 (2018).
+.. [Bureekaew2015] Bureekaew, S., Balwani, V., Amirjalayer, S. & Schmid, R.
+    Isoreticular isomerism in 4,4-connected paddle-wheel metal–organic frameworks:
+    structural prediction by the reverse topological approach.
+    CrystEngComm 17, 344–352 (2015).
 
-.. [Wicker2015] Wicker, J. G. P. & Cooper, R. I. Will it crystallise? Predicting crystallinity of molecular materials. CrystEngComm 17, 1927–1934 (2015).
-
-.. [Wicker2016] Wicker, J. G. P. & Cooper, R. I. Beyond Rotatable Bond Counts: Capturing 3D Conformational Flexibility in a Single Descriptor. J. Chem. Inf. Model. 56, 2347–2352 (2016).
-
-.. [Lin2014] Lin, Z.-J., Lü, J., Hong, M. & Cao, R. Metal–organic frameworks based on flexible ligands (FL-MOFs): structures and applications. Chem. Soc. Rev. 43, 5867–5895 (2014).
-
-.. [Kier1989] Kier, L. B. An Index of Molecular Flexibility from Kappa Shape Attributes. Quant. Struct.-Act. Relat. 8, 221–224 (1989).
-
-.. [Zimmermann2020] Zimmermann, N. E. R. & Jain, A. Local structure order parameters and site fingerprints for quantification of coordination environment and crystal structure similarity. RSC Adv. 10, 6063–6081 (2020).
-
-.. [Bureekaew2015] Bureekaew, S., Balwani, V., Amirjalayer, S. & Schmid, R. Isoreticular isomerism in 4,4-connected paddle-wheel metal–organic frameworks: structural prediction by the reverse topological approach. CrystEngComm 17, 344–352 (2015).
-
-.. [DelagoFriedrichs2003] Delgado-Friedrichs, O. & O’Keeffe, M. Identification of and symmetry computation for crystal nets. Acta Cryst Sect A 59, 351–360 (2003).
+.. [DelagoFriedrichs2003] Delgado-Friedrichs, O. & O’Keeffe, M.
+    Identification of and symmetry computation for crystal nets.
+    Acta Cryst Sect A 59, 351–360 (2003).

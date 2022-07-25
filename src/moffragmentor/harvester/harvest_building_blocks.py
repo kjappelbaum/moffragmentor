@@ -16,7 +16,7 @@ from loguru import logger
 
 from ..descriptors.sbu_dimensionality import get_sbu_dimensionality
 from ..mof import MOF
-from ..utils import get_linker_connectivity, make_if_not_exists, remove_edge_duplicates
+from ..utils import get_linker_connectivity, make_if_not_exists
 
 
 def load_failed():
@@ -108,7 +108,7 @@ class Harvester:
                     bb_type="node",
                     topology=topology,
                     dimensionality=dimensionality,
-                    connectivity=len(remove_edge_duplicates(edge_dict[i])),
+                    connectivity=len(edge_dict[i]),
                 )
             )
 

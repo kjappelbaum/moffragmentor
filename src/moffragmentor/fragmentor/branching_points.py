@@ -16,10 +16,14 @@ from pymatgen.core import Structure
 from moffragmentor.fragmentor.molfromgraph import get_subgraphs_as_molecules
 from moffragmentor.utils import _not_relevant_structure_indices
 
+from .. import mof
+
 __all__ = ("get_branch_points",)
 
 
-def get_distances_to_metal(mof: "MOF", site: int) -> List[float]:  # noqa: F821 - forward reference
+def get_distances_to_metal(
+    mof: "mof.MOF", site: int
+) -> List[float]:  # noqa: F821 - forward reference
     """For a given site, return the distances to all metals in the MOF."""
     distances = []
     for i in mof.metal_indices:
@@ -27,14 +31,11 @@ def get_distances_to_metal(mof: "MOF", site: int) -> List[float]:  # noqa: F821 
     return distances
 
 
-def has_bridge_in_path(mof: "MOF", path: List[int]) -> bool:  # noqa: F821 - forward reference
-    """Return True if the path contains a bridge."""
+def has_bridge_in_path(mof: "mof.MOF", path: List[int]) -> bool:
     return any(mof._leads_to_terminal(edge) for edge in pairwise(path))
 
 
-def get_two_edge_paths_from_site(
-    mof: "MOF", site: int  # noqa: F821 - forward reference
-) -> List[List[int]]:
+def get_two_edge_paths_from_site(mof: "mof.MOF", site: int) -> List[List[int]]:
     """
     Return all two edge paths from a site.
 
@@ -64,7 +65,7 @@ def has_metal_in_path(mof: "MOF", path: List[int]) -> bool:  # noqa: F821 - forw
     return any(site in mof.metal_indices for site in path)
 
 
-def has_non_bridge_path_with_metal(mof: "MOF", site: int) -> bool:  # noqa: F821 - forward reference
+def has_non_bridge_path_with_metal(mof: "mof.MOF", site: int) -> bool:
     """Return True if the MOF has a non-bridge path with a meta.l"""
     return any(
         (not has_bridge_in_path(mof, path)) and (has_metal_in_path(mof, path))
@@ -72,9 +73,7 @@ def has_non_bridge_path_with_metal(mof: "MOF", site: int) -> bool:  # noqa: F821
     )
 
 
-def _is_branch_point(
-    mof: "MOF", index: int, allow_metal: bool = False  # noqa: F821 - forward reference
-) -> bool:
+def _is_branch_point(mof: "mof.MOF", index: int, allow_metal: bool = False) -> bool:
     """Check if a site is a branching point.
 
     The branch point definition is key for splitting MOFs into linker and nodes.
@@ -121,7 +120,7 @@ def _is_branch_point(
 
 
 def filter_branch_points(
-    mof: "MOF", branching_indices  # noqa: F821 - forward reference
+    mof: "mof.MOF", branching_indices  # noqa: F821 - forward reference
 ) -> List[int]:
     """Return a list of all branching points in the MOF."""
     # now, check if there are connected branching points
@@ -158,7 +157,7 @@ def filter_branch_points(
 
 
 def remove_not_closest_neighbor(
-    mof: "MOF", graph: nx.Graph, index: int  # noqa: F821 - forward reference
+    mof: "mof.MOF", graph: nx.Graph, index: int  # noqa: F821 - forward reference
 ) -> List[int]:
     """Remove all nodes that are not the closest neighbor to the given index."""
     good_indices = []
@@ -199,7 +198,7 @@ def rank_by_metal_distance(idx, mof) -> Tuple[np.ndarray, np.ndarray]:
 
 
 def cluster_nodes(
-    graph: nx.Graph, original_indices: List[int], mof: "MOF"  # noqa: F821 - forward reference
+    graph: nx.Graph, original_indices: List[int], mof: "mof.MOF"  # noqa: F821 - forward reference
 ) -> List[int]:
     g = nx.Graph(graph).to_undirected()
     terminal_nodes = []
@@ -220,7 +219,7 @@ def cluster_nodes(
     return original_indices
 
 
-def get_branch_points(mof: "MOF") -> List[int]:  # noqa: F821 - forward reference
+def get_branch_points(mof: "mof.MOF") -> List[int]:  # noqa: F821 - forward reference
     """Get all branching points in the MOF.
 
     Args:

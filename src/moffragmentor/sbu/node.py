@@ -107,7 +107,7 @@ class Node(SBU):
     @classmethod
     def from_mof_and_indices(  # pylint:disable=too-many-arguments
         cls,
-        mof: "MOF",  # noqa: F821
+        mof,
         node_indices: Set[int],
         branching_indices: Set[int],
         binding_indices: Set[int],
@@ -116,13 +116,13 @@ class Node(SBU):
         """Build a node object from a MOF and some intermediate outputs of the fragmentation.
 
         Args:
-            mof: The MOF to build the node from.
-            node_indices: The indices of the nodes in the MOF.
-            branching_indices: The indices of the branching points in the MOF
+            mof (MOF): The MOF to build the node from.
+            node_indices (Set[int]): The indices of the nodes in the MOF.
+            branching_indices (Set[int]): The indices of the branching points in the MOF
                 that belong to this node.
-            binding_indices: The indices of the binding points in the MOF
+            binding_indices (Set[int]): The indices of the binding points in the MOF
                 that belong to this node.
-            connecting_paths: The indices of the connecting paths in the MOF
+            connecting_paths (Set[int]): The indices of the connecting paths in the MOF
                 that belong to this node.
 
         Returns:

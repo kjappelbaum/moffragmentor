@@ -118,7 +118,7 @@ class MOF:
 
     @classmethod
     def from_cif(
-        cls, cif: Union[str, os.PathLike], symprec: float = 0.1, angle_tolerance: float = 5
+        cls, cif: Union[str, os.PathLike], symprec: float = 0.5, angle_tolerance: float = 5
     ):
         """Initialize a MOF object from a cif file.
 
@@ -144,7 +144,7 @@ class MOF:
     def from_structure(
         cls,
         structure: Structure,
-        symprec: Optional[float] = 0.1,
+        symprec: Optional[float] = 0.5,
         angle_tolerance: Optional[float] = 5,
     ):
         if (symprec is not None) and (angle_tolerance is not None):

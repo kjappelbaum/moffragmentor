@@ -1,10 +1,10 @@
-API documentation 
+API documentation
 ===================
 
-Core API 
+Core API
 ----------
 
-Most users will only need to deal with the :code:`MOF` class. 
+Most users will only need to deal with the :code:`MOF` class.
 
 .. automodule:: moffragmentor.mof
     :members:
@@ -18,7 +18,7 @@ Command line interface
 SBU subpackage
 ----------------
 
-Defines datastructures for the building blocks as well as collections of building blocks 
+Defines datastructures for the building blocks as well as collections of building blocks
 
 .. automodule:: moffragmentor.sbu.sbu
     :members:
@@ -50,10 +50,11 @@ Defines datastructures for the non-building-block molecules (e.g. solvent) as we
     :members:
 
 
-Fragmentor subpackage 
-------------------------- 
+Fragmentor subpackage
+-------------------------
 
-This subpackage is not optimized for end-users. It is intended for developers who wish to customize the behavior of the fragmentor.
+This subpackage is not optimized for end-users.
+It is intended for developers who wish to customize the behavior of the fragmentor.
 
 .. automodule:: moffragmentor.fragmentor.branching_points
     :members:
@@ -79,7 +80,7 @@ This subpackage is not optimized for end-users. It is intended for developers wh
 Utils subpackage
 -----------------
 
-Also the :code:`utils` subpackage is not optimized for end-users. 
+Also the :code:`utils` subpackage is not optimized for end-users.
 
 .. automodule:: moffragmentor.utils
     :members:
