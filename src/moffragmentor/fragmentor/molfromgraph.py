@@ -181,7 +181,9 @@ def get_subgraphs_as_molecules(  # noqa:C901
             if not any(already_present):
                 unique_subgraphs.append(subgraph)
 
-    def make_mols(molecule_subgraphs=molecule_subgraphs, center=False):
+    def make_mols(molecule_subgraphs=None, center=False):
+        if molecule_subgraphs is None:
+            molecule_subgraphs = molecule_subgraphs
         molecules = []
         indices = []
         indices_here = []
