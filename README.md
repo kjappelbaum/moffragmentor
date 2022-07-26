@@ -29,7 +29,7 @@
 ## 💪 Getting Started
 
 ```python
-mof = MOF.from_cif('test_files/hkust1.cif')
+mof = MOF.from_cif('tests/test_files/HKUST-1.cif')
 ```
 
 Fragment the MOF

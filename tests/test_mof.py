@@ -65,11 +65,29 @@ def test_fragmentation_ag_n_compound(get_agn_mof):
     # assert fragments.net_embedding.rcsr_code == "bex"
 
 
+def _get_distances(cs):
+    distances = []
+    for i, site in enumerate(cs):
+        for j, site2 in enumerate(cs):
+            if i != j:
+                distances.append(site.distance(site2))
+    return distances
+
+
 @pytest.mark.slow
 def test_hkust(get_hkust_mof):
     mof = get_hkust_mof
     fragments = mof.fragment()
     assert fragments.net_embedding.rcsr_code == "tbo"
+    for linker in fragments.linkers:
+        cs = linker._get_connected_sites_structure()
+        distances = _get_distances(cs)
+        assert max(distances) < 8
+
+    for node in fragments.nodes:
+        cs = node._get_connected_sites_structure()
+        distances = _get_distances(cs)
+        assert max(distances) < 8
 
 
 @pytest.mark.slow
