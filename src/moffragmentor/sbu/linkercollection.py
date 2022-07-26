@@ -25,7 +25,7 @@ class LinkerCollection(SBUCollection):
             self._composition = ["".join(["L", i]) for i in self.sbu_types]
         return self._composition
 
-    def _linker_structure(self): 
+    def _linker_structure(self):
         all_linker_sites = []
 
         for n in self:

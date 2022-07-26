@@ -64,6 +64,7 @@ def test_fragmentation_ag_n_compound(get_agn_mof):
     # in particular, bex is also a 2D periodic compound
     # assert fragments.net_embedding.rcsr_code == "bex"
 
+
 def _get_distances(cs):
     distances = []
     for i, site in enumerate(cs):
@@ -71,7 +72,8 @@ def _get_distances(cs):
             if i != j:
                 distances.append(site.distance(site2))
     return distances
-    
+
+
 @pytest.mark.slow
 def test_hkust(get_hkust_mof):
     mof = get_hkust_mof
@@ -81,7 +83,7 @@ def test_hkust(get_hkust_mof):
         cs = linker._get_connected_sites_structure()
         distances = _get_distances(cs)
         assert max(distances) < 8
-    
+
     for node in fragments.nodes:
         cs = node._get_connected_sites_structure()
         distances = _get_distances(cs)
