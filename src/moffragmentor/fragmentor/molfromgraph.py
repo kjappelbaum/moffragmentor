@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 """Generate molecules as the subgraphs from graphs"""
 from collections import defaultdict
-from typing import Iterable, List, Optional, Tuple
+from typing import Iterable, List, Optional, OrderedDict, Tuple
 
 import networkx as nx
 import numpy as np
+from loguru import logger
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 from pymatgen.core import Element, Molecule, Site, Structure
+
+from moffragmentor.utils.periodic_graph import VestaCutoffDictNN
 
 from .. import mof
 
@@ -283,7 +286,7 @@ def wrap_molecule(
     still_to_wrap_queue = [mol_idxs[starting_index]]
     new_positions_cart[mol_idxs[starting_index]] = mof.cart_coords[mol_idxs[starting_index]]
     new_positions_frac[mol_idxs[starting_index]] = mof.frac_coords[mol_idxs[starting_index]]
-
+    additional_sites = []
     while still_to_wrap_queue:
         current_index = still_to_wrap_queue.pop(0)
         if current_index in mol_idxs:
@@ -298,9 +301,42 @@ def wrap_molecule(
                         new_positions_frac[neighbor_index]
                     )
                     still_to_wrap_queue.append(neighbor_index)
+                else:
+                    if neighbor_index in new_positions_cart:
+                        # ToDo: make the threshold adaptive/use VASP thresholds
+                        species_a = str(mof.structure[current_index].specie)
+                        species_b = str(mof.structure[neighbor_index].specie)
+
+                        if (
+                            np.linalg.norm(
+                                new_positions_cart[neighbor_index]
+                                - new_positions_cart[current_index]
+                            )
+                            > VestaCutoffDictNN._lookup_dict[species_a][species_b]
+                        ):
+                            logger.warning(
+                                "Warning: neighbor_index {} is already in new_positions_cart, but the distance is too large. "
+                                "Will add an additional site. This is unusual and not well tested".format(
+                                    neighbor_index
+                                )
+                            )
+
+                            _, image = mof.structure[
+                                neighbor_index
+                            ].distance_and_image_from_frac_coords(new_positions_frac[current_index])
+                            new_frac = mof.frac_coords[neighbor_index] - image
+                            new_cart = mof.lattice.get_cartesian_coords(new_frac)
+                            additional_sites.append((neighbor_index, new_cart, new_frac))
 
     new_sites = []
-    for idx in mol_idxs:
+    for i, idx in enumerate(mol_idxs):
         new_sites.append(Site(mof.structure[idx].species, new_positions_cart[idx]))
 
-    return Molecule.from_sites(new_sites)
+    idx_mapping = defaultdict(list)
+    for i, idx in enumerate(mol_idxs):
+        idx_mapping[i].append(idx)
+    for i, (idx, cart, _) in enumerate(additional_sites):
+        new_sites.append(Site(mof.structure[idx].species, cart))
+        idx_mapping[i + len(idx_mapping)].append(idx)
+
+    return Molecule.from_sites(new_sites), idx_mapping
