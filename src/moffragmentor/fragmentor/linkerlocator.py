@@ -72,6 +72,7 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
                 node_location_result.connecting_paths
                 - node_location_result.branching_indices
                 - node_location_result.binding_indices
+                - set(sum(node_location_result.to_terminal_from_branching.values(), []))
             )
         )
         | set(unbound_solvent.indices)
@@ -104,8 +105,9 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
         center = centers[linker_index]
         coords_ = coords[i]
         branching_indices = node_location_result.branching_indices & set(idx)
+        mol, mapping = wrap_molecule(idx, mof)
         linker = Linker(
-            molecule=wrap_molecule(idx, mof),
+            molecule=mol,
             molecule_graph=graphs[linker_index],
             center=center,
             graph_branching_indices=branching_indices,
@@ -118,6 +120,7 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
             coordinates=coords_,
             original_indices=idx,
             connecting_paths=[],
+            molecule_original_indices_mapping=mapping
         )
         if linker.hash not in found_hashes:
             assert len(idx) == len(coords_)

@@ -28,7 +28,14 @@ __all__ = [
 ]
 
 NodelocationResult = namedtuple(
-    "NodelocationResult", ["nodes", "branching_indices", "connecting_paths", "binding_indices"]
+    "NodelocationResult",
+    [
+        "nodes",
+        "branching_indices",
+        "connecting_paths",
+        "binding_indices",
+        "to_terminal_from_branching",
+    ],
 )
 
 
@@ -120,8 +127,7 @@ def find_node_clusters(  # pylint:disable=too-many-locals
 
     # The complete_graph will add the "capping sites" like bridging OH
     # or capping formate
-    paths = _complete_graph(mof, paths, branch_sites)
-
+    paths, to_terminal_from_branching = _complete_graph(mof, paths, branch_sites)
     # we find the connected components in those paths
     g = _to_graph(mof, paths, branch_sites)
     nodes = list(nx.connected_components(g))
@@ -157,11 +163,15 @@ def find_node_clusters(  # pylint:disable=too-many-locals
         if len(intesection) > 0:
             connecting_paths_.update(neighbors)
 
+    connecting_paths_ = connecting_paths_
+
     # from the connecting paths we remove the metal indices and the branching indices
     # we need to remove the metal indices as otherwise the fragmentation breaks
     connecting_paths_ -= set(metal_indices)
 
-    res = NodelocationResult(nodes, bs, connecting_paths_, binding_sites)
+    res = NodelocationResult(
+        nodes, bs, connecting_paths_, binding_sites, to_terminal_from_branching
+    )
     return res
 
 

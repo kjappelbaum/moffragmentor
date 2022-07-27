@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Searches, such as depth-first search (DFS) on graphs."""
 from copy import deepcopy
-from typing import List
+from typing import Dict, List, Tuple
 
 import networkx as nx
 
@@ -70,7 +70,7 @@ def recursive_dfs_until_terminal(
 
 def _complete_graph(
     mof, paths: List[List[int]], branching_nodes: List[List[int]]
-) -> List[List[int]]:
+) -> Tuple[List[List[int]], Dict[int, List]]:
     """Loop over all paths that were traversed in DFS.
 
     Then, if the verices are not branching add all the paths
@@ -86,22 +86,41 @@ def _complete_graph(
             identified as branching nodes
 
     Returns:
-        List[List[int]]: completed graphs
+        Tuple[List[List[int]], Dict[int, List[int]]]: completed graphs, paths to terminal nodes
+            from branching nodes
     """
     completed_edges = []
     visited = set()
     # ToDo: Why to we do this sum thousand times in this code?
     branching_nodes = sum(branching_nodes, [])
+
+    all_directions_to_terminal = {}
     for path in paths:
+        branching_node_in_path = set(path) & set(
+            branching_nodes
+        )  # we need to expose those directions to complete, as we should also show them on linker/capping molecule
+        directions_to_complete = []
+
+        for branching_node in branching_node_in_path:
+            for neighbour in mof.get_neighbor_indices(branching_node):
+                if mof._leads_to_terminal((branching_node, neighbour)):
+                    directions_to_complete.extend(
+                        recursive_dfs_until_terminal(mof, neighbour, [], [branching_node])
+                        + [branching_node, neighbour]
+                    )
+                if mof._is_terminal(neighbour):
+                    directions_to_complete.extend([branching_node, neighbour])
+        all_directions_to_terminal[branching_node] = directions_to_complete
         subpath = []
         for vertex in path:
             # ToDo: we can at least leverage the information about the bridges
             # we have and not just brute-force the search for all vertices
             if vertex not in visited:
+                # ToDo: exclude those branching nodes that have one neighbor that leads to a terminal node
                 p = recursive_dfs_until_terminal(mof, vertex, [], branching_nodes)
                 subpath.extend(p)
-        completed_edges.append(subpath + path)
-    return completed_edges
+        completed_edges.append(subpath + path + directions_to_complete)
+    return completed_edges, all_directions_to_terminal
 
 
 def recursive_dfs_until_branch(

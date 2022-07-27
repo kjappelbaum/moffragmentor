@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """Representation for a secondary building block."""
+from ast import Or
 import warnings
 from collections import defaultdict
-from typing import Collection, List, Optional, Tuple
+from typing import Collection, List, Optional, Tuple, Dict
 
 import networkx as nx
 import numpy as np
@@ -104,6 +105,7 @@ class SBU:
         connecting_paths: Optional[Collection[int]] = None,
         coordinates: Optional[np.ndarray] = None,
         lattice: Optional[Lattice] = None,
+        molecule_original_indices_mapping: Optional[Dict[int, List[int]]] = None
     ):
         """Initialize a secondary building block.
 
@@ -115,7 +117,7 @@ class SBU:
             center (np.ndarray): Center of the SBU.
             graph_branching_indices (Collection[int]): Branching indices
                 in the original structure.
-            closest_branching_index_in_molecule (Collection[int]):
+            closest_branching_index_in_molecule (Collection[int]):1
                 Closest branching index in the molecule.
             binding_indices (Collection[int]): Binding indices in the original structure.
             original_indices (Collection[int]): List of all indicies in the original
@@ -133,6 +135,8 @@ class SBU:
                 Defaults to None.
             lattice (Optional[Lattice], optional): Pymatgen Lattice object of the original structure.
                 Defaults to None.
+            molecule_original_indices_mapping (Optional[Dict[int, List[int]]], optional):
+                Mapping from molecule indices to original indices. Defaults to None.
         """
         self.molecule = molecule
         self._center = center
@@ -146,9 +150,17 @@ class SBU:
         self._original_binding_indices = binding_indices
 
         self.mapping_from_original_indices = defaultdict(list)
-        for ori_index, index in zip(self._original_indices, range(len(molecule))):
-            self.mapping_from_original_indices[ori_index].append(index)
-        self.mapping_to_original_indices = dict(zip(range(len(molecule)), original_indices))
+        if molecule_original_indices_mapping is None:    
+            for ori_index, index in zip(self._original_indices, range(len(molecule))):
+                self.mapping_from_original_indices[ori_index].append(index)
+        else: 
+            for k, v in molecule_original_indices_mapping.items():
+                for i in v: 
+                    self.mapping_from_original_indices[i].append(k)
+        self.mapping_to_original_indices = dict()
+        for key, value in self.mapping_from_original_indices.items():
+            for v in value:
+                self.mapping_to_original_indices[v] = key
         self._indices = original_indices
         self._original_connecting_paths = connecting_paths
         self.connecting_paths = []

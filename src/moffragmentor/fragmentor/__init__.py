@@ -7,6 +7,7 @@ from skspatial.objects import Points
 
 from moffragmentor.sbu.linkercollection import LinkerCollection
 
+from ._no_core_linker import generate_new_node_collection
 from .linkerlocator import create_linker_collection
 from .nodelocator import create_node_collection, find_node_clusters
 from .solventlocator import get_all_bound_solvent_molecules, get_floating_solvent_molecules
@@ -93,7 +94,9 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
             break
         counter += 1
 
-    logger.debug("Move the capping molecules from the linkercollection into their own collection")
+    logger.debug(
+        "Check if we need to move the capping molecules from the linkercollection into their own collection"
+    )
     is_linker = []
     is_capping = []
     for linker in linker_collection:
@@ -110,9 +113,29 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
     linker_collection = LinkerCollection(is_linker)
     capping_molecules = LinkerCollection(is_capping)
 
-    logger.debug("Constructing the embedding")
-    # Now, get the net
-    net_embedding = build_net(node_collection, linker_collection, mof.lattice)
+    # Now handle the case of the the frameworks that have linkers without core (e.g. H-COO)
+    # we detect those by having 0 entries in the linker collection and all capping molecules overlapping with
+    # with the node collection
+    # in this case, we will pass the capping molecules to the net constructor
+    use_capping_in_net = False
+    if len(linker_collection) == 0:
+        logger.warning("No linkers found")
+        if all([set(c._original_indices) & node_collection.indices for c in capping_molecules]):
+            logger.warning(
+                "All capping molecules overlap with node collection. Will use them for net construction."
+            )
+            logger.debug("Constructing the embedding")
+            use_capping_in_net = True
+
+    if use_capping_in_net:
+        logger.debug("Constructing the embedding")
+        # However, I'd also need to split the node in this case
+        new_node_collection = generate_new_node_collection(mof, node_result)
+        net_embedding = build_net(new_node_collection, capping_molecules, mof.lattice)
+    else:
+        logger.debug("Constructing the embedding")
+        # Now, get the net
+        net_embedding = build_net(node_collection, linker_collection, mof.lattice)
     fragmentation_results = FragmentationResult(
         node_collection,
         linker_collection,

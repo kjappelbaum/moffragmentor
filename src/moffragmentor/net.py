@@ -424,7 +424,7 @@ def in_cell(node: "SBU", lattice: Lattice) -> Tuple[bool, List[np.array]]:
     for branching_coord in node.branching_coords:
         branching_coord = lattice.get_fractional_coords(branching_coord)
         if np.all(branching_coord < 1) & np.all(
-            branching_coord >= 0 - 4 * np.finfo(branching_coord.dtype).eps
+            branching_coord >= 0 - 1 * np.finfo(branching_coord.dtype).eps
         ):
             branching_coords_in_cell.append(branching_coord)
     if len(branching_coords_in_cell) == 0:
@@ -529,7 +529,6 @@ def build_net(
     linker_index_offset = len(found_metal_nodes)
 
     egde_candiates = defaultdict(list)
-
     for metal_node, metal_index in found_metal_nodes.values():
         for linker_node, linker_index in found_linker_nodes.values():
             at_least_one_edge, images = has_edge(metal_node, linker_node, lattice)

@@ -28,6 +28,7 @@ def node_from_mof_and_indices(  # pylint:disable=too-many-locals, too-many-argum
     cls, mof, node_indices, branching_indices, binding_indices, connecting_paths
 ):
     """Create a node from a MOF and a list of indices of different types."""
+    node_indices = node_indices | connecting_paths  # This should actually not be necessary
     graph_ = mof.structure_graph.__copy__()
     graph_.structure = Structure.from_sites(graph_.structure.sites)
     to_delete = _not_relevant_structure_indices(mof.structure, node_indices)
@@ -80,7 +81,7 @@ def node_from_mof_and_indices(  # pylint:disable=too-many-locals, too-many-argum
         else:
             closest_branching_index_in_molecule.append(branching_index)
     idx = [i for i in relevant_indices if i in node_indices]
-    mol_w_hidden = wrap_molecule(idx + sites_and_indices.hidden_vertices, mof)
+    mol_w_hidden, mapping = wrap_molecule(idx + sites_and_indices.hidden_vertices, mof)
     node = cls(
         molecule=mol_w_hidden,
         molecule_graph=molecule_graph,
@@ -93,6 +94,7 @@ def node_from_mof_and_indices(  # pylint:disable=too-many-locals, too-many-argum
         terminal_in_mol_not_terminal_in_struct=sites_and_indices.hidden_vertices,
         connecting_paths=connecting_paths,
         lattice=mof.lattice,
+        molecule_original_indices_mapping=mapping,
     )
 
     return node

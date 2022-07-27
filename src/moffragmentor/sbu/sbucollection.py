@@ -46,7 +46,7 @@ class SBUCollection:
 
     @property
     def indices(self):
-        return sum(self._indices, [])
+        return set(sum(self._indices, []))
 
     @property
     def centers(self):

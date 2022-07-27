@@ -43,4 +43,4 @@ jobs:
           pip install -e .
       - name: Test with pytest
         run: |
-          tox -e py
+          pytest -m "not slow"
