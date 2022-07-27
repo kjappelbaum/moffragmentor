@@ -1,10 +1,7 @@
 
 <p align="center">
-  <img src="https://github.com/kjappelbaum/moffragmentor/raw/main/docs/source/_static/logo.png" height="300">
+  <img src="https://github.com/kjappelbaum/moffragmentor/raw/main/docs/source/_static/logo.png" height="100">
 </p>
-<h1 align="center">
-    moffragmentor
-</h1>
 <p align="center">
     <a href="https://github.com/kjappelbaum/moffragmentor/actions?query=workflow%3Apython_package">
         <img alt="Tests" src="https://github.com/kjappelbaum/moffragmentor/actions/workflows/python_package.yml/badge.svg" />
