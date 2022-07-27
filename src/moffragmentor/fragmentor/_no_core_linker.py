@@ -39,9 +39,16 @@ def generate_new_node_collection(mof, node_result):
         idx = idxs[node_index]
         center = centers[node_index]
         coords_ = coords[i]
-        branching_indices = list(branching_sites_for_node[node_index])  
+        branching_indices = list(branching_sites_for_node[node_index])
         mol, mapping = wrap_molecule(idx + branching_indices, mof)
-        print(idx, branching_indices, len(idx) + len(branching_indices), mapping, branching_indices, len(mol))
+        print(
+            idx,
+            branching_indices,
+            len(idx) + len(branching_indices),
+            mapping,
+            branching_indices,
+            len(mol),
+        )
         node = Node(
             molecule=mol,
             molecule_graph=graphs[node_index],
@@ -50,9 +57,9 @@ def generate_new_node_collection(mof, node_result):
             closest_branching_index_in_molecule=branching_indices,
             binding_indices=[],
             coordinates=coords_,
-            original_indices=idx+list(branching_indices),
+            original_indices=idx + list(branching_indices),
             connecting_paths=[],
-            molecule_original_indices_mapping = mapping
+            molecule_original_indices_mapping=mapping,
         )
         if node.hash not in found_hashes:
             found_hashes.add(node.hash)

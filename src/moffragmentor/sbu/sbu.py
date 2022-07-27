@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """Representation for a secondary building block."""
-from ast import Or
 import warnings
+from ast import Or
 from collections import defaultdict
-from typing import Collection, List, Optional, Tuple, Dict
+from typing import Collection, Dict, List, Optional, Tuple
 
 import networkx as nx
 import numpy as np
@@ -105,7 +105,7 @@ class SBU:
         connecting_paths: Optional[Collection[int]] = None,
         coordinates: Optional[np.ndarray] = None,
         lattice: Optional[Lattice] = None,
-        molecule_original_indices_mapping: Optional[Dict[int, List[int]]] = None
+        molecule_original_indices_mapping: Optional[Dict[int, List[int]]] = None,
     ):
         """Initialize a secondary building block.
 
@@ -150,12 +150,12 @@ class SBU:
         self._original_binding_indices = binding_indices
 
         self.mapping_from_original_indices = defaultdict(list)
-        if molecule_original_indices_mapping is None:    
+        if molecule_original_indices_mapping is None:
             for ori_index, index in zip(self._original_indices, range(len(molecule))):
                 self.mapping_from_original_indices[ori_index].append(index)
-        else: 
+        else:
             for k, v in molecule_original_indices_mapping.items():
-                for i in v: 
+                for i in v:
                     self.mapping_from_original_indices[i].append(k)
         self.mapping_to_original_indices = dict()
         for key, value in self.mapping_from_original_indices.items():

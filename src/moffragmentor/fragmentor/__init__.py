@@ -133,10 +133,10 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
         new_node_collection = generate_new_node_collection(mof, node_result)
 
         # ToDo: need to add some code as follows
-        # Need to create also "netnodes" before that 
+        # Need to create also "netnodes" before that
         # egde_candiates = defaultdict(list)
-        # for i, netnode_i in enumerate(netnodes): 
-        #     for j, netnode_j in enumerate(netnodes): 
+        # for i, netnode_i in enumerate(netnodes):
+        #     for j, netnode_j in enumerate(netnodes):
         #         at_least_one_edge, images = has_edge(netnode_i, netnode_j, lattice)
         #         if at_least_one_edge:
         #             for coord, image_a, image_b in images:
@@ -154,7 +154,7 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
         #                 egde_candiates[
         #                     (round(coord[0], 2), round(coord[1], 2), round(coord[2], 2))
         #                 ].append((edge, np.abs(image_b).sum()))
-                        
+
         net_embedding = build_net(new_node_collection, capping_molecules, mof.lattice)
     else:
         logger.debug("Constructing the embedding")

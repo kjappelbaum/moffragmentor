@@ -120,7 +120,7 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
             coordinates=coords_,
             original_indices=idx,
             connecting_paths=[],
-            molecule_original_indices_mapping=mapping
+            molecule_original_indices_mapping=mapping,
         )
         if linker.hash not in found_hashes:
             assert len(idx) == len(coords_)
