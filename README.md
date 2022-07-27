@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img src="https://github.com/kjappelbaum/moffragmentor/raw/main/docs/source/figures/logo.png" height="300">
+  <img src="https://github.com/kjappelbaum/moffragmentor/raw/main/docs/source/_static/logo.png" height="300">
 </p>
 <h1 align="center">
     moffragmentor
