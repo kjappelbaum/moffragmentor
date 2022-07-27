@@ -2,7 +2,7 @@
 """Collection for MOF building blocks"""
 from collections import Counter
 from typing import List
-
+import numpy as np
 from backports.cached_property import cached_property
 
 from .sbu import SBU
@@ -30,7 +30,7 @@ class SBUCollection:
 
         if len(self._indices) != len(self.sbus):
             raise ValueError("Number of SBUs is inconsistent")
-
+        
     def __len__(self) -> int:
         """Return number of SBUs."""
         return len(self.sbus)

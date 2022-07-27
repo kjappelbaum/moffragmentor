@@ -104,7 +104,6 @@ class SBU:
         terminal_in_mol_not_terminal_in_struct: Optional[Collection[int]] = None,
         connecting_paths: Optional[Collection[int]] = None,
         coordinates: Optional[np.ndarray] = None,
-        lattice: Optional[Lattice] = None,
         molecule_original_indices_mapping: Optional[Dict[int, List[int]]] = None,
     ):
         """Initialize a secondary building block.
@@ -132,8 +131,6 @@ class SBU:
             connecting_paths (Optional[Collection[int]], optional):
                 Paths between node atoms and branching atoms. Defaults to None.
             coordinates (Optional[np.ndarray], optional): Coordinates of all atoms in the molecule.
-                Defaults to None.
-            lattice (Optional[Lattice], optional): Pymatgen Lattice object of the original structure.
                 Defaults to None.
             molecule_original_indices_mapping (Optional[Dict[int, List[int]]], optional):
                 Mapping from molecule indices to original indices. Defaults to None.
@@ -165,7 +162,6 @@ class SBU:
         self._original_connecting_paths = connecting_paths
         self.connecting_paths = []
         self._coordinates = coordinates
-        self._lattice = lattice
         for i in connecting_paths:
             try:
                 for index in self.mapping_from_original_indices[i]:

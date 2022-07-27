@@ -93,7 +93,6 @@ def node_from_mof_and_indices(  # pylint:disable=too-many-locals, too-many-argum
         persistent_non_metal_bridged=sites_and_indices.persistent_non_metal_bridged_components,
         terminal_in_mol_not_terminal_in_struct=sites_and_indices.hidden_vertices,
         connecting_paths=connecting_paths,
-        lattice=mof.lattice,
         molecule_original_indices_mapping=mapping,
     )
 
