@@ -120,7 +120,7 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
     use_capping_in_net = False
     if len(linker_collection) == 0:
         logger.warning("No linkers found")
-        if all([set(c._original_indices) & node_collection.indices for c in capping_molecules]):
+        if all(set(c._original_indices) & node_collection.indices for c in capping_molecules):
             logger.warning(
                 "All capping molecules overlap with node collection. Will use them for net construction."
             )
