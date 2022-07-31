@@ -154,7 +154,7 @@ class SBU:
             for k, v in molecule_original_indices_mapping.items():
                 for i in v:
                     self.mapping_from_original_indices[i].append(k)
-        self.mapping_to_original_indices = dict()
+        self.mapping_to_original_indices = {}
         for key, value in self.mapping_from_original_indices.items():
             for v in value:
                 self.mapping_to_original_indices[v] = key
