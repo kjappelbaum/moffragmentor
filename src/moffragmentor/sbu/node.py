@@ -9,6 +9,7 @@ from typing import Set
 import numpy as np
 from pymatgen.analysis.graphs import MoleculeGraph
 from pymatgen.core import Molecule, Structure
+from structuregraph_helpers.create import get_nx_graph_from_edge_tuples
 
 from moffragmentor.fragmentor.molfromgraph import wrap_molecule
 
@@ -18,7 +19,6 @@ from ..utils import (
     _not_relevant_structure_indices,
     _reindex_list_of_tuple,
     get_neighbors_from_nx_graph,
-    get_nx_graph_from_edge_tuples,
 )
 
 __all__ = ["Node"]

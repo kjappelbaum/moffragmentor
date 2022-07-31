@@ -3,9 +3,10 @@
 from collections import OrderedDict
 from typing import List, Set
 
+from structuregraph_helpers.subgraph import get_subgraphs_as_molecules
+
 from ._graphsearch import _has_path_to_any_other_metal, recursive_dfs_until_terminal
 from .filter import bridges_across_cell
-from .molfromgraph import get_subgraphs_as_molecules
 from ..molecule import NonSbuMolecule, NonSbuMoleculeCollection
 from ..utils import _get_metal_sublist
 

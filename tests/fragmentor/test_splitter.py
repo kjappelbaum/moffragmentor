@@ -2,7 +2,8 @@
 """Testing the splitting module of the fragmentor subpackage"""
 from collections import Counter
 
-from moffragmentor.fragmentor.molfromgraph import get_subgraphs_as_molecules
+from structuregraph_helpers.subgraph import get_subgraphs_as_molecules
+
 from moffragmentor.fragmentor.solventlocator import get_floating_solvent_molecules
 
 

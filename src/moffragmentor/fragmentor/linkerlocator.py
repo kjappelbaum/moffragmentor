@@ -4,8 +4,9 @@ from typing import Tuple
 
 import numpy as np
 from pymatgen.core import Structure
+from structuregraph_helpers.subgraph import get_subgraphs_as_molecules
 
-from .molfromgraph import get_subgraphs_as_molecules, wrap_molecule
+from .molfromgraph import wrap_molecule
 from ..sbu import Linker, LinkerCollection
 from ..utils import _flatten_list_of_sets
 
@@ -125,13 +126,12 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
         frac_center = mof.structure.lattice.get_fractional_coords(mol.center_of_mass)
         frac_center -= np.floor(frac_center)
         frac_center = (
-            np.round(frac_center[0], 2),
-            np.round(frac_center[1], 2),
-            np.round(frac_center[2], 2),
+            np.round(frac_center[0], 4),
+            np.round(frac_center[1], 4),
+            np.round(frac_center[2], 4),
         )
         if linker.hash not in found_hashes:
             if frac_center not in found_frac_centers:
-                assert len(idx) == len(coords_)
                 found_hashes.add(linker.hash)
                 linkers.append(linker)
                 found_frac_centers.add(frac_center)

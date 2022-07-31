@@ -12,8 +12,8 @@ import numpy as np
 from loguru import logger
 from more_itertools import pairwise
 from pymatgen.core import Structure
+from structuregraph_helpers.subgraph import get_subgraphs_as_molecules
 
-from moffragmentor.fragmentor.molfromgraph import get_subgraphs_as_molecules
 from moffragmentor.utils import _not_relevant_structure_indices
 
 from .. import mof

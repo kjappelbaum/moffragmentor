@@ -10,8 +10,7 @@ from backports.cached_property import cached_property
 from pymatgen.analysis.graphs import StructureGraph
 from pymatgen.core import Lattice, Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-
-from moffragmentor.utils.periodic_graph import VestaCutoffDictNN
+from structuregraph_helpers.create import VestaCutoffDictNN
 
 from .descriptors.sbu_dimensionality import get_structure_graph_dimensionality
 from .fragmentor import FragmentationResult, run_fragmentation

@@ -1,8 +1,9 @@
 from pymatgen.core import Structure
+from structuregraph_helpers.subgraph import get_subgraphs_as_molecules
 
 from moffragmentor.fragmentor.branching_points import has_metal_in_path
 from moffragmentor.fragmentor.linkerlocator import _pick_central_linker_indices
-from moffragmentor.fragmentor.molfromgraph import get_subgraphs_as_molecules, wrap_molecule
+from moffragmentor.fragmentor.molfromgraph import wrap_molecule
 from moffragmentor.sbu.node import Node
 from moffragmentor.sbu.nodecollection import NodeCollection
 
