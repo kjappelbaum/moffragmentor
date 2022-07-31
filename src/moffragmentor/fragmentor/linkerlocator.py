@@ -98,7 +98,7 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
     # Third: pick those molecules that are closest to the UC
     # ToDo: we should be able to skip this
     linker_indices, coords = _pick_central_linker_indices(mof, coordinates)
-    found_frac_centers =set()
+    found_frac_centers = set()
     found_hashes = set()
     for i, linker_index in enumerate(linker_indices):
         idx = idxs[linker_index]
@@ -124,7 +124,11 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
         )
         frac_center = mof.structure.lattice.get_fractional_coords(mol.center_of_mass)
         frac_center -= np.floor(frac_center)
-        frac_center = (np.round(frac_center[0], 2), np.round(frac_center[1], 2), np.round(frac_center[2], 2))
+        frac_center = (
+            np.round(frac_center[0], 2),
+            np.round(frac_center[1], 2),
+            np.round(frac_center[2], 2),
+        )
         if linker.hash not in found_hashes:
             if frac_center not in found_frac_centers:
                 assert len(idx) == len(coords_)
