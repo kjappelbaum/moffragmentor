@@ -42,7 +42,7 @@ extensions = [
     "sphinx_copybutton",
     "sphinx.ext.viewcode",
     "sphinx.ext.autosectionlabel",
-     "sphinx_immaterial",
+    "sphinx_immaterial",
 ]
 
 copybutton_selector = "div:not(.no-copy)>div.highlight pre"
