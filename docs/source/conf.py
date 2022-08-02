@@ -42,6 +42,7 @@ extensions = [
     "sphinx_copybutton",
     "sphinx.ext.viewcode",
     "sphinx.ext.autosectionlabel",
+     "sphinx_immaterial",
 ]
 
 copybutton_selector = "div:not(.no-copy)>div.highlight pre"
@@ -67,7 +68,7 @@ numfig = True
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "sphinx_book_theme"
+html_theme = "sphinx_immaterial"
 if os.path.exists("_static/logo.png"):
     html_logo = "_static/logo.png"
 
@@ -77,12 +78,31 @@ if os.path.exists("_static/logo.png"):
 html_theme_options = {
     "path_to_docs": "docs",
     "repository_url": "https://github.com/kjappelbaum/moffragmentor",
-    "use_repository_button": True,
-    "use_edit_page_button": True,
-    "use_issues_button": True,
-    "launch_buttons": {
-        "binderhub_url": "https://mybinder.org/v2/gh/kjappelbaum/moffragmentor/HEAD?filepath=examples",
-    },
+    "repo_url": "https://github.com/kjappelbaum/moffragmentor",
+    "repo_name": "moffragmentor",
+    "repo_type": "github",
+    # "source_repository": "https://github.com/pradyunsg/furo/",
+    "source_branch": "main",
+    "source_directory": "docs/",
+    "edit_uri": "https://github.com/kjappelbaum/moffragmentor/docs/source",
+    "palette": [
+        {
+            "media": "(prefers-color-scheme: light)",
+            "scheme": "default",
+            "toggle": {
+                "icon": "material/toggle-switch-off-outline",
+                "name": "Switch to dark mode",
+            },
+        },
+        {
+            "media": "(prefers-color-scheme: dark)",
+            "scheme": "slate",
+            "toggle": {
+                "icon": "material/toggle-switch",
+                "name": "Switch to light mode",
+            },
+        },
+    ],
 }
 
 
