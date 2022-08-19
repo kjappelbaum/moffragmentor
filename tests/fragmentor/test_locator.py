@@ -15,14 +15,14 @@ from moffragmentor.molecule import NonSbuMoleculeCollection
 
 
 def test_find_cu_i_ii_btc_clusters(get_cuiiibtc_mof):
-    """Make sure that we do find the two correct node types in Cu(I/II)-BTC"""
+    """Make sure that we do find pytest he two correct node types in Cu(I/II)-BTC"""
     mof = get_cuiiibtc_mof
     node_location_result = find_node_clusters(mof)
     for node in node_location_result.nodes:
         # Every node has four branching indices from the carboxy
         assert len(node & node_location_result.branching_indices) == 4
-    assert len(node_location_result) == 4
-    assert len(node_location_result.nodes) == 6  # four paddlewheels and two macrocylus
+    assert len(node_location_result) == 5
+    assert len(node_location_result.nodes) == 6  # fou r paddlewheels and two macrocylus
     nodes_sizes = [len(node) for node in node_location_result.nodes]
     assert len(set(nodes_sizes)) == 2
     size_counters = Counter(nodes_sizes)
@@ -36,7 +36,7 @@ def test_find_porphyrin_mof_clusters(get_porphryin_mof):
     mof = get_porphryin_mof
     node_location_result = find_node_clusters(mof)
     fragments = mof.fragment()
-    assert len(node_location_result) == 4
+    assert len(node_location_result) == 5
     assert len(node_location_result.nodes) == 4
     assert len(fragments.nodes) == 2
     # assert len(fragments.linkers) == 2 # ToDo: fix this
@@ -48,7 +48,7 @@ def test_find_hypothetical_mof_clusters(get_hypothetical_mof):
     """Check if we can find the correct nodes in hypothetical MOFs"""
     mof = get_hypothetical_mof
     node_location_result = find_node_clusters(mof)
-    assert len(node_location_result) == 4
+    assert len(node_location_result) == 5
     assert len(node_location_result.nodes) == 16
     node_lengths = [len(node) for node in node_location_result.nodes]
     assert len(set(node_lengths)) == 1
@@ -59,7 +59,7 @@ def test_find_p_linker_floating_mof_clusters(get_p_linker_with_floating):
     """Check if we can deal with non-carboxy ligand and floating solvent"""
     mof = get_p_linker_with_floating
     node_location_result = find_node_clusters(mof)
-    assert len(node_location_result) == 4
+    assert len(node_location_result) == 5
     assert len(node_location_result.nodes) == 8
     node_lengths = [len(node) for node in node_location_result.nodes]
     assert len(set(node_lengths)) == 1
@@ -71,7 +71,7 @@ def test_find_li_mof_floating_mof_cluster(get_li_mof_with_floating):
     see https://pubs.rsc.org/en/content/articlelanding/2014/DT/c3dt53415d#!divAbstract"""
     mof = get_li_mof_with_floating
     node_location_result = find_node_clusters(mof)
-    assert len(node_location_result) == 4
+    assert len(node_location_result) == 5
     assert len(node_location_result.nodes) == 2
     node_lengths = [len(node) for node in node_location_result.nodes]
     assert len(set(node_lengths)) == 1
@@ -81,7 +81,7 @@ def test_find_li_mof_floating_mof_cluster(get_li_mof_with_floating):
 def test_find_rod_node_floating_mof_cluster(get_1d_node_with_floating):
     mof = get_1d_node_with_floating
     node_location_result = find_node_clusters(mof)
-    assert len(node_location_result) == 4
+    assert len(node_location_result) == 5
     assert len(node_location_result.nodes) == 4
     node_lengths = [len(node) for node in node_location_result.nodes]
     assert len(set(node_lengths)) == 1
@@ -226,7 +226,7 @@ def test_find_node_cluster_acetate_zr_mof(get_acetate_zr_mof):
     see https://pubs.rsc.org/en/content/articlelanding/2018/CC/C8CC00507A#!divAbstract"""
     mof = get_acetate_zr_mof
     node_location_result = find_node_clusters(mof)
-    assert len(node_location_result) == 4
+    assert len(node_location_result) == 5
     assert len(node_location_result.nodes) == 1
     # there are only three carboxy that actually come from a linker in Zr6 part
     assert len(node_location_result.branching_indices) == 24

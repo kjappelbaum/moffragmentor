@@ -37,12 +37,10 @@ extensions = [
     "sphinx.ext.coverage",
     "sphinx.ext.napoleon",
     "sphinx_autodoc_typehints",
-    "sphinx.ext.githubpages",
     "sphinx.ext.mathjax",
     "sphinx_copybutton",
     "sphinx.ext.viewcode",
     "sphinx.ext.autosectionlabel",
-     "sphinx_immaterial",
 ]
 
 copybutton_selector = "div:not(.no-copy)>div.highlight pre"
@@ -68,7 +66,7 @@ numfig = True
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "sphinx_immaterial"
+html_theme = "furo"
 if os.path.exists("_static/logo.png"):
     html_logo = "_static/logo.png"
 
@@ -85,24 +83,6 @@ html_theme_options = {
     "source_branch": "main",
     "source_directory": "docs/",
     "edit_uri": "https://github.com/kjappelbaum/moffragmentor/docs/source",
-    "palette": [
-        {
-            "media": "(prefers-color-scheme: light)",
-            "scheme": "default",
-            "toggle": {
-                "icon": "material/toggle-switch-off-outline",
-                "name": "Switch to dark mode",
-            },
-        },
-        {
-            "media": "(prefers-color-scheme: dark)",
-            "scheme": "slate",
-            "toggle": {
-                "icon": "material/toggle-switch",
-                "name": "Switch to light mode",
-            },
-        },
-    ],
 }
 
 
