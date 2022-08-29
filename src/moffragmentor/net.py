@@ -423,9 +423,7 @@ def in_cell(node: "SBU", lattice: Lattice) -> Tuple[bool, List[np.array]]:
     branching_coords_in_cell = []
     for branching_coord in node.branching_coords:
         branching_coord = lattice.get_fractional_coords(branching_coord)
-        if np.all(branching_coord < 1) & np.all(
-            branching_coord > 0 
-        ):
+        if np.all(branching_coord < 1) & np.all(branching_coord > 0):
             branching_coords_in_cell.append(branching_coord)
     if len(branching_coords_in_cell) == 0:
         return False, branching_coords_in_cell
