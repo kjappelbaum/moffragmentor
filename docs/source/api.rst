@@ -94,8 +94,5 @@ Also the :code:`utils` subpackage is not optimized for end-users.
 .. automodule:: moffragmentor.utils.periodic_graph
     :members:
 
-.. automodule:: moffragmentor.utils.plotting
-    :members:
-
 .. automodule:: moffragmentor.utils.systre
     :members:
