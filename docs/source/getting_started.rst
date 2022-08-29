@@ -8,7 +8,6 @@ We recommend installing moffragmentor in a clean virtual environment
 (e.g., a `conda environment <https://docs.conda.io/projects/conda/en/latest/index.html>`_)
 
 
-
 You can install the latest stable release from PyPi using
 
 .. code-block:: bash

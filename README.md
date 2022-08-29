@@ -60,6 +60,14 @@ fragments.net_embedding.rcsr_code
 
 ## 🚀 Installation
 
+To install the latest release run 
+
+```bash 
+pip install moffragmentor
+```
+
+To install the development version run 
+
 ```bash
 pip install git+https://github.com/kjappelbaum/moffragmentor.git
 ```
