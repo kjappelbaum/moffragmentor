@@ -1,0 +1,30 @@
+name: mofchecker
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8
+  - openbabel
+  - pip:
+      - pymatgen
+      - click
+      - backports.cached_property
+      - networkx
+      - pyyaml
+      - timeout_decorator # timeout-decorator on conda-forge
+      - joblib
+      - loguru
+      - ase
+      -  #Todo: perhaps make nglview optional?
+      - nglview
+      - rdkit
+      - mofchecker
+      - scikit-spatial # scikit-spatial on conda
+      - pubchempy
+      - more_itertools
+      - structuregraph_helpers
+      - sphinx
+      - furo
+      - sphinx-click
+      - sphinx-autodoc-typehints
+      - sphinx_automodapi
