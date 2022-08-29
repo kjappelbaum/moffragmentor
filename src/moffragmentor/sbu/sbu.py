@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Representation for a secondary building block."""
 import warnings
-from ast import Or
 from collections import defaultdict
 from typing import Collection, Dict, List, Optional, Tuple
 
@@ -12,7 +11,7 @@ from backports.cached_property import cached_property
 from loguru import logger
 from openbabel import pybel as pb
 from pymatgen.analysis.graphs import MoleculeGraph
-from pymatgen.core import Lattice, Molecule, Structure
+from pymatgen.core import Molecule, Structure
 from pymatgen.io.babel import BabelMolAdaptor
 from rdkit import Chem
 from scipy.spatial.distance import pdist

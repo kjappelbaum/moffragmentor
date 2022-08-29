@@ -3,7 +3,6 @@
 from collections import defaultdict
 from typing import Iterable, Optional
 
-import networkx as nx
 import numpy as np
 from loguru import logger
 from pymatgen.core import Molecule, Site
@@ -78,7 +77,8 @@ def wrap_molecule(
                             > VestaCutoffDictNN._lookup_dict[species_a][species_b]
                         ):
                             logger.warning(
-                                "Warning: neighbor_index {} is already in new_positions_cart, but the distance is too large. "
+                                "Warning: neighbor_index {} is already in new_positions_cart, "
+                                "but the distance is too large. "
                                 "Will add an additional site. This is unusual and not well tested".format(
                                     neighbor_index
                                 )
@@ -92,7 +92,7 @@ def wrap_molecule(
                             additional_sites.append((neighbor_index, new_cart, new_frac))
 
     new_sites = []
-    for i, idx in enumerate(mol_idxs):
+    for _, idx in enumerate(mol_idxs):
         new_sites.append(Site(mof.structure[idx].species, new_positions_cart[idx]))
 
     idx_mapping = defaultdict(list)

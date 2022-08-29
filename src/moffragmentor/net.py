@@ -424,7 +424,7 @@ def in_cell(node: "SBU", lattice: Lattice) -> Tuple[bool, List[np.array]]:
     for branching_coord in node.branching_coords:
         branching_coord = lattice.get_fractional_coords(branching_coord)
         if np.all(branching_coord < 1) & np.all(
-            branching_coord >= 0 - 1 * np.finfo(branching_coord.dtype).eps
+            branching_coord > 0 
         ):
             branching_coords_in_cell.append(branching_coord)
     if len(branching_coords_in_cell) == 0:
@@ -435,7 +435,7 @@ def in_cell(node: "SBU", lattice: Lattice) -> Tuple[bool, List[np.array]]:
 def com_in_cell(node: "SBU", lattice: Lattice):
     com = node.molecule.center_of_mass
     com_frac = lattice.get_fractional_coords(com)
-    if np.all(com_frac <= 1) & np.all(com_frac >= 0):
+    if np.all(com_frac < 1) & np.all(com_frac >= 0):
         return True
     return False
 

@@ -42,14 +42,7 @@ def generate_new_node_collection(mof, node_result):
         coords_ = coords[i]
         branching_indices = list(branching_sites_for_node[node_index])
         mol, mapping = wrap_molecule(idx + branching_indices, mof)
-        print(
-            idx,
-            branching_indices,
-            len(idx) + len(branching_indices),
-            mapping,
-            branching_indices,
-            len(mol),
-        )
+
         node = Node(
             molecule=mol,
             molecule_graph=graphs[node_index],

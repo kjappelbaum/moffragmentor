@@ -3,7 +3,6 @@
 from collections import Counter
 from typing import List
 
-import numpy as np
 from backports.cached_property import cached_property
 
 from .sbu import SBU
