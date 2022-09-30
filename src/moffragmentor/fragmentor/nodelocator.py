@@ -151,7 +151,7 @@ def find_node_clusters(  # pylint:disable=too-many-locals
                     binding_sites.update(binding_path)
                     # traverse to also add things like Hs in the binding path
                     for site in binding_path:
-                        for neighbor in g.neighbors(site):
+                        for neighbor in mof.get_neighbor_indices(site):
                             if neighbor not in metal_indices | bs:
                                 binding_sites.add(neighbor)
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Methods for the fragmentation of MOFs"""
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 
 from loguru import logger
 from skspatial.objects import Points
@@ -133,7 +133,7 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
         new_node_collection = generate_new_node_collection(mof, node_result)
 
         # ToDo: need to add some code as follows
-        # Need to create also "netnodes" before that
+        #Need to create also "netnodes" before that
         # egde_candiates = defaultdict(list)
         # for i, netnode_i in enumerate(netnodes):
         #     for j, netnode_j in enumerate(netnodes):

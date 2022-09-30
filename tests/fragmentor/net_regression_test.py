@@ -31,3 +31,4 @@ def test_net_detection():
     #assert get_rscr_code("LASYOU.cif") == "nbo"
     assert get_rscr_code("OFOCUI_clean.cif") == "nbo"
     assert get_rscr_code("WETPES_clean.cif") == "ssa"
+    assert get_rscr_code("RUSWOT_clean.cif") == "pcu"

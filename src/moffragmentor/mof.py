@@ -133,8 +133,9 @@ class MOF:
         """
         # using the IStructure avoids bugs where somehow the structure changes
         structure = IStructure.from_file(cif)
-        spga = SpacegroupAnalyzer(structure, symprec=symprec, angle_tolerance=angle_tolerance)
-        structure = spga.get_conventional_standard_structure()
+        if symprec is not None and angle_tolerance is not None:
+            spga = SpacegroupAnalyzer(structure, symprec=symprec, angle_tolerance=angle_tolerance)
+            structure = spga.get_conventional_standard_structure()
         structure = IStructure.from_sites(structure)
         structure_graph = StructureGraph.with_local_env_strategy(structure, VestaCutoffDictNN)
         return cls(structure, structure_graph)
