@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Methods for the fragmentation of MOFs"""
-from collections import namedtuple
+from collections import defaultdict, namedtuple
 
 from loguru import logger
 from skspatial.objects import Points
@@ -127,39 +127,43 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
             logger.debug("Constructing the embedding")
             use_capping_in_net = True
 
-    if use_capping_in_net:
-        logger.debug("Constructing the embedding")
-        # However, I'd also need to split the node in this case
-        new_node_collection = generate_new_node_collection(mof, node_result)
+    try:
+        if use_capping_in_net:
+            logger.debug("Constructing the embedding")
+            # However, I'd also need to split the node in this case
+            new_node_collection = generate_new_node_collection(mof, node_result)
 
-        # ToDo: need to add some code as follows
-        # Need to create also "netnodes" before that
-        # egde_candiates = defaultdict(list)
-        # for i, netnode_i in enumerate(netnodes):
-        #     for j, netnode_j in enumerate(netnodes):
-        #         at_least_one_edge, images = has_edge(netnode_i, netnode_j, lattice)
-        #         if at_least_one_edge:
-        #             for coord, image_a, image_b in images:
-        #                 if i == j and all(image_a == (0,0,0)) and all(image_b == (0,0,0)):
-        #                     continue
-        #                 metal_center = lattice.get_fractional_coords(netnode_i._coords) + image_a
-        #                 linker_center = lattice.get_fractional_coords(netnode_j._coords) + image_b
-        #                 edge = VoltageEdge(
-        #                     linker_center - metal_center,
-        #                     i,
-        #                     j,
-        #                     image_a,
-        #                     image_b,
-        #                 )
-        #                 egde_candiates[
-        #                     (round(coord[0], 2), round(coord[1], 2), round(coord[2], 2))
-        #                 ].append((edge, np.abs(image_b).sum()))
+            # ToDo: need to add some code as follows
+            # Need to create also "netnodes" before that
+            # egde_candiates = defaultdict(list)
+            # for i, netnode_i in enumerate(netnodes):
+            #     for j, netnode_j in enumerate(netnodes):
+            #         at_least_one_edge, images = has_edge(netnode_i, netnode_j, lattice)
+            #         if at_least_one_edge:
+            #             for coord, image_a, image_b in images:
+            #                 if i == j and all(image_a == (0,0,0)) and all(image_b == (0,0,0)):
+            #                     continue
+            #                 metal_center = lattice.get_fractional_coords(netnode_i._coords) + image_a
+            #                 linker_center = lattice.get_fractional_coords(netnode_j._coords) + image_b
+            #                 edge = VoltageEdge(
+            #                     linker_center - metal_center,
+            #                     i,
+            #                     j,
+            #                     image_a,
+            #                     image_b,
+            #                 )
+            #                 egde_candiates[
+            #                     (round(coord[0], 2), round(coord[1], 2), round(coord[2], 2))
+            #                 ].append((edge, np.abs(image_b).sum()))
 
-        net_embedding = build_net(new_node_collection, capping_molecules, mof.lattice)
-    else:
-        logger.debug("Constructing the embedding")
-        # Now, get the net
-        net_embedding = build_net(node_collection, linker_collection, mof.lattice)
+            net_embedding = build_net(new_node_collection, capping_molecules, mof.lattice)
+        else:
+            logger.debug("Constructing the embedding")
+            # Now, get the net
+            net_embedding = build_net(node_collection, linker_collection, mof.lattice)
+    except Exception as e:
+        logger.exception("Error in net construction")
+        net_embedding = None
     fragmentation_results = FragmentationResult(
         node_collection,
         linker_collection,

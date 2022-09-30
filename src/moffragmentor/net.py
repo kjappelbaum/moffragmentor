@@ -46,6 +46,10 @@ from .utils.systre import _get_systre_input_from_pmg_structure_graph, run_systre
 
 
 def is_3d_parallel(v1: np.array, v2: np.array, eps: float = 1e-5) -> bool:
+    if np.allclose(v1, 0) and not np.allclose(v2, 0):
+        return False
+    if np.allclose(v2, 0) and not np.allclose(v1, 0):
+        return False
     cp = np.cross(v1, v2)
     return np.allclose(cp, np.zeros(3), atol=eps)
 
@@ -423,9 +427,7 @@ def in_cell(node: "SBU", lattice: Lattice) -> Tuple[bool, List[np.array]]:
     branching_coords_in_cell = []
     for branching_coord in node.branching_coords:
         branching_coord = lattice.get_fractional_coords(branching_coord)
-        if np.all(branching_coord < 1) & np.all(
-            branching_coord > 0 
-        ):
+        if np.all(branching_coord < 1) & np.all(branching_coord > 0):
             branching_coords_in_cell.append(branching_coord)
     if len(branching_coords_in_cell) == 0:
         return False, branching_coords_in_cell
@@ -528,6 +530,9 @@ def build_net(
 
     linker_index_offset = len(found_metal_nodes)
 
+    logger.debug(f"Found {len(found_metal_nodes)} metal nodes out of {len(metal_clusters)}")
+    logger.debug(f"Found {len(found_linker_nodes)} linker nodes out of {len(linkers)}")
+
     egde_candiates = defaultdict(list)
     for metal_node, metal_index in found_metal_nodes.values():
         for linker_node, linker_index in found_linker_nodes.values():
@@ -566,7 +571,11 @@ def build_net(
                     ].append((edge, np.abs(image_b).sum()))
 
     edge_selection = []
-    for _, edges in egde_candiates.items():
+    for branching_coord, edges in egde_candiates.items():
+        # branching_coord = np.array(branching_coord)
+        # if np.all(branching_coord < 1) & np.all(
+        #     branching_coord > 0
+        # ):
         if len(edges) == 1:
             edge_selection.append(edges[0][0])
         else:
@@ -619,7 +628,14 @@ def _simplify_structure_graph(structure_graph: StructureGraph) -> StructureGraph
                     try:
                         graph_copy.break_edge(i, neighbor.index, neighbor.jimage)
                     except ValueError:
-                        logger.warning("Edge cannot be broken")
+                        try:
+                            graph_copy.break_edge(
+                                neighbor.index,
+                                i,
+                                (-neighbor.jimage[0], -neighbor.jimage[1], -neighbor.jimage[2]),
+                            )
+                        except ValueError:
+                            logger.warning(f"Edge {i, neighbor.index} cannot be broken")
                 sorted_images = [x for _, x in sorted(zip(indices, images))]
                 edge_tuple = (tuple(sorted(indices)), tuple(sorted_images))
                 # in principle, this check should not be needed ...
