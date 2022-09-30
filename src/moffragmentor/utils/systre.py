@@ -181,7 +181,7 @@ def _get_systre_input_from_pmg_structure_graph(
 
     for i in range(len(structure_graph)):
         vertices.append((len(structure_graph.get_connected_sites(i)), frac_coords[i]))
-        #vertices.append((structure_graph.get_coordination_of_site(i), frac_coords[i]))
+        # vertices.append((structure_graph.get_coordination_of_site(i), frac_coords[i]))
 
     for edge in structure_graph.graph.edges(data=True):
         start = frac_coords[edge[0]]

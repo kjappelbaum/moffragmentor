@@ -427,9 +427,7 @@ def in_cell(node: "SBU", lattice: Lattice) -> Tuple[bool, List[np.array]]:
     branching_coords_in_cell = []
     for branching_coord in node.branching_coords:
         branching_coord = lattice.get_fractional_coords(branching_coord)
-        if np.all(branching_coord < 1) & np.all(
-            branching_coord > 0 
-        ):
+        if np.all(branching_coord < 1) & np.all(branching_coord > 0):
             branching_coords_in_cell.append(branching_coord)
     if len(branching_coords_in_cell) == 0:
         return False, branching_coords_in_cell
@@ -576,14 +574,13 @@ def build_net(
     for branching_coord, edges in egde_candiates.items():
         # branching_coord = np.array(branching_coord)
         # if np.all(branching_coord < 1) & np.all(
-        #     branching_coord > 0 
-        # ): 
+        #     branching_coord > 0
+        # ):
         if len(edges) == 1:
             edge_selection.append(edges[0][0])
         else:
             # sort ascending by second element in tuple in the list
             edge_selection.append(sorted(edges, key=lambda x: x[1])[0][0])
-
 
     for edge in edge_selection:
         if not contains_edge(edge, found_edges):
@@ -632,7 +629,11 @@ def _simplify_structure_graph(structure_graph: StructureGraph) -> StructureGraph
                         graph_copy.break_edge(i, neighbor.index, neighbor.jimage)
                     except ValueError:
                         try:
-                            graph_copy.break_edge(neighbor.index, i, (-neighbor.jimage[0], -neighbor.jimage[1], -neighbor.jimage[2]))
+                            graph_copy.break_edge(
+                                neighbor.index,
+                                i,
+                                (-neighbor.jimage[0], -neighbor.jimage[1], -neighbor.jimage[2]),
+                            )
                         except ValueError:
                             logger.warning(f"Edge {i, neighbor.index} cannot be broken")
                 sorted_images = [x for _, x in sorted(zip(indices, images))]
