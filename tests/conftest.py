@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """Setup tests"""
-# pylint:disable=too-many-lines
 import os
 
 import networkx as nx
@@ -10,6 +9,8 @@ from pymatgen.analysis.local_env import JmolNN
 from pymatgen.core import Molecule, Structure
 
 from moffragmentor import MOF
+from moffragmentor.sbu import Linker, Node
+import numpy as np
 
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -1326,3 +1327,380 @@ def get_across_periodic_boundary_node():
     # Zn4(μ3-OH)2(TPO)2(H2O)2]
     mof = MOF.from_cif(os.path.join(THIS_DIR, "test_files", "NIYZIG.cif"))
     return mof
+
+
+@pytest.fixture()
+def get_linker_object():
+    mg_dict = {
+        "@module": "pymatgen.analysis.graphs",
+        "@class": "MoleculeGraph",
+        "molecule": {
+            "@module": "pymatgen.core.structure",
+            "@class": "Molecule",
+            "charge": 0.0,
+            "spin_multiplicity": 2,
+            "sites": [
+                {
+                    "name": "C",
+                    "species": [{"element": "C", "occu": 1}],
+                    "xyz": [44.75675699999999, 43.044461999999996, 35.984538],
+                    "properties": {},
+                },
+                {
+                    "name": "C",
+                    "species": [{"element": "C", "occu": 1}],
+                    "xyz": [42.49125899999999, 44.203554, 34.825446],
+                    "properties": {},
+                },
+                {
+                    "name": "C",
+                    "species": [{"element": "C", "occu": 1}],
+                    "xyz": [44.862128999999996, 44.862128999999996, 37.696833000000005],
+                    "properties": {},
+                },
+                {
+                    "name": "H",
+                    "species": [{"element": "H", "occu": 1}],
+                    "xyz": [42.67565999999999, 42.67565999999999, 33.508296],
+                    "properties": {},
+                },
+                {
+                    "name": "C",
+                    "species": [{"element": "C", "occu": 1}],
+                    "xyz": [43.044461999999996, 43.044461999999996, 34.272243],
+                    "properties": {},
+                },
+                {
+                    "name": "O",
+                    "species": [{"element": "O", "occu": 1}],
+                    "xyz": [40.88433599999999, 45.915848999999994, 34.693731],
+                    "properties": {},
+                },
+                {
+                    "name": "O",
+                    "species": [{"element": "O", "occu": 1}],
+                    "xyz": [44.335269, 45.915848999999994, 38.144664],
+                    "properties": {},
+                },
+                {
+                    "name": "C",
+                    "species": [{"element": "C", "occu": 1}],
+                    "xyz": [44.203554, 44.203554, 36.537741000000004],
+                    "properties": {},
+                },
+                {
+                    "name": "C",
+                    "species": [{"element": "C", "occu": 1}],
+                    "xyz": [43.044461999999996, 44.75675699999999, 35.984538],
+                    "properties": {},
+                },
+                {
+                    "name": "H",
+                    "species": [{"element": "H", "occu": 1}],
+                    "xyz": [42.67565999999999, 45.520703999999995, 36.35334],
+                    "properties": {},
+                },
+                {
+                    "name": "O",
+                    "species": [{"element": "O", "occu": 1}],
+                    "xyz": [40.88433599999999, 44.335269, 33.113151],
+                    "properties": {},
+                },
+                {
+                    "name": "H",
+                    "species": [{"element": "H", "occu": 1}],
+                    "xyz": [45.520703999999995, 42.67565999999999, 36.35334],
+                    "properties": {},
+                },
+                {
+                    "name": "O",
+                    "species": [{"element": "O", "occu": 1}],
+                    "xyz": [45.915848999999994, 44.335269, 38.144664],
+                    "properties": {},
+                },
+                {
+                    "name": "C",
+                    "species": [{"element": "C", "occu": 1}],
+                    "xyz": [44.862128999999996, 41.332167, 34.166871],
+                    "properties": {},
+                },
+                {
+                    "name": "C",
+                    "species": [{"element": "C", "occu": 1}],
+                    "xyz": [41.33216699999999, 44.862128999999996, 34.166871],
+                    "properties": {},
+                },
+                {
+                    "name": "C",
+                    "species": [{"element": "C", "occu": 1}],
+                    "xyz": [44.203554, 42.49125899999999, 34.825446],
+                    "properties": {},
+                },
+                {
+                    "name": "O",
+                    "species": [{"element": "O", "occu": 1}],
+                    "xyz": [45.915848999999994, 40.88433599999999, 34.693731],
+                    "properties": {},
+                },
+                {
+                    "name": "O",
+                    "species": [{"element": "O", "occu": 1}],
+                    "xyz": [44.335269, 40.88433599999999, 33.113151],
+                    "properties": {},
+                },
+            ],
+        },
+        "graphs": {
+            "directed": True,
+            "multigraph": True,
+            "graph": [("edge_weight_name", None), ("edge_weight_units", None), ("name", "bonds")],
+            "nodes": [
+                {
+                    "idx": 267,
+                    "specie": "C",
+                    "coords": np.array([44.756757, 43.044462, 35.984538]),
+                    "properties": {},
+                    "coord": np.array([44.756757, 43.044462, 35.984538]),
+                    "id": 0,
+                },
+                {
+                    "idx": 241,
+                    "specie": "C",
+                    "coords": np.array([42.491259, 44.203554, 34.825446]),
+                    "properties": {},
+                    "coord": np.array([42.491259, 44.203554, 34.825446]),
+                    "id": 1,
+                },
+                {
+                    "idx": 244,
+                    "specie": "C",
+                    "coords": np.array([44.862129, 44.862129, 37.696833]),
+                    "properties": {},
+                    "coord": np.array([44.862129, 44.862129, 37.696833]),
+                    "id": 2,
+                },
+                {
+                    "idx": 87,
+                    "specie": "H",
+                    "coords": np.array([42.67566, 42.67566, 33.508296]),
+                    "properties": {},
+                    "coord": np.array([42.67566, 42.67566, 33.508296]),
+                    "id": 3,
+                },
+                {
+                    "idx": 279,
+                    "specie": "C",
+                    "coords": np.array([43.044462, 43.044462, 34.272243]),
+                    "properties": {},
+                    "coord": np.array([43.044462, 43.044462, 34.272243]),
+                    "id": 4,
+                },
+                {
+                    "idx": 503,
+                    "specie": "O",
+                    "coords": np.array([40.884336, 45.915849, 34.693731]),
+                    "properties": {},
+                    "coord": np.array([40.884336, 45.915849, 34.693731]),
+                    "id": 5,
+                },
+                {
+                    "idx": 508,
+                    "specie": "O",
+                    "coords": np.array([44.335269, 45.915849, 38.144664]),
+                    "properties": {},
+                    "coord": np.array([44.335269, 45.915849, 38.144664]),
+                    "id": 6,
+                },
+                {
+                    "idx": 221,
+                    "specie": "C",
+                    "coords": np.array([44.203554, 44.203554, 36.537741]),
+                    "properties": {},
+                    "coord": np.array([44.203554, 44.203554, 36.537741]),
+                    "id": 7,
+                },
+                {
+                    "idx": 287,
+                    "specie": "C",
+                    "coords": np.array([43.044462, 44.756757, 35.984538]),
+                    "properties": {},
+                    "coord": np.array([43.044462, 44.756757, 35.984538]),
+                    "id": 8,
+                },
+                {
+                    "idx": 95,
+                    "specie": "H",
+                    "coords": np.array([42.67566, 45.520704, 36.35334]),
+                    "properties": {},
+                    "coord": np.array([42.67566, 45.520704, 36.35334]),
+                    "id": 9,
+                },
+                {
+                    "idx": 512,
+                    "specie": "O",
+                    "coords": np.array([40.884336, 44.335269, 33.113151]),
+                    "properties": {},
+                    "coord": np.array([40.884336, 44.335269, 33.113151]),
+                    "id": 10,
+                },
+                {
+                    "idx": 75,
+                    "specie": "H",
+                    "coords": np.array([45.520704, 42.67566, 36.35334]),
+                    "properties": {},
+                    "coord": np.array([45.520704, 42.67566, 36.35334]),
+                    "id": 11,
+                },
+                {
+                    "idx": 483,
+                    "specie": "O",
+                    "coords": np.array([45.915849, 44.335269, 38.144664]),
+                    "properties": {},
+                    "coord": np.array([45.915849, 44.335269, 38.144664]),
+                    "id": 12,
+                },
+                {
+                    "idx": 256,
+                    "specie": "C",
+                    "coords": np.array([44.862129, 41.332167, 34.166871]),
+                    "properties": {},
+                    "coord": np.array([44.862129, 41.332167, 34.166871]),
+                    "id": 13,
+                },
+                {
+                    "idx": 264,
+                    "specie": "C",
+                    "coords": np.array([41.332167, 44.862129, 34.166871]),
+                    "properties": {},
+                    "coord": np.array([41.332167, 44.862129, 34.166871]),
+                    "id": 14,
+                },
+                {
+                    "idx": 233,
+                    "specie": "C",
+                    "coords": np.array([44.203554, 42.491259, 34.825446]),
+                    "properties": {},
+                    "coord": np.array([44.203554, 42.491259, 34.825446]),
+                    "id": 15,
+                },
+                {
+                    "idx": 523,
+                    "specie": "O",
+                    "coords": np.array([45.915849, 40.884336, 34.693731]),
+                    "properties": {},
+                    "coord": np.array([45.915849, 40.884336, 34.693731]),
+                    "id": 16,
+                },
+                {
+                    "idx": 495,
+                    "specie": "O",
+                    "coords": np.array([44.335269, 40.884336, 33.113151]),
+                    "properties": {},
+                    "coord": np.array([44.335269, 40.884336, 33.113151]),
+                    "id": 17,
+                },
+            ],
+            "adjacency": [
+                [
+                    {"to_jimage": (0, 0, 0), "id": 11, "key": 0},
+                    {"to_jimage": (0, 0, 0), "id": 15, "key": 0},
+                    {"to_jimage": (0, 0, 0), "id": 7, "key": 0},
+                ],
+                [
+                    {"to_jimage": (0, 0, 0), "id": 8, "key": 0},
+                    {"to_jimage": (0, 0, 0), "id": 4, "key": 0},
+                    {"to_jimage": (0, 0, 0), "id": 14, "key": 0},
+                ],
+                [
+                    {"to_jimage": (0, 0, 0), "id": 7, "key": 0},
+                    {"to_jimage": (0, 0, 0), "id": 6, "key": 0},
+                    {"to_jimage": (0, 0, 0), "id": 12, "key": 0},
+                ],
+                [{"to_jimage": (0, 0, 0), "id": 4, "key": 0}],
+                [
+                    {"to_jimage": (0, 0, 0), "id": 1, "key": 0},
+                    {"to_jimage": (0, 0, 0), "id": 3, "key": 0},
+                    {"to_jimage": (0, 0, 0), "id": 15, "key": 0},
+                ],
+                [{"to_jimage": (0, 0, 0), "id": 14, "key": 0}],
+                [{"to_jimage": (0, 0, 0), "id": 2, "key": 0}],
+                [
+                    {"to_jimage": (0, 0, 0), "id": 0, "key": 0},
+                    {"to_jimage": (0, 0, 0), "id": 2, "key": 0},
+                    {"to_jimage": (0, 0, 0), "id": 8, "key": 0},
+                ],
+                [
+                    {"to_jimage": (0, 0, 0), "id": 1, "key": 0},
+                    {"to_jimage": (0, 0, 0), "id": 7, "key": 0},
+                    {"to_jimage": (0, 0, 0), "id": 9, "key": 0},
+                ],
+                [{"to_jimage": (0, 0, 0), "id": 8, "key": 0}],
+                [{"to_jimage": (0, 0, 0), "id": 14, "key": 0}],
+                [{"to_jimage": (0, 0, 0), "id": 0, "key": 0}],
+                [{"to_jimage": (0, 0, 0), "id": 2, "key": 0}],
+                [
+                    {"to_jimage": (0, 0, 0), "id": 15, "key": 0},
+                    {"to_jimage": (0, 0, 0), "id": 16, "key": 0},
+                    {"to_jimage": (0, 0, 0), "id": 17, "key": 0},
+                ],
+                [
+                    {"to_jimage": (0, 0, 0), "id": 1, "key": 0},
+                    {"to_jimage": (0, 0, 0), "id": 5, "key": 0},
+                    {"to_jimage": (0, 0, 0), "id": 10, "key": 0},
+                ],
+                [
+                    {"to_jimage": (0, 0, 0), "id": 0, "key": 0},
+                    {"to_jimage": (0, 0, 0), "id": 4, "key": 0},
+                    {"to_jimage": (0, 0, 0), "id": 13, "key": 0},
+                ],
+                [{"to_jimage": (0, 0, 0), "id": 13, "key": 0}],
+                [{"to_jimage": (0, 0, 0), "id": 13, "key": 0}],
+            ],
+        },
+    }
+    mg = MoleculeGraph.from_dict(mg_dict)
+    mol = mg.molecule
+    linker = Linker(
+        mol,
+        mg,
+        center=np.array([502.5498308, 502.5498308, 406.79525026]),
+        graph_branching_indices={244, 256, 264},
+        closest_branching_index_in_molecule={244, 256, 264},
+        binding_indices=[512, 483, 523, 495, 503, 508],
+        original_indices=[
+            267,
+            241,
+            244,
+            87,
+            279,
+            503,
+            508,
+            221,
+            287,
+            95,
+            512,
+            75,
+            483,
+            256,
+            264,
+            233,
+            523,
+            495,
+        ],
+        connecting_paths=[],
+    )
+    return linker
+
+
+@pytest.fixture()
+def get_node_object():
+    mof = MOF.from_cif(os.path.join(THIS_DIR, "test_files", "HKUST-1.cif"))
+    node = Node.from_mof_and_indices(
+        mof,
+        node_indices={0, 320, 578, 387, 2, 485, 554, 461, 432, 145, 246, 535, 504, 607},
+        branching_indices={320, 145, 387, 246},
+        binding_indices={578, 485, 554, 461, 432, 535, 504, 607},
+        connecting_paths={320, 578, 387, 485, 554, 461, 432, 145, 246, 535, 504, 607},
+    )
+
+    return node

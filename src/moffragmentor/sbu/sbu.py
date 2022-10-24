@@ -287,6 +287,10 @@ class SBU:
     def weisfeiler_lehman_graph_hash(self):
         return nx.weisfeiler_lehman_graph_hash(self.molecule_graph.graph, node_attr="specie")
 
+    @property
+    def molar_mass(self):
+        return self.molecule.composition.weight
+
     @cached_property
     def hash(self) -> str:
         """Return hash.

@@ -36,64 +36,69 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
     need_rerun = True
     forbidden_indices = []
     counter = 0
-    while need_rerun:
-        not_node = []
-        logger.debug(f"Fragmenting MOF for the {counter} time")
-        # Find nodes
-        node_result = find_node_clusters(
-            mof, unbound_solvent.indices, forbidden_indices=forbidden_indices
-        )
-        node_collection = create_node_collection(mof, node_result)
-        # Find bound solvent
-        logger.debug("Locating bound solvent")
-        bound_solvent = get_all_bound_solvent_molecules(mof, node_result.nodes)
-        logger.debug(f"Found bound solvent {len(bound_solvent.indices)>0}")
-        # Filter the linkers (valid linkers have at least two branch points)
-        logger.debug("Locating linkers")
-        linker_collection = create_linker_collection(
-            mof, node_result, node_collection, unbound_solvent, bound_solvent
-        )
-
-        logger.debug("Checking for metal in linker")
-        # ToDo: factor this out into its own function
-        for i, node in enumerate(node_result.nodes):  # pylint:disable=too-many-nested-blocks
-            metal_in_node = _get_metal_sublist(node, mof.metal_indices)
-            # ToDo: check and think if this can handle the general case
-            # it should, at least if we only look at the metals
-            if len(metal_in_node) == 1:
-                logger.debug(
-                    "metal_in_node",
-                    i,
-                    metal_in_node,
-                    node_collection[i]._original_indices,
-                    node_collection[i]._original_graph_branching_indices,
-                )
-                if metal_and_branching_coplanar(node_collection[i], mof):
-                    logger.debug(
-                        "Metal in linker found, current node: {}, indices: {}".format(
-                            node,
-                            node_collection[i]._original_indices,
-                        )
-                    )
-                    need_rerun = True
-                    not_node.append(i)
-
-        for node in not_node:
-            forbidden_indices.extend(list(node_collection[node]._original_indices))
-
-        if len(not_node) == 0:
-            need_rerun = False
-            break
-        if len(not_node) == len(node_result.nodes):
-            logger.warning(
-                "We have metal in plane with the organic part. \
-                Which would indicate a prophyrin. \
-                However, there is no other metal cluster, so we will treat it as metal cluster."
+    while need_rerun: 
+        try:
+            not_node = []
+            logger.debug(f"Fragmenting MOF for the {counter} time")
+            # Find nodes
+            node_result = find_node_clusters(
+                mof, unbound_solvent.indices, forbidden_indices=forbidden_indices
             )
-            need_rerun = False
-            break
-        counter += 1
+            node_collection = create_node_collection(mof, node_result)
+            # Find bound solvent
+            logger.debug("Locating bound solvent")
+            bound_solvent = get_all_bound_solvent_molecules(mof, node_result.nodes)
+            logger.debug(f"Found bound solvent {len(bound_solvent.indices)>0}")
+            # Filter the linkers (valid linkers have at least two branch points)
+        
+            logger.debug("Locating linkers")
+            linker_collection = create_linker_collection(
+                mof, node_result, node_collection, unbound_solvent, bound_solvent
+            )
+    
 
+            logger.debug("Checking for metal in linker")
+            # ToDo: factor this out into its own function
+            for i, node in enumerate(node_result.nodes):  # pylint:disable=too-many-nested-blocks
+                metal_in_node = _get_metal_sublist(node, mof.metal_indices)
+                # ToDo: check and think if this can handle the general case
+                # it should, at least if we only look at the metals
+                if len(metal_in_node) == 1:
+                    logger.debug(
+                        "metal_in_node",
+                        i,
+                        metal_in_node,
+                        node_collection[i]._original_indices,
+                        node_collection[i]._original_graph_branching_indices,
+                    )
+                    if metal_and_branching_coplanar(node_collection[i], mof):
+                        logger.debug(
+                            "Metal in linker found, current node: {}, indices: {}".format(
+                                node,
+                                node_collection[i]._original_indices,
+                            )
+                        )
+                        need_rerun = True
+                        not_node.append(i)
+
+            for node in not_node:
+                forbidden_indices.extend(list(node_collection[node]._original_indices))
+
+            if len(not_node) == 0:
+                need_rerun = False
+                break
+            if len(not_node) == len(node_result.nodes):
+                logger.warning(
+                    "We have metal in plane with the organic part. \
+                    Which would indicate a prophyrin. \
+                    However, there is no other metal cluster, so we will treat it as metal cluster."
+                )
+                need_rerun = False
+                break
+            counter += 1
+        except Exception as e:
+            logger.exception(f"Error while fragmenting: {e}")
+    
     logger.debug(
         "Check if we need to move the capping molecules from the linkercollection into their own collection"
     )

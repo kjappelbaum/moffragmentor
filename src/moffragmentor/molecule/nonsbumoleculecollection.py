@@ -27,6 +27,10 @@ class NonSbuMoleculeCollection:
         """Return number of molecules in the collection."""
         return len(self.molecules)
 
+    def __repr__(self):
+        """Return a string representation of the collection."""
+        return f"NonSbuMoleculeCollection({self._get_composition()})"
+
     def __getitem__(self, index):
         """Get a molecule from the collection."""
         return self.molecules[index]

@@ -6,7 +6,7 @@ from typing import List
 from backports.cached_property import cached_property
 
 from .sbu import SBU
-
+from ..utils import get_molecule_mass
 
 class SBUCollection:
     """Container for a collection of SBUs"""
@@ -71,6 +71,10 @@ class SBUCollection:
     @property
     def coordination_numbers(self):
         return [sbu.coordination for sbu in self.sbus]
+
+    @property
+    def molar_masses(self):
+        return [sbu.molar_mass for sbu in self.sbus]
 
     @property
     def unique_sbus(self):

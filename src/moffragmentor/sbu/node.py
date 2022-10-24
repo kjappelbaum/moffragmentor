@@ -28,6 +28,7 @@ def node_from_mof_and_indices(  # pylint:disable=too-many-locals, too-many-argum
     cls, mof, node_indices, branching_indices, binding_indices, connecting_paths
 ):
     """Create a node from a MOF and a list of indices of different types."""
+
     node_indices = node_indices | connecting_paths  # This should actually not be necessary
     graph_ = mof.structure_graph.__copy__()
     graph_.structure = Structure.from_sites(graph_.structure.sites)
