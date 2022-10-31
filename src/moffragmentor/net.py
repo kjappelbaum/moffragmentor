@@ -305,7 +305,11 @@ class Net:
 
     @property
     def rcsr_code(self) -> str:
-        return self._systre_results["rcsr_code"]
+        """Return the RCSR code of the net."""
+        try:
+            return self._systre_results["rcsr_code"]
+        except TypeError:
+            return ""
 
     @property
     def p(self) -> int:
