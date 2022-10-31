@@ -12,14 +12,14 @@ from typing import List, Optional
 import networkx as nx
 from loguru import logger
 
-from ._graphsearch import (
+from moffragmentor.fragmentor._graphsearch import (
     _complete_graph,
     _to_graph,
     recursive_dfs_until_branch,
     recursive_dfs_until_cn3,
 )
-from ..sbu import Node, NodeCollection
-from ..utils import _flatten_list_of_sets
+from moffragmentor.sbu import Node, NodeCollection
+from moffragmentor.utils import _flatten_list_of_sets
 
 __all__ = [
     "find_node_clusters",
@@ -66,7 +66,7 @@ def _path_without_metal_and_branching_sites(path, metal_indices, branching_indic
     return [i for i in path if i not in metal_indices and i not in branching_indices]
 
 
-def find_node_clusters(  # pylint:disable=too-many-locals
+def find_node_clusters(
     mof,
     unbound_solvent_indices: Optional[List[int]] = None,
     forbidden_indices: Optional[List[int]] = None,

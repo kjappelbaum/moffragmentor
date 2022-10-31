@@ -1,24 +1,36 @@
 # -*- coding: utf-8 -*-
 """Methods for the fragmentation of MOFs"""
-from collections import defaultdict, namedtuple
+from collections import namedtuple
 
 from loguru import logger
 from skspatial.objects import Points
 
 from moffragmentor.sbu.linkercollection import LinkerCollection
 
-from ._no_core_linker import generate_new_node_collection
-from .linkerlocator import create_linker_collection
-from .nodelocator import create_node_collection, find_node_clusters
-from .solventlocator import get_all_bound_solvent_molecules, get_floating_solvent_molecules
-from ..net import build_net
-from ..utils import _get_metal_sublist
+from moffragmentor.fragmentor._no_core_linker import generate_new_node_collection
+from moffragmentor.fragmentor.linkerlocator import create_linker_collection
+from moffragmentor.fragmentor.nodelocator import create_node_collection, find_node_clusters
+from moffragmentor.fragmentor.solventlocator import (
+    get_all_bound_solvent_molecules,
+    get_floating_solvent_molecules,
+)
+from moffragmentor.net import build_net
+from moffragmentor.utils import _get_metal_sublist
+from moffragmentor.descriptors.sbu_dimensionality import get_sbu_dimensionality
 
 __all__ = ["FragmentationResult"]
 
 FragmentationResult = namedtuple(
     "FragmentationResult",
-    ["nodes", "linkers", "bound_solvent", "unbound_solvent", "capping_molecules", "net_embedding"],
+    [
+        "nodes",
+        "linkers",
+        "bound_solvent",
+        "unbound_solvent",
+        "capping_molecules",
+        "net_embedding",
+        "has_1d_sbu",
+    ],
 )
 
 
@@ -29,14 +41,17 @@ def metal_and_branching_coplanar(node, mof, tol=0.1):
     return points.are_coplanar(tol=tol)
 
 
-def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-locals
+def run_fragmentation(
+    mof, check_dimensionality: bool = False, create_single_metal_bus: bool = False
+) -> FragmentationResult:
     """Take a MOF and split it into building blocks."""
     logger.debug("Starting fragmentation with location of unbound solvent")
     unbound_solvent = get_floating_solvent_molecules(mof)
     need_rerun = True
     forbidden_indices = []
     counter = 0
-    while need_rerun: 
+    has_1d_sbu = None
+    while need_rerun:
         try:
             not_node = []
             logger.debug(f"Fragmenting MOF for the {counter} time")
@@ -44,18 +59,26 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
             node_result = find_node_clusters(
                 mof, unbound_solvent.indices, forbidden_indices=forbidden_indices
             )
+
+            if create_single_metal_bus:
+                # Rewrite the node result
+                ...
+            if check_dimensionality:
+                ...
+                # If we have nodes with dimensionality >0, we change these nodes to only contain the metal
+
             node_collection = create_node_collection(mof, node_result)
+
             # Find bound solvent
             logger.debug("Locating bound solvent")
             bound_solvent = get_all_bound_solvent_molecules(mof, node_result.nodes)
             logger.debug(f"Found bound solvent {len(bound_solvent.indices)>0}")
             # Filter the linkers (valid linkers have at least two branch points)
-        
+
             logger.debug("Locating linkers")
             linker_collection = create_linker_collection(
                 mof, node_result, node_collection, unbound_solvent, bound_solvent
             )
-    
 
             logger.debug("Checking for metal in linker")
             # ToDo: factor this out into its own function
@@ -71,7 +94,9 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
                         node_collection[i]._original_indices,
                         node_collection[i]._original_graph_branching_indices,
                     )
-                    if metal_and_branching_coplanar(node_collection[i], mof):
+                    if metal_and_branching_coplanar(node_collection[i], mof) & (
+                        len(mof.get_neighbor_indices(metal_in_node[0])) > 2
+                    ):
                         logger.debug(
                             "Metal in linker found, current node: {}, indices: {}".format(
                                 node,
@@ -98,7 +123,7 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
             counter += 1
         except Exception as e:
             logger.exception(f"Error while fragmenting: {e}")
-    
+
     logger.debug(
         "Check if we need to move the capping molecules from the linkercollection into their own collection"
     )
@@ -176,6 +201,7 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
         unbound_solvent,
         capping_molecules,
         net_embedding,
+        has_1d_sbu,
     )
 
     return fragmentation_results

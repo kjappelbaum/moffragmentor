@@ -138,3 +138,6 @@ class Node(SBU):
             binding_indices,
             connecting_paths=connecting_paths,
         )
+
+    def __repr__(self) -> str:
+        return f"Node ({self.composition})"
