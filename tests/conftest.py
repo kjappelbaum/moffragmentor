@@ -3,6 +3,7 @@
 import os
 
 import networkx as nx
+import numpy as np
 import pytest
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 from pymatgen.analysis.local_env import JmolNN
@@ -10,7 +11,6 @@ from pymatgen.core import Molecule, Structure
 
 from moffragmentor import MOF
 from moffragmentor.sbu import Linker, Node
-import numpy as np
 
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 

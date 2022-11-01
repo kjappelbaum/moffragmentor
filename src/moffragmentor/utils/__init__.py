@@ -16,11 +16,13 @@ from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 from pymatgen.core import Molecule, Structure
 from pymatgen.io.babel import BabelMolAdaptor
 
+
 def get_molecule_mass(molecule):
     mass = 0
     for site in molecule:
         mass += site.specie.atomic_mass
     return mass
+
 
 def unwrap(positions, lattice):
     celldiag = np.diagonal(lattice.matrix)
@@ -250,6 +252,7 @@ def _not_relevant_structure_indices(structure: Structure, indices: Collection[in
             not_relevant.append(i)
     return not_relevant
 
+
 def get_sub_structure(mof: "MOF", indices: Collection[int]) -> Structure:
     """Return a sub-structure of the structure with only the sites with the given indices.
 
@@ -266,6 +269,7 @@ def get_sub_structure(mof: "MOF", indices: Collection[int]) -> Structure:
 
     s = Structure.from_sites(sites, to_unit_cell=True)
     return s
+
 
 def visualize_part(mof, indices: Collection):
     import nglview  # pylint:disable=import-outside-toplevel

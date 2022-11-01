@@ -36,7 +36,7 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
     need_rerun = True
     forbidden_indices = []
     counter = 0
-    while need_rerun: 
+    while need_rerun:
         try:
             not_node = []
             logger.debug(f"Fragmenting MOF for the {counter} time")
@@ -50,12 +50,11 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
             bound_solvent = get_all_bound_solvent_molecules(mof, node_result.nodes)
             logger.debug(f"Found bound solvent {len(bound_solvent.indices)>0}")
             # Filter the linkers (valid linkers have at least two branch points)
-        
+
             logger.debug("Locating linkers")
             linker_collection = create_linker_collection(
                 mof, node_result, node_collection, unbound_solvent, bound_solvent
             )
-    
 
             logger.debug("Checking for metal in linker")
             # ToDo: factor this out into its own function
@@ -98,7 +97,7 @@ def run_fragmentation(mof) -> FragmentationResult:  # pylint: disable=too-many-l
             counter += 1
         except Exception as e:
             logger.exception(f"Error while fragmenting: {e}")
-    
+
     logger.debug(
         "Check if we need to move the capping molecules from the linkercollection into their own collection"
     )
