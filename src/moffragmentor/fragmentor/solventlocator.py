@@ -51,9 +51,16 @@ def _get_solvent_molecules_bound_to_node(mof, node_atoms: Set[int]) -> NonSbuMol
     molecules = []
 
     for solvent_ind in bound_solvent_location_result["solvent_indices"]:
-        molecules.append(
-            NonSbuMolecule.from_structure_graph_and_indices(mof.structure_graph, solvent_ind)
-        )
+        # check if the solvent candidate has bridge to two different metals:
+        # if so, it is not a solvent
+        # that is, we consider capping groups different from bound solvent
+        neighbors: Set[int] = set()
+        for ind in solvent_ind:
+            neighbors.update(mof.get_neighbor_indices(ind))
+        if not len(neighbors.intersection(mof.metal_indices)) > 1:
+            molecules.append(
+                NonSbuMolecule.from_structure_graph_and_indices(mof.structure_graph, solvent_ind)
+            )
 
     return NonSbuMoleculeCollection(molecules)
 
@@ -109,6 +116,7 @@ def _locate_bound_solvent(mof, node_atoms: Set[int]) -> OrderedDict:
         metal_neighbors = mof.get_neighbor_indices(metal_index)
 
         for metal_neighbor in metal_neighbors:
+            # Note: we cannot do a simple bridge check here because we would not find things such as acetate
             if not _has_path_to_any_other_metal(mof, metal_neighbor, metal_index):
                 potential_solvent_indices = find_solvent_molecule_indices(
                     mof, metal_neighbor, metal_index

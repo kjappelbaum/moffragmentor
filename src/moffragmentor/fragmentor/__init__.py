@@ -67,7 +67,7 @@ def run_fragmentation(
             linker_collection = create_linker_collection(
                 mof, node_result, node_collection, unbound_solvent, bound_solvent
             )
-
+            logger.debug(f"Found {len(linker_collection)} linkers")
             # if we have no linker we need to rerun the node detection
             if len(linker_collection) == 0:
                 logger.debug("No linkers found, rerunning node detection")
