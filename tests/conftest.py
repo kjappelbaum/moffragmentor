@@ -399,44 +399,44 @@ Finished data file "/Users/kevinmaikjablonka/Downloads/test_systre.cgd".
 """
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def get_agn_mof():
     mof = MOF.from_cif(os.path.join(THIS_DIR, "test_files", "RSM3317.cif"))
     return mof
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def get_cuiiibtc_mof():
     mof = MOF.from_cif(os.path.join(THIS_DIR, "test_files", "KAJZIH_freeONLY.cif"))
     return mof
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def get_hkust_mof():
     mof = MOF.from_cif(os.path.join(THIS_DIR, "test_files", "HKUST-1.cif"))
     return mof
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def get_mof5():
     mof = MOF.from_cif(os.path.join(THIS_DIR, "test_files", "mof-5_cellopt.cif"))
     return mof
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def get_single_metal_mof():
     # PIQMUZ_clean
     mof = MOF.from_cif(os.path.join(THIS_DIR, "test_files", "RSM3434.cif"))
     return mof
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def get_porphryin_mof():
     mof = MOF.from_cif(os.path.join(THIS_DIR, "test_files", "porphyrin_mof.cif"))
     return mof
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def get_hypothetical_mof():
     mof = MOF.from_cif(
         os.path.join(THIS_DIR, "test_files", "bcs_v1-litcic_1B_4H_Ch_opt_charge.cif")
@@ -444,26 +444,26 @@ def get_hypothetical_mof():
     return mof
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def get_p_linker_with_floating():
     mof = MOF.from_cif(os.path.join(THIS_DIR, "test_files", "MAGBON.cif"))
     return mof
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def get_li_mof_with_floating():
     mof = MOF.from_cif(os.path.join(THIS_DIR, "test_files", "LISZOE.cif"))
     return mof
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def abaxin():
     # https://github.com/kjappelbaum/moffragmentor/issues/70
     mof = MOF.from_cif(os.path.join(THIS_DIR, "test_files", "ABAXIN.cif"))
     return mof
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def get_1d_node_with_floating():
     """https://pubs.rsc.org/en/content/articlelanding/2014/cc/c3cc49684h#!divAbstract
 
@@ -476,7 +476,14 @@ def get_1d_node_with_floating():
     return mof
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
+def get_single_metal_mof_previously_failing():
+    """Issue #119"""
+    mof = MOF.from_cif(os.path.join(THIS_DIR, "test_files", "BAMHIJ.cif"))
+    return mof
+
+
+@pytest.fixture(scope="session")
 def get_1d_node_graph():
     not_node = [
         1,
@@ -625,7 +632,7 @@ def get_1d_node_graph():
     return graph
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def get_0d_node_graph():
     not_node = [
         1,
@@ -1246,29 +1253,29 @@ def get_0d_node_graph():
     return graph
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def get_cgd_file():
     return HKUST_cdg
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def get_systre_output():
     return SYSTRE_OUT
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def get_systre_output2():
     return SYSTRE_OUT_2
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def get_formate_structure_and_graph():
     s = Structure.from_file(os.path.join(THIS_DIR, "test_files", "WIHSUD_clean.cif"))
     sg = StructureGraph.with_local_env_strategy(s, JmolNN())
     return s, sg
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def get_dicarboxy_biphenyl_graph():
     graph = nx.read_graphml(
         os.path.join(THIS_DIR, "test_files", "test_graph_biphenyl_dicarboxy.graphml")
@@ -1332,10 +1339,10 @@ def get_across_periodic_boundary_node():
 @pytest.fixture()
 def get_linker_object():
     mg_dict = {
-        "@module": "pymatgen.analysis.graphs",
+        "@session": "pymatgen.analysis.graphs",
         "@class": "MoleculeGraph",
         "molecule": {
-            "@module": "pymatgen.core.structure",
+            "@session": "pymatgen.core.structure",
             "@class": "Molecule",
             "charge": 0.0,
             "spin_multiplicity": 2,

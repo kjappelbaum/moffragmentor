@@ -264,14 +264,22 @@ class MOF:
 
         return nglview.show_pymatgen(self.structure)
 
-    def _fragment(self, check_dimensionality, create_single_metal_bus):
+    def _fragment(
+        self, check_dimensionality, create_single_metal_bus, break_organic_nodes_at_metal
+    ):
         fragmentation_result = run_fragmentation(
-            self, check_dimensionality, create_single_metal_bus
+            self,
+            check_dimensionality,
+            create_single_metal_bus,
+            break_organic_nodes_at_metal=break_organic_nodes_at_metal,
         )
         return fragmentation_result
 
     def fragment(
-        self, check_dimensionality: bool = True, create_single_metal_bus: bool = False
+        self,
+        check_dimensionality: bool = True,
+        create_single_metal_bus: bool = False,
+        break_organic_nodes_at_metal: bool = True,
     ) -> FragmentationResult:
         """Split the MOF into building blocks.
 
@@ -284,11 +292,16 @@ class MOF:
                 Defaults to True.
             create_single_metal_bus (bool, optional): Create a single metal BUs.
                 Defaults to False.
+            break_organic_nodes_at_metal (bool, optional): Break nodes into single metal BU if they appear "too organic".
 
         Returns:
             FragmentationResult: FragmentationResult object.
         """
-        return self._fragment(check_dimensionality, create_single_metal_bus)
+        return self._fragment(
+            check_dimensionality,
+            create_single_metal_bus,
+            break_organic_nodes_at_metal=break_organic_nodes_at_metal,
+        )
 
     def _get_cif_text(self) -> str:
         return write_cif(self.structure, self.structure_graph, [])

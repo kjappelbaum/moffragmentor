@@ -36,19 +36,16 @@ def test_fragmentation(get_cuiiibtc_mof):
 
 
 @pytest.mark.slow
-def test_fragmentation_single_metal(get_single_metal_mof):
+def test_fragmentation_single_metal(get_single_metal_mof, get_single_metal_mof_previously_failing):
     mof = get_single_metal_mof
     fragments = mof.fragment()
     assert len(fragments.nodes) == 4
     assert fragments.linkers[0].is_edge
-    # assert (
-    #     fragments.linkers[1].search_pubchem()[0][0].cid
-    #     == fragments.linkers[0].search_pubchem()[0][0].cid
-    #     == 60197031
-    # )
-    # this is actually quite an interesting one as
-    # one carboxy is not coordinated.
-    assert fragments.net_embedding.rcsr_code == "dia"
+    assert fragments.net_embedding.rcsr_code == "dia"  # this seems a bit flaky
+
+    mof = get_single_metal_mof_previously_failing
+    fragments = mof.fragment()
+    assert len(fragments.linkers) == 6
 
 
 @pytest.mark.slow

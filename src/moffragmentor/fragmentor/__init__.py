@@ -68,28 +68,31 @@ def run_fragmentation(
                 mof, node_result, node_collection, unbound_solvent, bound_solvent
             )
 
-            # check that we do not have more than one metal in a linker. If we do, we need to break it up
-            # into smaller nodes
+            # if we have no linker we need to rerun the node detection
+            if len(linker_collection) == 0:
+                logger.debug("No linkers found, rerunning node detection")
+                create_single_metal_bus = True
+                need_rerun = True
+            else:
+                logger.debug("Checking for metal in linker")
+                # ToDo: factor this out into its own function
 
-            logger.debug("Checking for metal in linker")
-            # ToDo: factor this out into its own function
+                not_node = detect_porphyrin(node_collection, mof)
 
-            not_node = detect_porphyrin(node_collection, mof)
+                for node in not_node:
+                    forbidden_indices.extend(list(node_collection[node]._original_indices))
 
-            for node in not_node:
-                forbidden_indices.extend(list(node_collection[node]._original_indices))
-
-            if len(not_node) == 0:
-                need_rerun = False
-                break
-            if len(not_node) == len(node_result.nodes):
-                logger.warning(
-                    "We have metal in plane with the organic part. \
-                    Which would indicate a prophyrin. \
-                    However, there is no other metal cluster, so we will treat it as metal cluster."
-                )
-                need_rerun = False
-                break
+                if len(not_node) == 0:
+                    need_rerun = False
+                    break
+                if len(not_node) == len(node_result.nodes):
+                    logger.warning(
+                        "We have metal in plane with the organic part. \
+                        Which would indicate a prophyrin. \
+                        However, there is no other metal cluster, so we will treat it as metal cluster."
+                    )
+                    need_rerun = False
+                    break
 
         except Exception as e:
             logger.exception(f"Error while fragmenting: {e}")
