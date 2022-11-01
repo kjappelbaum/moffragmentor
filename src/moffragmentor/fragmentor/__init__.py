@@ -5,8 +5,7 @@ from collections import namedtuple
 from loguru import logger
 from skspatial.objects import Points
 
-from moffragmentor.sbu.linkercollection import LinkerCollection
-
+from moffragmentor.fragmentor._break_rods import break_rod_nodes
 from moffragmentor.fragmentor._no_core_linker import generate_new_node_collection
 from moffragmentor.fragmentor.linkerlocator import create_linker_collection
 from moffragmentor.fragmentor.nodelocator import create_node_collection, find_node_clusters
@@ -15,8 +14,8 @@ from moffragmentor.fragmentor.solventlocator import (
     get_floating_solvent_molecules,
 )
 from moffragmentor.net import build_net
-from moffragmentor.utils import _get_metal_sublist
-from moffragmentor.descriptors.sbu_dimensionality import get_sbu_dimensionality
+from moffragmentor.sbu.linkercollection import LinkerCollection
+from moffragmentor.utils import _get_metal_sublist, are_coplanar
 
 __all__ = ["FragmentationResult"]
 
@@ -34,7 +33,7 @@ FragmentationResult = namedtuple(
 )
 
 
-def metal_and_branching_coplanar(node, mof, tol=0.1):
+def metal_and_branching_coplanar(node, mof, tol=0.05):
     branching_idx = list(node._original_graph_branching_indices)
     coords = mof.frac_coords[list(node._original_indices) + branching_idx]
     points = Points(coords)
@@ -42,7 +41,7 @@ def metal_and_branching_coplanar(node, mof, tol=0.1):
 
 
 def run_fragmentation(
-    mof, check_dimensionality: bool = False, create_single_metal_bus: bool = False
+    mof, check_dimensionality: bool = True, create_single_metal_bus: bool = False
 ) -> FragmentationResult:
     """Take a MOF and split it into building blocks."""
     logger.debug("Starting fragmentation with location of unbound solvent")
@@ -64,8 +63,8 @@ def run_fragmentation(
                 # Rewrite the node result
                 ...
             if check_dimensionality:
-                ...
                 # If we have nodes with dimensionality >0, we change these nodes to only contain the metal
+                node_result = break_rod_nodes(mof, node_result)
 
             node_collection = create_node_collection(mof, node_result)
 
@@ -86,7 +85,7 @@ def run_fragmentation(
                 metal_in_node = _get_metal_sublist(node, mof.metal_indices)
                 # ToDo: check and think if this can handle the general case
                 # it should, at least if we only look at the metals
-                if len(metal_in_node) == 1:
+                if (len(metal_in_node) == 1) & (len(node) > 1):
                     logger.debug(
                         "metal_in_node",
                         i,
@@ -94,9 +93,8 @@ def run_fragmentation(
                         node_collection[i]._original_indices,
                         node_collection[i]._original_graph_branching_indices,
                     )
-                    if metal_and_branching_coplanar(node_collection[i], mof) & (
-                        len(mof.get_neighbor_indices(metal_in_node[0])) > 2
-                    ):
+                    num_neighbors = len(mof.get_neighbor_indices(metal_in_node[0]))
+                    if metal_and_branching_coplanar(node_collection[i], mof) & (num_neighbors > 2):
                         logger.debug(
                             "Metal in linker found, current node: {}, indices: {}".format(
                                 node,

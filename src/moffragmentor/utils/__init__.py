@@ -15,6 +15,7 @@ from backports.cached_property import cached_property
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 from pymatgen.core import Molecule, Structure
 from pymatgen.io.babel import BabelMolAdaptor
+from skspatial.objects import Points
 
 
 def get_molecule_mass(molecule):
@@ -398,3 +399,9 @@ def remove_site(structure: Union[Structure, IStructure]) -> None:
 
 def add_suffix_to_dict_keys(dictionary: dict, suffix: str) -> dict:
     return {f"{k}_{suffix}": v for k, v in dictionary.items()}
+
+
+def are_coplanar(mof, indices, tol=0.1):
+    coords = mof.frac_coords[indices]
+    points = Points(coords)
+    return points.are_coplanar(tol=tol)
