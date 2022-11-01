@@ -260,20 +260,31 @@ class MOF:
 
         return nglview.show_pymatgen(self.structure)
 
-    def _fragment(self):
-        fragmentation_result = run_fragmentation(self)
+    def _fragment(self, check_dimensionality, create_single_metal_bus):
+        fragmentation_result = run_fragmentation(
+            self, check_dimensionality, create_single_metal_bus
+        )
         return fragmentation_result
 
-    def fragment(self) -> FragmentationResult:
+    def fragment(
+        self, check_dimensionality: bool = True, create_single_metal_bus: bool = False
+    ) -> FragmentationResult:
         """Split the MOF into building blocks.
 
         The building blocks are linkers, nodes, bound,
         unbound solvent, net embedding of those building blocks.
 
+        Args:
+            check_dimensionality (bool, optional): Check if the node is 0D.
+                If not, split into isolated metals.
+                Defaults to True.
+            create_single_metal_bus (bool, optional): Create a single metal BUs.
+                Defaults to False.
+
         Returns:
             FragmentationResult: FragmentationResult object.
         """
-        return self._fragment()
+        return self._fragment(check_dimensionality, create_single_metal_bus)
 
     def _get_cif_text(self) -> str:
         return write_cif(self.structure, self.structure_graph, [])

@@ -5,7 +5,7 @@ from collections import namedtuple
 from loguru import logger
 from skspatial.objects import Points
 
-from moffragmentor.fragmentor._break_rods import break_rod_nodes
+from moffragmentor.fragmentor._break_rods import break_rod_nodes, create_single_metal_nodes
 from moffragmentor.fragmentor._no_core_linker import generate_new_node_collection
 from moffragmentor.fragmentor.linkerlocator import create_linker_collection
 from moffragmentor.fragmentor.nodelocator import create_node_collection, find_node_clusters
@@ -15,7 +15,7 @@ from moffragmentor.fragmentor.solventlocator import (
 )
 from moffragmentor.net import build_net
 from moffragmentor.sbu.linkercollection import LinkerCollection
-from moffragmentor.utils import _get_metal_sublist, are_coplanar
+from moffragmentor.utils import _get_metal_sublist
 
 __all__ = ["FragmentationResult"]
 
@@ -61,7 +61,7 @@ def run_fragmentation(
 
             if create_single_metal_bus:
                 # Rewrite the node result
-                ...
+                node_result = create_single_metal_nodes(mof, node_result)
             if check_dimensionality:
                 # If we have nodes with dimensionality >0, we change these nodes to only contain the metal
                 node_result = break_rod_nodes(mof, node_result)

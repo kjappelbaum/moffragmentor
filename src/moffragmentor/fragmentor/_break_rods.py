@@ -12,6 +12,19 @@ def break_rod_node(mof, indices):
         return [set([metal_subset])]
 
 
+def create_single_metal_nodes(mof, node_result): 
+    new_nodes = []
+    for node in node_result.nodes: 
+        new_nodes.extend(break_rod_node(mof, node))
+    new_node_result = NodelocationResult(
+        new_nodes,
+        node_result.branching_indices,
+        node_result.connecting_paths,
+        node_result.binding_indices,
+        node_result.to_terminal_from_branching,
+    )
+    return new_node_result
+
 def break_rod_nodes(mof, node_result):
     """Break rod nodes into smaller pieces."""
     new_nodes = []
