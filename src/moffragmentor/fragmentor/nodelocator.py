@@ -3,15 +3,15 @@
 
 Node classification techniques described
 in https://pubs.acs.org/doi/pdf/10.1021/acs.cgd.8b00126.
-
-Note that we currently only place one vertex for every linker which might loose some information about isomers
 """
 from collections import namedtuple
-from typing import List, Optional
+from typing import Iterable, List, Optional
 
 import networkx as nx
 from loguru import logger
+from skspatial.objects import Points
 
+from moffragmentor.descriptors.sbu_dimensionality import get_sbu_dimensionality
 from moffragmentor.fragmentor._graphsearch import (
     _complete_graph,
     _to_graph,
@@ -19,7 +19,7 @@ from moffragmentor.fragmentor._graphsearch import (
     recursive_dfs_until_cn3,
 )
 from moffragmentor.sbu import Node, NodeCollection
-from moffragmentor.utils import _flatten_list_of_sets
+from moffragmentor.utils import _flatten_list_of_sets, _get_metal_sublist
 
 __all__ = [
     "find_node_clusters",
@@ -191,3 +191,162 @@ def create_node_collection(mof, node_location_result: NodelocationResult) -> Nod
         nodes.append(node)
 
     return NodeCollection(nodes)
+
+
+def break_rod_node(mof, indices):
+    metal_subset = {i for i in indices if i in mof.metal_indices}
+    if not isinstance(metal_subset, int):
+        return [set([i]) for i in metal_subset]
+    else:
+        return [set([metal_subset])]
+
+
+def create_single_metal_nodes(mof, node_result):
+    new_nodes = []
+    for node in node_result.nodes:
+        new_nodes.extend(break_rod_node(mof, node))
+    new_node_result = NodelocationResult(
+        new_nodes,
+        node_result.branching_indices,
+        node_result.connecting_paths,
+        node_result.binding_indices,
+        node_result.to_terminal_from_branching,
+    )
+    return new_node_result
+
+
+def break_rod_nodes(mof, node_result):
+    """Break rod nodes into smaller pieces."""
+    new_nodes = []
+    for node in node_result.nodes:
+        if get_sbu_dimensionality(mof, node) == 1:
+            logger.debug("Found 1- or 2-dimensional node. Will break into isolated metals.")
+            new_nodes.extend(break_rod_node(mof, node))
+        else:
+            new_nodes.append(node)
+    new_node_result = NodelocationResult(
+        new_nodes,
+        node_result.branching_indices,
+        node_result.connecting_paths,
+        node_result.binding_indices,
+        node_result.to_terminal_from_branching,
+    )
+    return new_node_result
+
+
+def check_node(node_indices, branching_indices, mof):
+    """Check if the node seems to be a reasonable SBU.
+    If not, we can use this to change the fragmentation to something more robust.
+    """
+    # check if there is not way more organic than metal
+    num_carbons = len(node_indices & set(mof.c_indices))
+    num_metals = len(node_indices & set(mof.metal_indices))
+    branching_indices_in_node = branching_indices & node_indices
+    if num_carbons > num_metals + len(branching_indices_in_node):
+        return False
+    return True
+
+
+def break_organic_nodes(node_result, mof):
+    """If we have a node that is mostly organic, we break it up into smaller pieces."""
+    new_nodes = []
+    for node in node_result.nodes:
+        if check_node(node, node_result.branching_indices, mof) or might_be_porphyrin(
+            node, node_result.branching_indices, mof
+        ):
+            new_nodes.append(node)
+        else:
+            logger.debug(
+                f"Found node {node} that is mostly organic. Will break into isolated metals."
+            )
+            new_nodes.extend(break_rod_node(mof, node))
+    return NodelocationResult(
+        new_nodes,
+        node_result.branching_indices,
+        node_result.connecting_paths,
+        node_result.binding_indices,
+        node_result.to_terminal_from_branching,
+    )
+
+
+def find_nodes(
+    mof,
+    unbound_solvent: "NonSbuMoleculeCollection" = None,
+    forbidden_indices: Optional[Iterable[int]] = None,
+    create_single_metal_bus: bool = False,
+    check_dimensionality: bool = True,
+    break_organic_nodes_: bool = True,
+) -> NodeCollection:
+    """Find the nodes in a MOF.
+
+    Args:
+        mof (MOF): moffragmentor MOF instance
+        unbound_solvent (NonSbuMoleculeCollection): collection of unbound solvent molecules
+        forbidden_indices (Optional[Iterable[int]]): indices of sites that should not be considered
+        create_single_metal_bus (bool): if True, single metal nodes will be created
+        check_dimensionality (bool): if True, rod nodes will be broken into single metal nodes
+        break_organic_nodes_ (bool): if True, rod nodes will be broken into single metal nodes
+            if they are mostly organic
+
+    Returns:
+        NodeCollection: collection of nodes
+    """
+    if forbidden_indices is None:
+        forbidden_indices = []
+
+    node_result = find_node_clusters(
+        mof, unbound_solvent.indices, forbidden_indices=forbidden_indices
+    )
+
+    if create_single_metal_bus:
+        # Rewrite the node result
+        node_result = create_single_metal_nodes(mof, node_result)
+    if check_dimensionality:
+        # If we have nodes with dimensionality >0, we change these nodes to only contain the metal
+        node_result = break_rod_nodes(mof, node_result)
+    if break_organic_nodes_:
+        # ToDo: This, of course, would also break prophyrin ...
+        node_result = break_organic_nodes(node_result, mof)
+
+    node_collection = create_node_collection(mof, node_result)
+
+    return node_result, node_collection
+
+
+def metal_and_branching_coplanar(node_idx, all_branching_idx, mof, tol=0.1):
+    branching_idx = list(node_idx & all_branching_idx)
+    coords = mof.frac_coords[list(node_idx) + branching_idx]
+    points = Points(coords)
+    return points.are_coplanar(tol=tol)
+
+
+def might_be_porphyrin(node_indices, branching_idx, mof):
+    metal_in_node = _get_metal_sublist(node_indices, mof.metal_indices)
+    node_indices = set(node_indices)
+    branching_idx = set(branching_idx)
+    # ToDo: check and think if this can handle the general case
+    # it should, at least if we only look at the metals
+    if (len(metal_in_node) == 1) & (len(node_indices) > 1):
+        logger.debug(
+            "metal_in_node",
+            metal_in_node,
+            node_indices,
+        )
+        num_neighbors = len(mof.get_neighbor_indices(metal_in_node[0]))
+        if metal_and_branching_coplanar(node_indices, branching_idx, mof) & (num_neighbors > 2):
+            logger.debug(
+                "Metal in linker found, indices: {}".format(
+                    node_indices,
+                )
+            )
+            return True
+
+    return False
+
+
+def detect_porphyrin(node_collection, mof):
+    not_node = []
+    for i, node in enumerate(node_collection):
+        if might_be_porphyrin(node._original_indices, node._original_graph_branching_indices, mof):
+            not_node.append(i)
+    return not_node

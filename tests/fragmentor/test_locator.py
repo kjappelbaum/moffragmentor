@@ -31,15 +31,13 @@ def test_find_cu_i_ii_btc_clusters(get_cuiiibtc_mof):
 
 
 def test_find_porphyrin_mof_clusters(get_porphryin_mof):
-    """Looking for the porphyrin MOF clusters,
-    here we should only find two nodes in the unit cell"""
+    """Looking for the porphyrin MOF clusters"""
     mof = get_porphryin_mof
     node_location_result = find_node_clusters(mof)
     fragments = mof.fragment()
     assert len(node_location_result) == 5
     assert len(node_location_result.nodes) == 4
-    assert len(fragments.nodes) == 2
-    # assert len(fragments.linkers) == 2 # ToDo: fix this
+    assert len(fragments.nodes) == 4  # we by default break the rod nodes
     assert len(node_location_result.branching_indices) == 8 * 2
     assert fragments.linkers[0].search_pubchem()[0][0].cid == 58107362
 

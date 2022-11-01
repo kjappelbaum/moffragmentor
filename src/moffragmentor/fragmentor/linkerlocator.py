@@ -166,3 +166,17 @@ def identify_linker_binding_indices(mof, connecting_paths, indices):
             filtered_indices.append(idx)
 
     return filtered_indices
+
+
+def _check_linker(linker, mof):
+    # check that no linker has more than two metals
+    metal_indices = set(mof.metal_indices)
+    return len(metal_indices & set(linker.original_indices)) < 2
+
+
+def check_linkers(linker_collection, mof):
+    """Check if the linkers are valid"""
+    for linker in linker_collection:
+        if not _check_linker(linker, mof):
+            return False
+    return True
