@@ -518,8 +518,8 @@ def build_net(
     for linker in linkers:
 
         found_in_cell, linker_coordinates = in_cell(linker, lattice)
-        if not found_in_cell:
-            continue
+        # if not found_in_cell:
+        #    continue
         center = lattice.get_fractional_coords(linker.center)
         center = center - np.floor(center)
         center = lattice.get_cartesian_coords(center)

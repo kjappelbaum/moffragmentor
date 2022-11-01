@@ -117,7 +117,11 @@ class MOF:
 
     @classmethod
     def from_cif(
-        cls, cif: Union[str, os.PathLike], symprec: float = 0.5, angle_tolerance: float = 5
+        cls,
+        cif: Union[str, os.PathLike],
+        symprec: Optional[float] = None,
+        angle_tolerance: Optional[float] = None,
+        get_primitive: bool = True,
     ):
         """Initialize a MOF object from a cif file.
 
@@ -125,14 +129,17 @@ class MOF:
 
         Args:
             cif (str): path to the cif file
-            symprec (float): Symmetry precision
-            angle_tolerance (float): Angle tolerance
+            symprec (float, optional): Symmetry precision
+            angle_tolerance (float, optional): Angle tolerance
+            get_primitive (bool): Whether to get the primitive cell
 
         Returns:
             MOF: MOF object
         """
         # using the IStructure avoids bugs where somehow the structure changes
         structure = IStructure.from_file(cif)
+        if get_primitive:
+            structure = structure.get_primitive_structure(0.5)
         if symprec is not None and angle_tolerance is not None:
             spga = SpacegroupAnalyzer(structure, symprec=symprec, angle_tolerance=angle_tolerance)
             structure = spga.get_conventional_standard_structure()

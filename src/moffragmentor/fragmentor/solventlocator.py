@@ -56,7 +56,10 @@ def _get_solvent_molecules_bound_to_node(mof, node_atoms: Set[int]) -> NonSbuMol
         # that is, we consider capping groups different from bound solvent
         neighbors: Set[int] = set()
         for ind in solvent_ind:
+            # this is here actually not enough.
+            # we also need to look at the images
             neighbors.update(mof.get_neighbor_indices(ind))
+
         if not len(neighbors.intersection(mof.metal_indices)) > 1:
             molecules.append(
                 NonSbuMolecule.from_structure_graph_and_indices(mof.structure_graph, solvent_ind)

@@ -39,8 +39,9 @@ def wrap_molecule(
             starting_index = 0
         # take the index of the atom which coordinates are closest to the origin
         else:
+            # Here was a bug before because i missed the zip
             starting_index = min(
-                (np.arange(len(mol_idxs)), mof.structure.cart_coords[mol_idxs]),
+                (zip(np.arange(len(mol_idxs)), mof.structure.cart_coords[mol_idxs])),
                 key=lambda x: np.linalg.norm(x[1]),
             )[0]
 

@@ -82,8 +82,7 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
         # some metals might also be in the linker, e.g., in porphyrins
     )
 
-    potential_linker_indices = set(list(range(len(mof.structure)))) - not_linker_indices
-    print("potential linker indices", potential_linker_indices)
+    # potential_linker_indices = set(list(range(len(mof.structure)))) - not_linker_indices
     # get terminal indices we need to keep in the linker
 
     # terminal_indices = []

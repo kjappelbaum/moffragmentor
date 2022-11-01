@@ -27,8 +27,7 @@ def test_net_detection():
     assert get_rscr_code("mof-5_cellopt.cif") == "pcu"
     assert get_rscr_code("HKUST-1.cif") == "tbo"
     assert get_rscr_code("QEFWUV_clean.cif") == "csq"
-    # this (LASYOU) test fails if we filter linker by the (warped) center of mass
-    # assert get_rscr_code("LASYOU.cif") == "nbo"
+    assert get_rscr_code("LASYOU.cif") == "nbo"
     assert get_rscr_code("OFOCUI_clean.cif") == "nbo"
     assert get_rscr_code("WETPES_clean.cif") == "ssa"
     assert get_rscr_code("RUSWOT_clean.cif") == "pcu"
