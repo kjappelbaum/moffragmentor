@@ -196,9 +196,9 @@ def create_node_collection(mof, node_location_result: NodelocationResult) -> Nod
 def break_rod_node(mof, indices):
     metal_subset = {i for i in indices if i in mof.metal_indices}
     if not isinstance(metal_subset, int):
-        return [set([i]) for i in metal_subset]
+        return [{i} for i in metal_subset]
     else:
-        return [set([metal_subset])]
+        return [{metal_subset}]
 
 
 def create_single_metal_nodes(mof, node_result):
