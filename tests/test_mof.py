@@ -41,7 +41,7 @@ def test_fragmentation_single_metal(get_single_metal_mof, get_single_metal_mof_p
     fragments = mof.fragment()
     assert len(fragments.nodes) == 2
     assert fragments.linkers[0].is_edge
-    # assert fragments.net_embedding.rcsr_code == "dia"  # this seems a bit flaky
+    # this seems a bit flaky, but in the past: fragments.net_embedding.rcsr_code == "dia"
 
     mof = get_single_metal_mof_previously_failing
     fragments = mof.fragment()
