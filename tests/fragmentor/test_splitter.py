@@ -25,11 +25,11 @@ def test_unbound_solvent_identification(get_p_linker_with_floating):
     mols, _, _, _, _ = get_subgraphs_as_molecules(
         get_p_linker_with_floating.structure_graph, return_unique=False
     )
-    assert len(mols) == 48
+    assert len(mols) == 24
     compositions = [str(mol.composition.alphabetical_formula) for mol in mols]
     composition_counter = Counter(compositions)
-    assert composition_counter["C4 H10 N1"] == 8
-    assert composition_counter["H2 O1"] == 8 * 4
+    assert composition_counter["C4 H10 N1"] == 4
+    assert composition_counter["H2 O1"] == 8 * 2
 
 
 def test_unbound_solvent_identification_li_mof(get_li_mof_with_floating):

@@ -39,8 +39,8 @@ jobs:
       - name: Install dependencies
         run: |
           conda install openbabel -c conda-forge
-          pip install pytest tox coverage
+          pip install pytest tox coverage pytest-xdist
           pip install -e .
       - name: Test with pytest
         run: |
-          pytest -m "not slow"
+          pytest -m "not slow" -n "auto"

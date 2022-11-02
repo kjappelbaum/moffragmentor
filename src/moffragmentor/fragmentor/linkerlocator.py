@@ -82,6 +82,15 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
         # some metals might also be in the linker, e.g., in porphyrins
     )
 
+    # potential_linker_indices = set(list(range(len(mof.structure)))) - not_linker_indices
+    # get terminal indices we need to keep in the linker
+
+    # terminal_indices = []
+    # for linker_index in potential_linker_indices:
+    #     for neighbor in mof.get_neighbor_indices(linker_index):
+    #         if mof._is_terminal(neighbor):
+    #             terminal_indices.append(neighbor)
+
     graph_ = mof.structure_graph.__copy__()
     graph_.structure = Structure.from_sites(graph_.structure.sites)
     graph_.remove_nodes(not_linker_indices)
@@ -166,3 +175,17 @@ def identify_linker_binding_indices(mof, connecting_paths, indices):
             filtered_indices.append(idx)
 
     return filtered_indices
+
+
+def _check_linker(linker, mof):
+    # check that no linker has more than two metals
+    metal_indices = set(mof.metal_indices)
+    return len(metal_indices & set(linker.original_indices)) < 2
+
+
+def check_linkers(linker_collection, mof):
+    """Check if the linkers are valid"""
+    for linker in linker_collection:
+        if not _check_linker(linker, mof):
+            return False
+    return True

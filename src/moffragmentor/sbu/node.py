@@ -28,7 +28,6 @@ def node_from_mof_and_indices(  # pylint:disable=too-many-locals, too-many-argum
     cls, mof, node_indices, branching_indices, binding_indices, connecting_paths
 ):
     """Create a node from a MOF and a list of indices of different types."""
-
     node_indices = node_indices | connecting_paths  # This should actually not be necessary
     graph_ = mof.structure_graph.__copy__()
     graph_.structure = Structure.from_sites(graph_.structure.sites)
@@ -72,6 +71,7 @@ def node_from_mof_and_indices(  # pylint:disable=too-many-locals, too-many-argum
     graph = get_nx_graph_from_edge_tuples(sites_and_indices.edges)
     for branching_index in branching_indices:
         if branching_index not in relevant_indices:
+
             # now we need to find the closest neighbor in the
             # set of vertices that are in the molecule
             # ToDo: this is currently an assumption that it is terminal and the
@@ -82,7 +82,9 @@ def node_from_mof_and_indices(  # pylint:disable=too-many-locals, too-many-argum
         else:
             closest_branching_index_in_molecule.append(branching_index)
     idx = [i for i in relevant_indices if i in node_indices]
+
     mol_w_hidden, mapping = wrap_molecule(idx + sites_and_indices.hidden_vertices, mof)
+
     node = cls(
         molecule=mol_w_hidden,
         molecule_graph=molecule_graph,
@@ -138,3 +140,6 @@ class Node(SBU):
             binding_indices,
             connecting_paths=connecting_paths,
         )
+
+    def __repr__(self) -> str:
+        return f"Node ({self.composition})"

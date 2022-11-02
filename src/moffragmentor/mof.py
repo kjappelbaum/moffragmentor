@@ -117,7 +117,11 @@ class MOF:
 
     @classmethod
     def from_cif(
-        cls, cif: Union[str, os.PathLike], symprec: float = 0.5, angle_tolerance: float = 5
+        cls,
+        cif: Union[str, os.PathLike],
+        symprec: Optional[float] = None,
+        angle_tolerance: Optional[float] = None,
+        get_primitive: bool = True,
     ):
         """Initialize a MOF object from a cif file.
 
@@ -125,14 +129,17 @@ class MOF:
 
         Args:
             cif (str): path to the cif file
-            symprec (float): Symmetry precision
-            angle_tolerance (float): Angle tolerance
+            symprec (float, optional): Symmetry precision
+            angle_tolerance (float, optional): Angle tolerance
+            get_primitive (bool): Whether to get the primitive cell
 
         Returns:
             MOF: MOF object
         """
         # using the IStructure avoids bugs where somehow the structure changes
         structure = IStructure.from_file(cif)
+        if get_primitive:
+            structure = structure.get_primitive_structure(0.5)
         if symprec is not None and angle_tolerance is not None:
             spga = SpacegroupAnalyzer(structure, symprec=symprec, angle_tolerance=angle_tolerance)
             structure = spga.get_conventional_standard_structure()
@@ -246,6 +253,10 @@ class MOF:
     def h_indices(self) -> List[int]:
         return [i for i, species in enumerate(self.structure.species) if str(species) == "H"]
 
+    @cached_property
+    def c_indices(self) -> List[int]:
+        return [i for i, species in enumerate(self.structure.species) if str(species) == "C"]
+
     def get_neighbor_indices(self, site: int) -> List[int]:
         """Get list of indices of neighboring sites."""
         return [site.index for site in self.structure_graph.get_connected_sites(site)]
@@ -260,20 +271,44 @@ class MOF:
 
         return nglview.show_pymatgen(self.structure)
 
-    def _fragment(self):
-        fragmentation_result = run_fragmentation(self)
+    def _fragment(
+        self, check_dimensionality, create_single_metal_bus, break_organic_nodes_at_metal
+    ):
+        fragmentation_result = run_fragmentation(
+            self,
+            check_dimensionality,
+            create_single_metal_bus,
+            break_organic_nodes_at_metal=break_organic_nodes_at_metal,
+        )
         return fragmentation_result
 
-    def fragment(self) -> FragmentationResult:
+    def fragment(
+        self,
+        check_dimensionality: bool = True,
+        create_single_metal_bus: bool = False,
+        break_organic_nodes_at_metal: bool = True,
+    ) -> FragmentationResult:
         """Split the MOF into building blocks.
 
         The building blocks are linkers, nodes, bound,
         unbound solvent, net embedding of those building blocks.
 
+        Args:
+            check_dimensionality (bool, optional): Check if the node is 0D.
+                If not, split into isolated metals.
+                Defaults to True.
+            create_single_metal_bus (bool, optional): Create a single metal BUs.
+                Defaults to False.
+            break_organic_nodes_at_metal (bool, optional): Break nodes into single metal BU if they appear "too organic".
+
         Returns:
             FragmentationResult: FragmentationResult object.
         """
-        return self._fragment()
+        return self._fragment(
+            check_dimensionality,
+            create_single_metal_bus,
+            break_organic_nodes_at_metal=break_organic_nodes_at_metal,
+        )
 
     def _get_cif_text(self) -> str:
         return write_cif(self.structure, self.structure_graph, [])

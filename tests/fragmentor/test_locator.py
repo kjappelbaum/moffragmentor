@@ -31,15 +31,13 @@ def test_find_cu_i_ii_btc_clusters(get_cuiiibtc_mof):
 
 
 def test_find_porphyrin_mof_clusters(get_porphryin_mof):
-    """Looking for the porphyrin MOF clusters,
-    here we should only find two nodes in the unit cell"""
+    """Looking for the porphyrin MOF clusters"""
     mof = get_porphryin_mof
     node_location_result = find_node_clusters(mof)
     fragments = mof.fragment()
     assert len(node_location_result) == 5
     assert len(node_location_result.nodes) == 4
-    assert len(fragments.nodes) == 2
-    # assert len(fragments.linkers) == 2 # ToDo: fix this
+    assert len(fragments.nodes) == 4  # we by default break the rod nodes
     assert len(node_location_result.branching_indices) == 8 * 2
     assert fragments.linkers[0].search_pubchem()[0][0].cid == 58107362
 
@@ -60,7 +58,7 @@ def test_find_p_linker_floating_mof_clusters(get_p_linker_with_floating):
     mof = get_p_linker_with_floating
     node_location_result = find_node_clusters(mof)
     assert len(node_location_result) == 5
-    assert len(node_location_result.nodes) == 8
+    assert len(node_location_result.nodes) == 4
     node_lengths = [len(node) for node in node_location_result.nodes]
     assert len(set(node_lengths)) == 1
     assert node_lengths[0] == 23
@@ -353,7 +351,7 @@ def test__create_linkers_from_node_location_result(get_hkust_mof):
     linkers = _create_linkers_from_node_location_result(
         mof, node_location_result, node_collection, unbound_solvent, unbound_solvent
     )
-    assert len(linkers) == 32
+    assert len(linkers) == 8
     linker_lengths = [len(linker) for linker in linkers]
     assert len(set(linker_lengths)) == 1
 

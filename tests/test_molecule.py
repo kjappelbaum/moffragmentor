@@ -15,7 +15,7 @@ def test_molecule_creation_from_structure_graph(get_p_linker_with_floating):
     """Make sure we can create a molecule object from a structure graph"""
     mof = get_p_linker_with_floating
     graph = mof.structure_graph
-    indices = [194, 210, 538]
+    indices = [167, 159, 251]
     mol = NonSbuMolecule.from_structure_graph_and_indices(graph, indices)
     assert str(mol) == "H2 O1"
 

@@ -8,6 +8,7 @@ from backports.cached_property import cached_property
 from .sbu import SBU
 from ..utils import get_molecule_mass
 
+
 class SBUCollection:
     """Container for a collection of SBUs"""
 

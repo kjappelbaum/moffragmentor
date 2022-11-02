@@ -15,12 +15,15 @@ from backports.cached_property import cached_property
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 from pymatgen.core import Molecule, Structure
 from pymatgen.io.babel import BabelMolAdaptor
+from skspatial.objects import Points
+
 
 def get_molecule_mass(molecule):
     mass = 0
     for site in molecule:
         mass += site.specie.atomic_mass
     return mass
+
 
 def unwrap(positions, lattice):
     celldiag = np.diagonal(lattice.matrix)
@@ -250,6 +253,7 @@ def _not_relevant_structure_indices(structure: Structure, indices: Collection[in
             not_relevant.append(i)
     return not_relevant
 
+
 def get_sub_structure(mof: "MOF", indices: Collection[int]) -> Structure:
     """Return a sub-structure of the structure with only the sites with the given indices.
 
@@ -266,6 +270,7 @@ def get_sub_structure(mof: "MOF", indices: Collection[int]) -> Structure:
 
     s = Structure.from_sites(sites, to_unit_cell=True)
     return s
+
 
 def visualize_part(mof, indices: Collection):
     import nglview  # pylint:disable=import-outside-toplevel
@@ -394,3 +399,9 @@ def remove_site(structure: Union[Structure, IStructure]) -> None:
 
 def add_suffix_to_dict_keys(dictionary: dict, suffix: str) -> dict:
     return {f"{k}_{suffix}": v for k, v in dictionary.items()}
+
+
+def are_coplanar(mof, indices, tol=0.1):
+    coords = mof.frac_coords[indices]
+    points = Points(coords)
+    return points.are_coplanar(tol=tol)
