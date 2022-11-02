@@ -163,8 +163,6 @@ def find_node_clusters(
         if len(intesection) > 0:
             connecting_paths_.update(neighbors)
 
-    connecting_paths_ = connecting_paths_
-
     # from the connecting paths we remove the metal indices and the branching indices
     # we need to remove the metal indices as otherwise the fragmentation breaks
     connecting_paths_ -= set(metal_indices)
