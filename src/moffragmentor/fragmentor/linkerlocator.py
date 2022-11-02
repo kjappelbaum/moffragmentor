@@ -139,11 +139,13 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
             np.round(frac_center[1], 4),
             np.round(frac_center[2], 4),
         )
-        if linker.hash not in found_hashes:
-            if frac_center not in found_frac_centers:
-                found_hashes.add(linker.hash)
-                linkers.append(linker)
-                found_frac_centers.add(frac_center)
+        if (
+            linker.hash not in found_hashes
+            and frac_center not in found_frac_centers
+        ):
+            found_hashes.add(linker.hash)
+            linkers.append(linker)
+            found_frac_centers.add(frac_center)
     linker_collection = LinkerCollection(linkers)
 
     return linker_collection
