@@ -10,7 +10,7 @@ from moffragmentor.fragmentor.branching_points import (
 def test_get_branch_points(abaxin):
     """Test the branch point detection on a case that previously failed (#70)."""
     bp = get_branch_points(abaxin)
-    assert set(bp) == set([146, 147, 72, 73, 112, 113, 52, 53, 92, 93])
+    assert set(bp) == {146, 147, 72, 73, 112, 113, 52, 53, 92, 93}
 
 
 def test_is_branch_point(get_agn_mof):
