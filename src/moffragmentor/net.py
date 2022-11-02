@@ -575,7 +575,7 @@ def build_net(
                     ].append((edge, np.abs(image_b).sum()))
 
     edge_selection = []
-    for branching_coord, edges in egde_candiates.items():
+    for _branching_coord, edges in egde_candiates.items():
         # branching_coord = np.array(branching_coord)
         # if np.all(branching_coord < 1) & np.all(
         #     branching_coord > 0

@@ -1,5 +1,4 @@
 import pytest
-from pymatgen.core import Molecule
 
 from moffragmentor.utils import get_molecule_mass
 

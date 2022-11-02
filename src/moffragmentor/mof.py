@@ -294,12 +294,13 @@ class MOF:
         unbound solvent, net embedding of those building blocks.
 
         Args:
-            check_dimensionality (bool, optional): Check if the node is 0D.
+            check_dimensionality (bool): Check if the node is 0D.
                 If not, split into isolated metals.
                 Defaults to True.
-            create_single_metal_bus (bool, optional): Create a single metal BUs.
+            create_single_metal_bus (bool): Create a single metal BUs.
                 Defaults to False.
-            break_organic_nodes_at_metal (bool, optional): Break nodes into single metal BU if they appear "too organic".
+            break_organic_nodes_at_metal (bool): Break nodes into single metal BU
+                if they appear "too organic".
 
         Returns:
             FragmentationResult: FragmentationResult object.

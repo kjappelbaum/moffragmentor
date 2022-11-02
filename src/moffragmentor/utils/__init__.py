@@ -254,7 +254,7 @@ def _not_relevant_structure_indices(structure: Structure, indices: Collection[in
     return not_relevant
 
 
-def get_sub_structure(mof: "MOF", indices: Collection[int]) -> Structure:
+def get_sub_structure(mof: "MOF", indices: Collection[int]) -> Structure:  # noqa: F821
     """Return a sub-structure of the structure with only the sites with the given indices.
 
     Args:

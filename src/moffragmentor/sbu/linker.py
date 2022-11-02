@@ -12,6 +12,7 @@ class Linker(SBU):
     """Describe a linker in a MOF"""
 
     def __repr__(self) -> str:
+        """Return a string representation of the linker."""
         return f"Linker ({self.composition})"
 
 

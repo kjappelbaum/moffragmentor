@@ -142,4 +142,5 @@ class Node(SBU):
         )
 
     def __repr__(self) -> str:
+        """Return a string representation of the node."""
         return f"Node ({self.composition})"

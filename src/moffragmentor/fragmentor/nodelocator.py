@@ -234,9 +234,18 @@ def break_rod_nodes(mof, node_result):
     return new_node_result
 
 
-def check_node(node_indices, branching_indices, mof):
+def check_node(node_indices, branching_indices, mof) -> bool:
     """Check if the node seems to be a reasonable SBU.
+
     If not, we can use this to change the fragmentation to something more robust.
+
+    Args:
+        node_indices (set): set of indices that make up the node
+        branching_indices (set): set of indices that are branching indices
+        mof (MOF): MOF object
+
+    Returns:
+        bool: True if the node is reasonable, False otherwise
     """
     # check if there is not way more organic than metal
     num_carbons = len(node_indices & set(mof.c_indices))
@@ -271,7 +280,7 @@ def break_organic_nodes(node_result, mof):
 
 def find_nodes(
     mof,
-    unbound_solvent: "NonSbuMoleculeCollection" = None,
+    unbound_solvent: "NonSbuMoleculeCollection" = None,  # noqa: F821
     forbidden_indices: Optional[Iterable[int]] = None,
     create_single_metal_bus: bool = False,
     check_dimensionality: bool = True,

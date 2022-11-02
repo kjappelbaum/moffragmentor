@@ -170,7 +170,7 @@ def run_fragmentation(
             # Now, get the net
             net_embedding = build_net(node_collection, linker_collection, mof.lattice)
     except Exception as e:
-        logger.exception("Error in net construction")
+        logger.exception(f"Error {e} in net construction")
         net_embedding = None
     fragmentation_results = FragmentationResult(
         node_collection,

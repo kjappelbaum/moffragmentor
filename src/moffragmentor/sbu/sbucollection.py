@@ -6,7 +6,6 @@ from typing import List
 from backports.cached_property import cached_property
 
 from .sbu import SBU
-from ..utils import get_molecule_mass
 
 
 class SBUCollection:

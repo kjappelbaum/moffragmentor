@@ -1,3 +1,4 @@
+"""Test SBU collection functionality."""
 from moffragmentor.sbu.sbucollection import SBUCollection
 
 

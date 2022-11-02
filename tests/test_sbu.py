@@ -1,3 +1,4 @@
+"""Test SBU functionality."""
 import pytest
 
 
