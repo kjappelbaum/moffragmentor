@@ -184,7 +184,4 @@ def _check_linker(linker, mof):
 
 def check_linkers(linker_collection, mof):
     """Check if the linkers are valid"""
-    for linker in linker_collection:
-        if not _check_linker(linker, mof):
-            return False
-    return True
+    return all(_check_linker(linker, mof) for linker in linker_collection)
