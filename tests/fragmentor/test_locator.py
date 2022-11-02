@@ -58,7 +58,7 @@ def test_find_p_linker_floating_mof_clusters(get_p_linker_with_floating):
     mof = get_p_linker_with_floating
     node_location_result = find_node_clusters(mof)
     assert len(node_location_result) == 5
-    assert len(node_location_result.nodes) == 8
+    assert len(node_location_result.nodes) == 4
     node_lengths = [len(node) for node in node_location_result.nodes]
     assert len(set(node_lengths)) == 1
     assert node_lengths[0] == 23
@@ -351,7 +351,7 @@ def test__create_linkers_from_node_location_result(get_hkust_mof):
     linkers = _create_linkers_from_node_location_result(
         mof, node_location_result, node_collection, unbound_solvent, unbound_solvent
     )
-    assert len(linkers) == 32
+    assert len(linkers) == 8
     linker_lengths = [len(linker) for linker in linkers]
     assert len(set(linker_lengths)) == 1
 
