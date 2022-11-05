@@ -81,23 +81,13 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
         | set(mof.metal_indices) & all_node_indices
         # some metals might also be in the linker, e.g., in porphyrins
     )
-
-    # potential_linker_indices = set(list(range(len(mof.structure)))) - not_linker_indices
-    # get terminal indices we need to keep in the linker
-
-    # terminal_indices = []
-    # for linker_index in potential_linker_indices:
-    #     for neighbor in mof.get_neighbor_indices(linker_index):
-    #         if mof._is_terminal(neighbor):
-    #             terminal_indices.append(neighbor)
-
     graph_ = mof.structure_graph.__copy__()
     graph_.structure = Structure.from_sites(graph_.structure.sites)
     graph_.remove_nodes(not_linker_indices)
 
     # Second step: extract the connected components
     # return all as molecules
-    mols, graphs, idxs, centers, coordinates = get_subgraphs_as_molecules(
+    _mols, graphs, idxs, centers, coordinates = get_subgraphs_as_molecules(
         graph_,
         return_unique=False,
         filter_in_cell=False,
@@ -121,15 +111,12 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
             molecule_graph=graphs[linker_index],
             center=center,
             graph_branching_indices=branching_indices,
-            closest_branching_index_in_molecule=branching_indices,
             binding_indices=identify_linker_binding_indices(
                 mof,
                 node_location_result.connecting_paths,
                 idx,
             ),
-            coordinates=coords_,
             original_indices=idx,
-            connecting_paths=[],
             molecule_original_indices_mapping=mapping,
         )
         frac_center = mof.structure.lattice.get_fractional_coords(mol.center_of_mass)

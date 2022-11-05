@@ -182,9 +182,9 @@ def create_node_collection(mof, node_location_result: NodelocationResult) -> Nod
         node = Node.from_mof_and_indices(
             mof=mof,
             node_indices=node_indices,
-            branching_indices=node_location_result.branching_indices & node_indices,
-            binding_indices=node_location_result.binding_indices & node_indices,
-            connecting_paths=node_location_result.connecting_paths & node_indices,
+            branching_indices=node_location_result.branching_indices,
+            binding_indices=node_location_result.binding_indices,
+            connecting_paths=node_location_result.connecting_paths,
         )
         nodes.append(node)
 
@@ -217,7 +217,7 @@ def break_rod_nodes(mof, node_result):
     """Break rod nodes into smaller pieces."""
     new_nodes = []
     for node in node_result.nodes:
-        if get_sbu_dimensionality(mof, node) == 1:
+        if get_sbu_dimensionality(mof, node) >= 1:
             logger.debug("Found 1- or 2-dimensional node. Will break into isolated metals.")
             new_nodes.extend(break_rod_node(mof, node))
         else:
@@ -258,8 +258,8 @@ def break_organic_nodes(node_result, mof):
     """If we have a node that is mostly organic, we break it up into smaller pieces."""
     new_nodes = []
     for node in node_result.nodes:
-        if len(node) == len(mof): 
-            logger.debug('Breaking node as full MOF is assigned as node.')
+        if len(node) == len(mof):
+            logger.debug("Breaking node as full MOF is assigned as node.")
             new_nodes.extend(break_rod_node(mof, node))
         elif check_node(node, node_result.branching_indices, mof) or might_be_porphyrin(
             node, node_result.branching_indices, mof
