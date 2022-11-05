@@ -119,6 +119,13 @@ def run_fragmentation(
                 )
 
     linker_collection = LinkerCollection(is_linker)
+    if len(linker_collection) == 0 and len(is_capping) > 0:
+        logger.warning(
+            "No linkers found, but capping molecules. Assigning capping molecules to linkers."
+        )
+        linker_collection = LinkerCollection(is_capping)
+        is_capping = []
+
     capping_molecules = LinkerCollection(is_capping)
 
     # Now handle the case of the the frameworks that have linkers without core (e.g. H-COO)

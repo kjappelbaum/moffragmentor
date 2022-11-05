@@ -258,7 +258,10 @@ def break_organic_nodes(node_result, mof):
     """If we have a node that is mostly organic, we break it up into smaller pieces."""
     new_nodes = []
     for node in node_result.nodes:
-        if check_node(node, node_result.branching_indices, mof) or might_be_porphyrin(
+        if len(node) == len(mof): 
+            logger.debug('Breaking node as full MOF is assigned as node.')
+            new_nodes.extend(break_rod_node(mof, node))
+        elif check_node(node, node_result.branching_indices, mof) or might_be_porphyrin(
             node, node_result.branching_indices, mof
         ):
             new_nodes.append(node)
