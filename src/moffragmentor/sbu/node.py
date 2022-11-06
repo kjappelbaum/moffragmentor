@@ -6,9 +6,8 @@ Here we understand metal clusters as nodes.
 from collections import defaultdict
 from typing import Set
 
-import numpy as np
 from pymatgen.analysis.graphs import MoleculeGraph
-from pymatgen.core import Molecule, Structure
+from pymatgen.core import Molecule, Site, Structure
 
 from moffragmentor.fragmentor.molfromgraph import wrap_molecule
 from moffragmentor.fragmentor.splitter import _sites_and_classified_indices_from_indices
@@ -21,10 +20,10 @@ _BINDING_DUMMY = "Xe"
 _BRANCHING_DUMMY = "Kr"
 
 
-def _build_mol_and_graph(mof, indices, ignore_hidden_indices=False):
+def _build_mol_and_graph(mof, indices, ignore_hidden_indices=True, add_additional_site=True):
     indices = set(indices)
     sites_and_indices = _sites_and_classified_indices_from_indices(mof, indices)
-    if not ignore_hidden_indices:
+    if ignore_hidden_indices:
         relevant_indices = indices - set(sites_and_indices.hidden_vertices)
     else:
         relevant_indices = indices
@@ -51,13 +50,16 @@ def _build_mol_and_graph(mof, indices, ignore_hidden_indices=False):
                     selected_edge_indices.append(edge_idx)
 
     index_map = dict(zip(relevant_indices, range(len(relevant_indices))))
+
     molecule = Molecule(selected_species, selected_positions)
     selected_edges = [sites_and_indices.edges[i] for i in selected_edge_indices]
     selected_edges = _reindex_list_of_tuple(selected_edges, index_map)
     edge_dict = dict(zip(selected_edges, [None] * len(selected_edges)))
     molecule_graph = MoleculeGraph.with_edges(molecule, edge_dict)
 
-    mol, mapping = wrap_molecule(list(relevant_indices), mof)
+    mol, mapping = wrap_molecule(
+        list(relevant_indices), mof, add_additional_site=add_additional_site
+    )
 
     return mol, molecule_graph, mapping
 
@@ -88,15 +90,34 @@ def _extract_and_wrap(node_indices, all_branching_indices, all_binding_indices, 
     for i in branching_to_binding | branching_to_node_metal:
         dummy_structure.replace(i, _BRANCHING_DUMMY)
 
-    mol_without_dummy, graph_w_dummy, mapping_w_dummy = _build_mol_and_graph(
-        mof,  # todo: fix with dummy mof structure
+    mol_w_dummy, graph_w_dummy, mapping_w_dummy = _build_mol_and_graph(
+        mof,
         list(node_indices)
         + list(binding_to_node_metal)
         + list(branching_to_binding)
         + list(branching_to_node_metal),
-        ignore_hidden_indices=True,
+        ignore_hidden_indices=False,
+        add_additional_site=False,
     )
-    return mol, graph, mapping, mol_without_dummy, graph_w_dummy, mapping_w_dummy
+
+    inverse_mapping = {v[0]: k for k, v in mapping_w_dummy.items()}
+    # let's replace here now the atoms with the dummys as doing it beforehand might cause issues
+    # (e.g. we do not have the distances for a cutoffdict)
+
+    for i in branching_to_binding | branching_to_node_metal:
+        if i not in node_indices & set(mof.metal_indices):
+            mol_w_dummy._sites[inverse_mapping[i]] = Site(
+                _BRANCHING_DUMMY, mol_w_dummy._sites[inverse_mapping[i]].coords
+            )
+
+    for i in binding_to_node_metal:
+        mol_w_dummy._sites[inverse_mapping[i]] = Site(
+            _BINDING_DUMMY, mol_w_dummy._sites[inverse_mapping[i]].coords
+        )
+
+    graph_w_dummy.molecule = mol_w_dummy
+
+    return mol, graph, mapping, mol_w_dummy, graph_w_dummy, mapping_w_dummy
 
 
 def node_from_mof_and_indices(cls, mof, node_indices, all_branching_indices, all_binding_indices):

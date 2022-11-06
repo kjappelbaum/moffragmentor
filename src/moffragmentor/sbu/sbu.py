@@ -100,7 +100,9 @@ class SBU:
         """
         self.molecule = molecule
         self._mapping = molecule_original_indices_mapping
+
         self._indices = sum(list(molecule_original_indices_mapping.values()), [])
+
         self._original_indices = self._indices
         self.molecule_graph = molecule_graph
         self._original_graph_branching_indices = graph_branching_indices

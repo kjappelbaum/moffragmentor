@@ -71,6 +71,9 @@ class MOF:
         self._bridges = None
         self._nx_graph = None
 
+    def __copy__(self):
+        return MOF(IStructure.from_sites(self._structure.sites), self.structure_graph.__copy__())
+
     def dump(self, path) -> None:
         """Dump this object as pickle file"""
         pickle_dump(self, path)
