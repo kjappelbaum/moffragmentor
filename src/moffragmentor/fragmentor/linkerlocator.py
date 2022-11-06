@@ -55,16 +55,16 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
     # First step: remove everything that is node or unbound solvent
     # bound solvent is part of the node by default
     all_node_indices = set()
-    all_persistent_non_metal_bridges = set()
+    # all_persistent_non_metal_bridges = set()
     for node_indices in node_location_result.nodes:
         all_node_indices.update(node_indices)
 
-    for node in node_collection:
-        all_persistent_non_metal_bridges.update(
-            _flatten_list_of_sets(
-                node._persistent_non_metal_bridged  # pylint:disable=protected-access
-            )
-        )
+    # for node in node_collection:
+    #     all_persistent_non_metal_bridges.update(
+    #         _flatten_list_of_sets(
+    #             node._persistent_non_metal_bridged  # pylint:disable=protected-access
+    #         )
+    #     )
 
     not_linker_indices = (
         (
@@ -109,14 +109,12 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
         linker = Linker(
             molecule=mol,
             molecule_graph=graphs[linker_index],
-            center=center,
             graph_branching_indices=branching_indices,
             binding_indices=identify_linker_binding_indices(
                 mof,
                 node_location_result.connecting_paths,
                 idx,
             ),
-            original_indices=idx,
             molecule_original_indices_mapping=mapping,
         )
         frac_center = mof.structure.lattice.get_fractional_coords(mol.center_of_mass)

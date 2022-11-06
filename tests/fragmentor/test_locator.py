@@ -86,13 +86,15 @@ def test_find_rod_node_floating_mof_cluster(get_1d_node_with_floating):
     assert node_lengths[0] == 20
 
 
-def test_formatte_mof(get_formate_structure_and_graph):
+def test_formate_mof(get_formate_structure_and_graph):
     s, sg = get_formate_structure_and_graph
     mof = MOF(s, sg)
     bbs = mof.fragment()
-    assert len(bbs.nodes) == 1
-    assert len(bbs.capping_molecules) == 6
-    assert bbs.capping_molecules.composition == {"C1 H1 O2": 6}
+    assert len(bbs.nodes) == 2
+    assert (
+        len(bbs.capping_molecules) == 0
+    )  # since there is no linker, we assign the formate as capping molecule
+    assert bbs.linkers.composition == {"C1 H1 O2": 6}
 
 
 def test__get_solvent_molecules_bound_to_node(get_li_mof_with_floating):

@@ -9,15 +9,14 @@ import numpy as np
 import pubchempy as pcp
 from backports.cached_property import cached_property
 from loguru import logger
-from openbabel import pybel as pb
 from pymatgen.analysis.graphs import MoleculeGraph
 from pymatgen.core import Molecule, Structure
 from pymatgen.io.babel import BabelMolAdaptor
 from rdkit import Chem
 from scipy.spatial.distance import pdist
 
-from ..utils import pickle_dump
-from ..utils.mol_compare import mcs_rank
+from moffragmentor.utils import pickle_dump
+from moffragmentor.utils.mol_compare import mcs_rank
 
 
 def ob_mol_without_metals(obmol):
@@ -59,16 +58,6 @@ class SBU:
             the branching index and metal
         * original_indices: complete original set of indices that has been selected
             for this building blocks
-        * persistent_non_metal_bridged: components that are connected
-            via a bridge both in the MOF structure
-            and building block molecule. No metal is part of the edge,
-            i.e., bound solvents are not included in this set
-        * terminal_in_mol_not_terminal_in_struct: indices that are terminal
-            in the molecule but not terminal in the structure.
-            This is for instance, the case for carboxy groups that are only
-            coordinated with one O. In this case, a chemically more faithful
-            representation might be to not include the C of the carboxy
-            in the node. This collection allows us to do so.
 
     .. note::
 
@@ -89,15 +78,12 @@ class SBU:
         self,
         molecule: Molecule,
         molecule_graph: MoleculeGraph,
-        center: np.ndarray,
         graph_branching_indices: Collection[int],
         binding_indices: Collection[int],
-        original_indices: Collection[int],
-        persistent_non_metal_bridged: Optional[Collection[int]] = None,
-        terminal_in_mol_not_terminal_in_struct: Optional[Collection[int]] = None,
-        connecting_paths: Optional[Collection[int]] = None,
-        coordinates: Optional[np.ndarray] = None,
         molecule_original_indices_mapping: Optional[Dict[int, List[int]]] = None,
+        dummy_molecule: Optional[Molecule] = None,
+        dummy_molecule_graph: Optional[MoleculeGraph] = None,
+        dummy_molecule_indices_mapping: Optional[Dict[int, List[int]]] = None,
     ):
         """Initialize a secondary building block.
 
@@ -106,26 +92,27 @@ class SBU:
         Args:
             molecule (Molecule): Pymatgen molecule object.
             molecule_graph (MoleculeGraph): Pymatgen molecule graph object.
-            center (np.ndarray): Center of the SBU.
             graph_branching_indices (Collection[int]): Branching indices
                 in the original structure.
             binding_indices (Collection[int]): Binding indices in the original structure.
-            original_indices (Collection[int]): List of all indicies in the original
-                structure this SBU corresponds to.
             molecule_original_indices_mapping (Optional[Dict[int, List[int]]], optional):
                 Mapping from molecule indices to original indices. Defaults to None.
         """
         self.molecule = molecule
-        self._center = center
-        self._original_indices = original_indices
+        self._mapping = molecule_original_indices_mapping
+        self._indices = sum(list(molecule_original_indices_mapping.values()), [])
+        self._original_indices = self._indices
         self.molecule_graph = molecule_graph
         self._original_graph_branching_indices = graph_branching_indices
-
         self._original_binding_indices = binding_indices
+
+        self._dummy_molecule = dummy_molecule
+        self._dummy_molecule_graph = dummy_molecule_graph
+        self._dummy_molecule_indices_mapping = dummy_molecule_indices_mapping
 
         self.mapping_from_original_indices = defaultdict(list)
         if molecule_original_indices_mapping is None:
-            for ori_index, index in zip(self._original_indices, range(len(molecule))):
+            for ori_index, index in zip(self._indices, range(len(molecule))):
                 self.mapping_from_original_indices[ori_index].append(index)
         else:
             for k, v in molecule_original_indices_mapping.items():
@@ -135,7 +122,6 @@ class SBU:
         for key, value in self.mapping_from_original_indices.items():
             for v in value:
                 self.mapping_to_original_indices[v] = key
-        self._indices = original_indices
 
     @property
     def center(self):
@@ -310,6 +296,8 @@ class SBU:
         return self.get_openbabel_mol()
 
     def get_openbabel_mol(self):
+        from openbabel import pybel as pb
+
         a = BabelMolAdaptor(self.molecule)
         pm = pb.Molecule(a.openbabel_mol)
         return pm
@@ -362,13 +350,6 @@ class SBU:
             reorder=False,
         )
         return structure
-
-    def _get_connected_sites_structure(self):
-        sites = []
-        s = self._get_boxed_structure()
-        for i in self.connecting_indices:
-            sites.append(s[i])
-        return Structure.from_sites(sites)
 
     def _get_binding_sites_structure(self):
         sites = []

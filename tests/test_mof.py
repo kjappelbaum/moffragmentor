@@ -76,15 +76,6 @@ def test_hkust(get_hkust_mof):
     mof = get_hkust_mof
     fragments = mof.fragment()
     assert fragments.net_embedding.rcsr_code == "tbo"
-    for linker in fragments.linkers:
-        cs = linker._get_connected_sites_structure()
-        distances = _get_distances(cs)
-        assert max(distances) < 8
-
-    for node in fragments.nodes:
-        cs = node._get_connected_sites_structure()
-        distances = _get_distances(cs)
-        assert max(distances) < 8
 
 
 @pytest.mark.slow

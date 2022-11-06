@@ -257,6 +257,10 @@ class MOF:
     def c_indices(self) -> List[int]:
         return [i for i, species in enumerate(self.structure.species) if str(species) == "C"]
 
+    @cached_property
+    def n_indices(self) -> List[int]:
+        return [i for i, species in enumerate(self.structure.species) if str(species) == "N"]
+
     def get_neighbor_indices(self, site: int) -> List[int]:
         """Get list of indices of neighboring sites."""
         return [site.index for site in self.structure_graph.get_connected_sites(site)]
