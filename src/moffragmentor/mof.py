@@ -71,6 +71,10 @@ class MOF:
         self._bridges = None
         self._nx_graph = None
 
+    def __copy__(self):
+        """Make a a new MOF object with copies of the same structure and structure graph."""
+        return MOF(IStructure.from_sites(self._structure.sites), self.structure_graph.__copy__())
+
     def dump(self, path) -> None:
         """Dump this object as pickle file"""
         pickle_dump(self, path)
@@ -256,6 +260,10 @@ class MOF:
     @cached_property
     def c_indices(self) -> List[int]:
         return [i for i, species in enumerate(self.structure.species) if str(species) == "C"]
+
+    @cached_property
+    def n_indices(self) -> List[int]:
+        return [i for i, species in enumerate(self.structure.species) if str(species) == "N"]
 
     def get_neighbor_indices(self, site: int) -> List[int]:
         """Get list of indices of neighboring sites."""

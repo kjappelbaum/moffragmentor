@@ -9,15 +9,14 @@ import numpy as np
 import pubchempy as pcp
 from backports.cached_property import cached_property
 from loguru import logger
-from openbabel import pybel as pb
 from pymatgen.analysis.graphs import MoleculeGraph
 from pymatgen.core import Molecule, Structure
 from pymatgen.io.babel import BabelMolAdaptor
 from rdkit import Chem
 from scipy.spatial.distance import pdist
 
-from ..utils import pickle_dump
-from ..utils.mol_compare import mcs_rank
+from moffragmentor.utils import pickle_dump
+from moffragmentor.utils.mol_compare import mcs_rank
 
 
 def ob_mol_without_metals(obmol):
@@ -55,25 +54,10 @@ class SBU:
 
         * graph_branching_indices: are the branching indices according
             to the graph-based definition. They might not be part of the molecule.
-        * closest_branching_index_in_molecule: those are always part of the molecule.
-            In case the branching index is part of the molecule,
-            they are equal to to the graph_branching_indices.
-            Otherwise they are obtained as the closest vertex of the original
-            branching vertex that is part of the molecule.
         * binding_indices: are the indices of the sites between
             the branching index and metal
         * original_indices: complete original set of indices that has been selected
             for this building blocks
-        * persistent_non_metal_bridged: components that are connected
-            via a bridge both in the MOF structure
-            and building block molecule. No metal is part of the edge,
-            i.e., bound solvents are not included in this set
-        * terminal_in_mol_not_terminal_in_struct: indices that are terminal
-            in the molecule but not terminal in the structure.
-            This is for instance, the case for carboxy groups that are only
-            coordinated with one O. In this case, a chemically more faithful
-            representation might be to not include the C of the carboxy
-            in the node. This collection allows us to do so.
 
     .. note::
 
@@ -83,6 +67,12 @@ class SBU:
 
         To obtain the "original" coordinates, use the `_coordinates` attribute.
 
+    .. note:: Dummy molecules
+
+        In dummy molecules the binding and branching sites are replaces by
+        dummy atoms (noble gas). They also have special properties that indicate
+        the original species.
+
     Examples:
         >>> # visualize the molecule
         >>> sbu_object.show_molecule()
@@ -90,20 +80,17 @@ class SBU:
         >>> sbu_object.search_pubchem()
     """
 
-    def __init__(  # pylint:disable=too-many-arguments
+    def __init__(
         self,
         molecule: Molecule,
         molecule_graph: MoleculeGraph,
-        center: np.ndarray,
         graph_branching_indices: Collection[int],
-        closest_branching_index_in_molecule: Collection[int],
         binding_indices: Collection[int],
-        original_indices: Collection[int],
-        persistent_non_metal_bridged: Optional[Collection[int]] = None,
-        terminal_in_mol_not_terminal_in_struct: Optional[Collection[int]] = None,
-        connecting_paths: Optional[Collection[int]] = None,
-        coordinates: Optional[np.ndarray] = None,
         molecule_original_indices_mapping: Optional[Dict[int, List[int]]] = None,
+        dummy_molecule: Optional[Molecule] = None,
+        dummy_molecule_graph: Optional[MoleculeGraph] = None,
+        dummy_molecule_indices_mapping: Optional[Dict[int, List[int]]] = None,
+        dummy_branching_indices: Optional[Collection[int]] = None,
     ):
         """Initialize a secondary building block.
 
@@ -112,61 +99,57 @@ class SBU:
         Args:
             molecule (Molecule): Pymatgen molecule object.
             molecule_graph (MoleculeGraph): Pymatgen molecule graph object.
-            center (np.ndarray): Center of the SBU.
             graph_branching_indices (Collection[int]): Branching indices
                 in the original structure.
-            closest_branching_index_in_molecule (Collection[int]):1
-                Closest branching index in the molecule.
             binding_indices (Collection[int]): Binding indices in the original structure.
-            original_indices (Collection[int]): List of all indicies in the original
-                structure this SBU corresponds to.
-            persistent_non_metal_bridged (Optional[Collection[int]], optional):
-                components that are connected via a bridge both in the MOF structure
-                and building block molecule. No metal is part of the edge, i.e.,
-                bound solvents are not included in this set. Defaults to None.
-            terminal_in_mol_not_terminal_in_struct (Optional[Collection[int]], optional):
-                Tndices that are terminal in the molecule but not terminal in the structure.
-                Defaults to None.
-            connecting_paths (Optional[Collection[int]], optional):
-                Paths between node atoms and branching atoms. Defaults to None.
-            coordinates (Optional[np.ndarray], optional): Coordinates of all atoms in the molecule.
-                Defaults to None.
             molecule_original_indices_mapping (Optional[Dict[int, List[int]]], optional):
                 Mapping from molecule indices to original indices. Defaults to None.
+            dummy_molecule (Optional[Molecule], optional): Dummy molecule. Defaults to None.
+            dummy_molecule_graph (Optional[MoleculeGraph], optional): Dummy molecule graph.
+                Defaults to None.
+            dummy_molecule_indices_mapping (Optional[Dict[int, List[int]]], optional):
+                Dummy molecule indices mapping. Defaults to None.
+            dummy_branching_indices (Optional[Collection[int]], optional):
+                Dummy branching indices. Defaults to None.
         """
         self.molecule = molecule
-        self._center = center
-        self._original_indices = original_indices
+        self._mapping = molecule_original_indices_mapping
+
+        self._indices = sum(list(molecule_original_indices_mapping.values()), [])
+
+        self._original_indices = self._indices
         self.molecule_graph = molecule_graph
         self._original_graph_branching_indices = graph_branching_indices
-        self._original_closest_branching_index_in_molecule = closest_branching_index_in_molecule
-
-        self._persistent_non_metal_bridged = persistent_non_metal_bridged
-        self._terminal_in_mol_not_terminal_in_struct = terminal_in_mol_not_terminal_in_struct
         self._original_binding_indices = binding_indices
+
+        self._dummy_molecule = dummy_molecule
+        self._dummy_molecule_graph = dummy_molecule_graph
+        self._dummy_molecule_indices_mapping = dummy_molecule_indices_mapping
+        self._dummy_branching_indices = dummy_branching_indices
 
         self.mapping_from_original_indices = defaultdict(list)
         if molecule_original_indices_mapping is None:
-            for ori_index, index in zip(self._original_indices, range(len(molecule))):
+            for ori_index, index in zip(self._indices, range(len(molecule))):
                 self.mapping_from_original_indices[ori_index].append(index)
         else:
             for k, v in molecule_original_indices_mapping.items():
                 for i in v:
                     self.mapping_from_original_indices[i].append(k)
+
+        if dummy_molecule:
+            self.dummy_mapping_from_original_indices = defaultdict(list)
+            if dummy_molecule_indices_mapping is None:
+                for ori_index, index in zip(self._indices, range(len(dummy_molecule))):
+                    self.dummy_mapping_from_original_indices[ori_index].append(index)
+            else:
+                for k, v in dummy_molecule_indices_mapping.items():
+                    for i in v:
+                        self.dummy_mapping_from_original_indices[i].append(k)
+
         self.mapping_to_original_indices = {}
         for key, value in self.mapping_from_original_indices.items():
             for v in value:
                 self.mapping_to_original_indices[v] = key
-        self._indices = original_indices
-        self._original_connecting_paths = connecting_paths
-        self.connecting_paths = []
-        self._coordinates = coordinates
-        for i in connecting_paths:
-            try:
-                for index in self.mapping_from_original_indices[i]:
-                    self.connecting_paths.append(index)
-            except KeyError:
-                pass
 
     @property
     def center(self):
@@ -255,10 +238,7 @@ class SBU:
 
     @property
     def cart_coords(self):
-        # if self._coordinates is not None:
-        #    return self._coordinates
         return self.molecule.cart_coords
-        # return np.array(self._coordinates)
 
     @cached_property
     def mol_with_coords(self):
@@ -278,9 +258,14 @@ class SBU:
     @property
     def graph_branching_indices(self):
         indices = []
-        for i in self.original_graph_branching_indices:
-            for index in self.mapping_from_original_indices[i]:
-                indices.append(index)
+        if self._dummy_branching_indices is None:
+            for i in self.original_graph_branching_indices:
+                for index in self.mapping_from_original_indices[i]:
+                    indices.append(index)
+        else:
+            for i in self._dummy_branching_indices:
+                for index in self.dummy_mapping_from_original_indices[i]:
+                    indices.append(index)
         return indices
 
     @cached_property
@@ -321,17 +306,11 @@ class SBU:
 
     @cached_property
     def branching_coords(self):
-        return self.cart_coords[self.graph_branching_indices]
-
-    @cached_property
-    def connecting_indices(self):
-        indices = []
-
-        for p in self._original_closest_branching_index_in_molecule:
-            for index in self.mapping_from_original_indices[p]:
-                indices.append(index)
-
-        return indices
+        return (
+            self.cart_coords[self.graph_branching_indices]
+            if self._dummy_branching_indices is None
+            else self._dummy_molecule.cart_coords[self.graph_branching_indices]
+        )
 
     @property
     def original_binding_indices(self):
@@ -354,22 +333,24 @@ class SBU:
         return self.get_openbabel_mol()
 
     def get_openbabel_mol(self):
+        from openbabel import pybel as pb
+
         a = BabelMolAdaptor(self.molecule)
         pm = pb.Molecule(a.openbabel_mol)
         return pm
 
     def show_molecule(self):
-        import nglview  # pylint:disable=import-outside-toplevel
+        import nglview
 
         return nglview.show_pymatgen(self.molecule)
 
     def show_connecting_structure(self):
-        import nglview  # pylint:disable=import-outside-toplevel
+        import nglview
 
         return nglview.show_pymatgen(self._get_connected_sites_structure())
 
     def show_binding_structure(self):
-        import nglview  # pylint:disable=import-outside-toplevel
+        import nglview
 
         return nglview.show_pymatgen(self._get_binding_sites_structure())
 
@@ -394,7 +375,7 @@ class SBU:
         try:
             canonical = Chem.CanonSmiles(smiles)
             return canonical
-        except Exception:  # pylint: disable=broad-except
+        except Exception:
             return smiles
 
     def _get_boxed_structure(self):
@@ -406,13 +387,6 @@ class SBU:
             reorder=False,
         )
         return structure
-
-    def _get_connected_sites_structure(self):
-        sites = []
-        s = self._get_boxed_structure()
-        for i in self.connecting_indices:
-            sites.append(s[i])
-        return Structure.from_sites(sites)
 
     def _get_binding_sites_structure(self):
         sites = []

@@ -182,9 +182,8 @@ def create_node_collection(mof, node_location_result: NodelocationResult) -> Nod
         node = Node.from_mof_and_indices(
             mof=mof,
             node_indices=node_indices,
-            branching_indices=node_location_result.branching_indices & node_indices,
-            binding_indices=node_location_result.binding_indices & node_indices,
-            connecting_paths=node_location_result.connecting_paths & node_indices,
+            branching_indices=node_location_result.branching_indices,
+            binding_indices=node_location_result.binding_indices,
         )
         nodes.append(node)
 
@@ -217,7 +216,7 @@ def break_rod_nodes(mof, node_result):
     """Break rod nodes into smaller pieces."""
     new_nodes = []
     for node in node_result.nodes:
-        if get_sbu_dimensionality(mof, node) == 1:
+        if get_sbu_dimensionality(mof, node) >= 1:
             logger.debug("Found 1- or 2-dimensional node. Will break into isolated metals.")
             new_nodes.extend(break_rod_node(mof, node))
         else:
@@ -246,10 +245,10 @@ def check_node(node_indices, branching_indices, mof) -> bool:
         bool: True if the node is reasonable, False otherwise
     """
     # check if there is not way more organic than metal
-    num_carbons = len(node_indices & set(mof.c_indices))
+    num_organic = len(node_indices & set(mof.c_indices)) + len(node_indices & set(mof.n_indices))
     num_metals = len(node_indices & set(mof.metal_indices))
     branching_indices_in_node = branching_indices & node_indices
-    if num_carbons > num_metals + len(branching_indices_in_node):
+    if num_organic > num_metals + len(branching_indices_in_node):
         return False
     return True
 
@@ -258,7 +257,10 @@ def break_organic_nodes(node_result, mof):
     """If we have a node that is mostly organic, we break it up into smaller pieces."""
     new_nodes = []
     for node in node_result.nodes:
-        if check_node(node, node_result.branching_indices, mof) or might_be_porphyrin(
+        if len(node) == len(mof):
+            logger.debug("Breaking node as full MOF is assigned as node.")
+            new_nodes.extend(break_rod_node(mof, node))
+        elif check_node(node, node_result.branching_indices, mof) or might_be_porphyrin(
             node, node_result.branching_indices, mof
         ):
             new_nodes.append(node)
@@ -304,7 +306,6 @@ def find_nodes(
     node_result = find_node_clusters(
         mof, unbound_solvent.indices, forbidden_indices=forbidden_indices
     )
-
     if create_single_metal_bus:
         # Rewrite the node result
         node_result = create_single_metal_nodes(mof, node_result)
@@ -331,16 +332,22 @@ def might_be_porphyrin(node_indices, branching_idx, mof):
     metal_in_node = _get_metal_sublist(node_indices, mof.metal_indices)
     node_indices = set(node_indices)
     branching_idx = set(branching_idx)
+    bound_to_metal = sum([mof.get_neighbor_indices(i) for i in metal_in_node], [])
+    branching_bound_to_metal = branching_idx & set(bound_to_metal)
     # ToDo: check and think if this can handle the general case
     # it should, at least if we only look at the metals
-    if (len(metal_in_node) == 1) & (len(node_indices) > 1):
+    if (len(metal_in_node) == 1) & (len(node_indices | branching_bound_to_metal) > 1):
         logger.debug(
             "metal_in_node",
             metal_in_node,
             node_indices,
         )
-        num_neighbors = len(mof.get_neighbor_indices(metal_in_node[0]))
-        if metal_and_branching_coplanar(node_indices, branching_idx, mof) & (num_neighbors > 2):
+        num_neighbors = len(bound_to_metal)
+        if (
+            metal_and_branching_coplanar(node_indices, branching_bound_to_metal, mof)
+            & (num_neighbors > 2)
+            & (len(branching_bound_to_metal) < 5)
+        ):
             logger.debug(
                 "Metal in linker found, indices: {}".format(
                     node_indices,
@@ -355,5 +362,6 @@ def detect_porphyrin(node_collection, mof):
     not_node = []
     for i, node in enumerate(node_collection):
         if might_be_porphyrin(node._original_indices, node._original_graph_branching_indices, mof):
+            logger.info("Found porphyrin in node {}".format(node._original_indices))
             not_node.append(i)
     return not_node

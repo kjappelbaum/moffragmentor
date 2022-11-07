@@ -12,7 +12,10 @@ from .. import mof
 
 
 def wrap_molecule(
-    mol_idxs: Iterable[int], mof: "mof.MOF", starting_index: Optional[int] = None  # noqa: F821
+    mol_idxs: Iterable[int],
+    mof: "mof.MOF",
+    starting_index: Optional[int] = None,
+    add_additional_site: bool = True,  # noqa: F821
 ) -> Molecule:
     """Wrap a molecule in the cell of the MOF by walking along the structure graph.
 
@@ -30,6 +33,7 @@ def wrap_molecule(
         mof (MOF): MOF object that contains the mol_idxs.
         starting_index (int, optional): Starting index for the walk.
             Defaults to 0.
+        add_additional_site (bool): Whether to add an additional site
 
     Returns:
         Molecule: wrapped molecule
@@ -76,7 +80,7 @@ def wrap_molecule(
                                 - new_positions_cart[current_index]
                             )
                             > VestaCutoffDictNN._lookup_dict[species_a][species_b]
-                        ):
+                        ) & add_additional_site:
                             logger.warning(
                                 "Warning: neighbor_index {} is already in new_positions_cart, "
                                 "but the distance is too large. "
