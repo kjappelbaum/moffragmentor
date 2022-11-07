@@ -107,12 +107,16 @@ def _extract_and_wrap(node_indices, all_branching_indices, all_binding_indices, 
     for i in branching_to_binding | branching_to_node_metal:
         if i not in node_indices & set(mof.metal_indices):
             mol_w_dummy._sites[inverse_mapping[i]] = Site(
-                _BRANCHING_DUMMY, mol_w_dummy._sites[inverse_mapping[i]].coords
+                _BRANCHING_DUMMY,
+                mol_w_dummy._sites[inverse_mapping[i]].coords,
+                properties={"original_species": str(mol_w_dummy._sites[inverse_mapping[i]].specie)},
             )
 
     for i in binding_to_node_metal:
         mol_w_dummy._sites[inverse_mapping[i]] = Site(
-            _BINDING_DUMMY, mol_w_dummy._sites[inverse_mapping[i]].coords
+            _BINDING_DUMMY,
+            mol_w_dummy._sites[inverse_mapping[i]].coords,
+            properties={"original_species": str(mol_w_dummy._sites[inverse_mapping[i]].specie)},
         )
 
     graph_w_dummy.molecule = mol_w_dummy
