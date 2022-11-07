@@ -306,7 +306,11 @@ class SBU:
 
     @cached_property
     def branching_coords(self):
-        return self.cart_coords[self.graph_branching_indices] if self._dummy_branching_indices is None else self._dummy_molecule.cart_coords[self.graph_branching_indices]
+        return (
+            self.cart_coords[self.graph_branching_indices]
+            if self._dummy_branching_indices is None
+            else self._dummy_molecule.cart_coords[self.graph_branching_indices]
+        )
 
     @property
     def original_binding_indices(self):
