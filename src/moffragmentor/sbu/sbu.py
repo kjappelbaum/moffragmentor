@@ -67,6 +67,12 @@ class SBU:
 
         To obtain the "original" coordinates, use the `_coordinates` attribute.
 
+    .. note:: Dummy molecules
+
+        In dummy molecules the binding and branching sites are replaces by
+        dummy atoms (noble gas). They also have special properties that indicate
+        the original species.
+
     Examples:
         >>> # visualize the molecule
         >>> sbu_object.show_molecule()
@@ -84,6 +90,7 @@ class SBU:
         dummy_molecule: Optional[Molecule] = None,
         dummy_molecule_graph: Optional[MoleculeGraph] = None,
         dummy_molecule_indices_mapping: Optional[Dict[int, List[int]]] = None,
+        dummy_branching_indices: Optional[Collection[int]] = None,
     ):
         """Initialize a secondary building block.
 
@@ -97,6 +104,13 @@ class SBU:
             binding_indices (Collection[int]): Binding indices in the original structure.
             molecule_original_indices_mapping (Optional[Dict[int, List[int]]], optional):
                 Mapping from molecule indices to original indices. Defaults to None.
+            dummy_molecule (Optional[Molecule], optional): Dummy molecule. Defaults to None.
+            dummy_molecule_graph (Optional[MoleculeGraph], optional): Dummy molecule graph.
+                Defaults to None.
+            dummy_molecule_indices_mapping (Optional[Dict[int, List[int]]], optional):
+                Dummy molecule indices mapping. Defaults to None.
+            dummy_branching_indices (Optional[Collection[int]], optional):
+                Dummy branching indices. Defaults to None.
         """
         self.molecule = molecule
         self._mapping = molecule_original_indices_mapping
@@ -111,6 +125,7 @@ class SBU:
         self._dummy_molecule = dummy_molecule
         self._dummy_molecule_graph = dummy_molecule_graph
         self._dummy_molecule_indices_mapping = dummy_molecule_indices_mapping
+        self._dummy_branching_indices = dummy_branching_indices
 
         self.mapping_from_original_indices = defaultdict(list)
         if molecule_original_indices_mapping is None:
@@ -120,6 +135,17 @@ class SBU:
             for k, v in molecule_original_indices_mapping.items():
                 for i in v:
                     self.mapping_from_original_indices[i].append(k)
+
+        if dummy_molecule:
+            self.dummy_mapping_from_original_indices = defaultdict(list)
+            if dummy_molecule_indices_mapping is None:
+                for ori_index, index in zip(self._indices, range(len(dummy_molecule))):
+                    self.dummy_mapping_from_original_indices[ori_index].append(index)
+            else:
+                for k, v in dummy_molecule_indices_mapping.items():
+                    for i in v:
+                        self.dummy_mapping_from_original_indices[i].append(k)
+
         self.mapping_to_original_indices = {}
         for key, value in self.mapping_from_original_indices.items():
             for v in value:
@@ -232,9 +258,14 @@ class SBU:
     @property
     def graph_branching_indices(self):
         indices = []
-        for i in self.original_graph_branching_indices:
-            for index in self.mapping_from_original_indices[i]:
-                indices.append(index)
+        if self._dummy_branching_indices is None:
+            for i in self.original_graph_branching_indices:
+                for index in self.mapping_from_original_indices[i]:
+                    indices.append(index)
+        else:
+            for i in self._dummy_branching_indices:
+                for index in self.dummy_mapping_from_original_indices[i]:
+                    indices.append(index)
         return indices
 
     @cached_property
@@ -275,7 +306,7 @@ class SBU:
 
     @cached_property
     def branching_coords(self):
-        return self.cart_coords[self.graph_branching_indices]
+        return self.cart_coords[self.graph_branching_indices] if self._dummy_branching_indices is None else self._dummy_molecule.cart_coords[self.graph_branching_indices]
 
     @property
     def original_binding_indices(self):

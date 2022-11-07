@@ -72,6 +72,7 @@ class MOF:
         self._nx_graph = None
 
     def __copy__(self):
+        """Make a a new MOF object with copies of the same structure and structure graph."""
         return MOF(IStructure.from_sites(self._structure.sites), self.structure_graph.__copy__())
 
     def dump(self, path) -> None:

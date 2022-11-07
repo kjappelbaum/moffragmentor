@@ -79,7 +79,13 @@ def _extract_and_wrap(node_indices, all_branching_indices, all_binding_indices, 
     node_metal_atoms = [i for i in node_indices if i in mof.metal_indices]
     binding_to_node_metal = set(sum([mof.get_neighbor_indices(i) for i in node_metal_atoms], []))
     binding_to_node_metal = binding_to_node_metal.intersection(all_binding_indices)
-    branching_to_node_metal = set(sum([mof.get_neighbor_indices(i) for i in node_metal_atoms], []))
+
+    branching_to_node_metal = set(
+        sum(
+            [mof.get_neighbor_indices(i) for i in node_metal_atoms if i in all_branching_indices],
+            [],
+        )
+    )
     binding_neighbors = sum([mof.get_neighbor_indices(i) for i in binding_to_node_metal], [])
     branching_to_binding = set(binding_neighbors).intersection(all_branching_indices)
 
@@ -89,7 +95,7 @@ def _extract_and_wrap(node_indices, all_branching_indices, all_binding_indices, 
         dummy_structure.replace(i, _BINDING_DUMMY)
     for i in branching_to_binding | branching_to_node_metal:
         dummy_structure.replace(i, _BRANCHING_DUMMY)
-
+    dummy_branching_sites = branching_to_binding | branching_to_node_metal
     mol_w_dummy, graph_w_dummy, mapping_w_dummy = _build_mol_and_graph(
         mof,
         list(node_indices)
@@ -121,7 +127,7 @@ def _extract_and_wrap(node_indices, all_branching_indices, all_binding_indices, 
 
     graph_w_dummy.molecule = mol_w_dummy
 
-    return mol, graph, mapping, mol_w_dummy, graph_w_dummy, mapping_w_dummy
+    return mol, graph, mapping, mol_w_dummy, graph_w_dummy, mapping_w_dummy, dummy_branching_sites
 
 
 def node_from_mof_and_indices(cls, mof, node_indices, all_branching_indices, all_binding_indices):
@@ -131,7 +137,15 @@ def node_from_mof_and_indices(cls, mof, node_indices, all_branching_indices, all
     binding_indices = node_indices & all_binding_indices
     graph_branching_indices = branching_indices & node_indices
 
-    mol, graph, mapping, mol_w_dummy, graph_w_dummy, mapping_w_dummy = _extract_and_wrap(
+    (
+        mol,
+        graph,
+        mapping,
+        mol_w_dummy,
+        graph_w_dummy,
+        mapping_w_dummy,
+        dummy_branching_sites,
+    ) = _extract_and_wrap(
         node_indices=node_indices,
         all_branching_indices=all_branching_indices,
         all_binding_indices=all_binding_indices,
@@ -147,6 +161,7 @@ def node_from_mof_and_indices(cls, mof, node_indices, all_branching_indices, all
         dummy_molecule=mol_w_dummy,
         dummy_molecule_graph=graph_w_dummy,
         dummy_molecule_indices_mapping=mapping_w_dummy,
+        dummy_branching_indices=dummy_branching_sites,
     )
 
     return node

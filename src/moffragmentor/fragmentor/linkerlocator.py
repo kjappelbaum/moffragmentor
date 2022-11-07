@@ -6,9 +6,8 @@ import numpy as np
 from pymatgen.core import Structure
 from structuregraph_helpers.subgraph import get_subgraphs_as_molecules
 
-from .molfromgraph import wrap_molecule
-from ..sbu import Linker, LinkerCollection
-from ..utils import _flatten_list_of_sets
+from moffragmentor.fragmentor.molfromgraph import wrap_molecule
+from moffragmentor.sbu import Linker, LinkerCollection
 
 __all__ = ["create_linker_collection", "identify_linker_binding_indices"]
 
@@ -87,7 +86,7 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
 
     # Second step: extract the connected components
     # return all as molecules
-    _mols, graphs, idxs, centers, coordinates = get_subgraphs_as_molecules(
+    _mols, graphs, idxs, _centers, coordinates = get_subgraphs_as_molecules(
         graph_,
         return_unique=False,
         filter_in_cell=False,
@@ -97,13 +96,11 @@ def _create_linkers_from_node_location_result(  # pylint:disable=too-many-locals
 
     # Third: pick those molecules that are closest to the UC
     # ToDo: we should be able to skip this
-    linker_indices, coords = _pick_central_linker_indices(mof, coordinates)
+    linker_indices, _coords = _pick_central_linker_indices(mof, coordinates)
     found_frac_centers = set()
     found_hashes = set()
-    for i, linker_index in enumerate(linker_indices):
+    for linker_index in linker_indices:
         idx = idxs[linker_index]
-        center = centers[linker_index]
-        coords_ = coords[i]
         branching_indices = node_location_result.branching_indices & set(idx)
         mol, mapping = wrap_molecule(idx, mof)
         linker = Linker(

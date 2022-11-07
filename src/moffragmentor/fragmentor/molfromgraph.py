@@ -33,7 +33,7 @@ def wrap_molecule(
         mof (MOF): MOF object that contains the mol_idxs.
         starting_index (int, optional): Starting index for the walk.
             Defaults to 0.
-        add_additional_site (bool, optional): Whether to add an additional site
+        add_additional_site (bool): Whether to add an additional site
 
     Returns:
         Molecule: wrapped molecule

@@ -54,6 +54,35 @@ def is_3d_parallel(v1: np.array, v2: np.array, eps: float = 1e-5) -> bool:
     return np.allclose(cp, np.zeros(3), atol=eps)
 
 
+def get_image_if_on_edge(frac_coords):
+    # exactly one --> return the -1 image
+    images = np.zeros(3, dtype=int)
+    is_exactly_one = np.argwhere(np.abs(frac_coords - 1) < 1e-4)
+    if is_exactly_one.size > 0:
+        images[is_exactly_one] = -1
+    is_exactly_zero = np.argwhere(np.abs(frac_coords) < 1e-4)
+    if is_exactly_zero.size > 0:
+        images[is_exactly_zero] = 1
+    return images
+
+
+def sanitize_graph(structure_graph):
+    # if there is a node with only one edge, it is probably because the binding partner is at an edge or corner of the structure
+    # that is, at least one fractional coordinate is 0 or 1
+    # in this case, we add a bond to the image of this site
+    new_edges = []
+    for i, _ in enumerate(structure_graph.structure):
+        connected_sites = structure_graph.get_connected_sites(i)
+        if len(connected_sites) == 1:
+            frac_coords = connected_sites[0].site.frac_coords
+            images = get_image_if_on_edge(frac_coords)
+            if np.any(images != 0):
+                new_edges.append((i, connected_sites[0].index, images))
+
+    for edge in new_edges:
+        structure_graph.add_edge(edge[0], edge[1], to_jimage=edge[2])
+
+
 class VoltageEdge:
     """Representation of an edge in a labeled quotient graph (LQG).
 
@@ -268,12 +297,17 @@ class Net:
             lattice=self.lattice, species=symbols, coords=coords, coords_are_cartesian=True
         )
 
-    def get_pmg_structure_graph(self, simplify: bool = True) -> StructureGraph:
+    def get_pmg_structure_graph(
+        self, simplify: bool = True, sanitize: bool = False
+    ) -> StructureGraph:
         """Return a StructureGraph object from the Net object
 
         Args:
             simplify (bool): Whether to simplify the graph. Defaults to True.
                 If True, 2c vertices are removed.
+            sanitize (bool): Whether to sanitize the graph. Defaults to False.
+                If True, add edge to periodic image for sites with only one neighbor
+                if this neighbor is at the egde of the unit cell.
 
         Returns:
             StructureGraph: The StructureGraph object.
@@ -292,6 +326,8 @@ class Net:
             ] = None
 
         structure_graph = StructureGraph.with_edges(s, edge_dict)
+        if sanitize:
+            sanitize_graph(structure_graph)
         if simplify:
             structure_graph = _simplify_structure_graph(structure_graph)
         return structure_graph
