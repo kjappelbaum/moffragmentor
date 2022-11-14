@@ -18,6 +18,7 @@ __all__ = ["Node"]
 
 _BINDING_DUMMY = "Xe"
 _BRANCHING_DUMMY = "Kr"
+_EXTENSION_DUMMY = "Ar"  # important for MOF assembly tools
 
 
 def _build_mol_and_graph(mof, indices, ignore_hidden_indices=True, add_additional_site=True):
@@ -89,40 +90,66 @@ def _extract_and_wrap(node_indices, all_branching_indices, all_binding_indices, 
     binding_neighbors = sum([mof.get_neighbor_indices(i) for i in binding_to_node_metal], [])
     branching_to_binding = set(binding_neighbors).intersection(all_branching_indices)
 
+    extension_points = []
+    
+    for branching_idx in branching_to_binding | branching_to_node_metal:
+        if branching_idx in node_indices:
+            # find extension point
+            neighbors_of_branching = mof.get_neighbor_indices(branching_idx)
+            extension_point = set(neighbors_of_branching) - node_indices
+            assert len(extension_point) == 1  # perhaps we should raise an error here
+            extension_point = list(extension_point)[0]
+            extension_points.append(extension_point)
+        else:
+            extension_points.append(branching_idx)
+
     # Now, make a copy of the structure and replace the indices with dummy atoms
     dummy_structure = Structure.from_sites(mof.structure.sites)
+    print('binding_to_node_metal', binding_to_node_metal)
     for i in binding_to_node_metal:
         dummy_structure.replace(i, _BINDING_DUMMY)
     for i in branching_to_binding | branching_to_node_metal:
         dummy_structure.replace(i, _BRANCHING_DUMMY)
-    dummy_branching_sites = branching_to_binding | branching_to_node_metal
+    for i in extension_points:
+        dummy_structure.replace(i, _EXTENSION_DUMMY)
+    dummy_branching_sites = branching_to_binding | branching_to_node_metal | set(extension_points)
     mol_w_dummy, graph_w_dummy, mapping_w_dummy = _build_mol_and_graph(
         mof,
         list(node_indices)
         + list(binding_to_node_metal)
         + list(branching_to_binding)
-        + list(branching_to_node_metal),
+        + list(branching_to_node_metal)
+        + extension_points,
         ignore_hidden_indices=False,
         add_additional_site=False,
     )
 
     inverse_mapping = {v[0]: k for k, v in mapping_w_dummy.items()}
+    print('inverse_mapping', inverse_mapping)
     # let's replace here now the atoms with the dummys as doing it beforehand might cause issues
     # (e.g. we do not have the distances for a cutoffdict)
 
+    original_mol_w_dummy_species = mol_w_dummy.species
     for i in branching_to_binding | branching_to_node_metal:
         if i not in node_indices & set(mof.metal_indices):
             mol_w_dummy._sites[inverse_mapping[i]] = Site(
                 _BRANCHING_DUMMY,
                 mol_w_dummy._sites[inverse_mapping[i]].coords,
-                properties={"original_species": str(mol_w_dummy._sites[inverse_mapping[i]].specie)},
+                properties={"original_species": str(original_mol_w_dummy_species[inverse_mapping[i]])},
             )
 
     for i in binding_to_node_metal:
         mol_w_dummy._sites[inverse_mapping[i]] = Site(
             _BINDING_DUMMY,
             mol_w_dummy._sites[inverse_mapping[i]].coords,
-            properties={"original_species": str(mol_w_dummy._sites[inverse_mapping[i]].specie)},
+            properties={"original_species": str(original_mol_w_dummy_species[inverse_mapping[i]])},
+        )
+
+    for i in extension_points:
+        mol_w_dummy._sites[inverse_mapping[i]] = Site(
+            _EXTENSION_DUMMY,
+            mol_w_dummy._sites[inverse_mapping[i]].coords,
+            properties={"original_species": str(original_mol_w_dummy_species[inverse_mapping[i]])},
         )
 
     graph_w_dummy.molecule = mol_w_dummy
