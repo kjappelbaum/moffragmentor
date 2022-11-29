@@ -106,3 +106,10 @@ Clearly, we do not consider floating solvent for the computation of the net.
     Also note that there are problems with analyzing the combinatorial topology of 1D rod MOFs.
     `There only recently has been an algorithm proposed that is implemented in ToposPro <https://link.springer.com/article/10.1007/s11224-016-0774-1>`_.
 
+
+.. admonition:: Customizing the log level 
+    :class: tip 
+
+    By default, you might find the output of the fragmentor a bit verbose.
+    You can change the log level by setting the environment variable :code:`LOGURU_LEVEL` to one of the
+    `loguru levels <https://loguru.readthedocs.io/en/stable/api/logger.html#loguru._logger.Logger.level>`_.
