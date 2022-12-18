@@ -4,6 +4,7 @@ import datetime
 import json
 import os
 import pickle
+import sys
 from collections import defaultdict
 from shutil import which
 from typing import Collection, Dict, Iterable, List, Union
@@ -12,10 +13,34 @@ import networkx as nx
 import numpy as np
 import pymatgen
 from backports.cached_property import cached_property
+from loguru import logger
 from pymatgen.analysis.graphs import MoleculeGraph, StructureGraph
 from pymatgen.core import Molecule, Structure
 from pymatgen.io.babel import BabelMolAdaptor
 from skspatial.objects import Points
+
+
+def enable_logging() -> List[int]:
+    """Set up the mofdscribe logging with sane defaults."""
+    logger.enable("mofdscribe")
+
+    config = dict(
+        handlers=[
+            dict(
+                sink=sys.stderr,
+                format="<green>{time:YYYY-MM-DD HH:mm:ss.SSS Z UTC}</>"
+                " <red>|</> <lvl>{level}</> <red>|</> <cyan>{name}:{function}:{line}</>"
+                " <red>|</> <lvl>{message}</>",
+                level="INFO",
+            ),
+            dict(
+                sink=sys.stderr,
+                format="<red>{time:YYYY-MM-DD HH:mm:ss.SSS Z UTC} | {level} | {name}:{function}:{line} | {message}</>",
+                level="WARNING",
+            ),
+        ]
+    )
+    return logger.configure(**config)
 
 
 def get_molecule_mass(molecule):
