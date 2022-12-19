@@ -13,6 +13,7 @@ from pymatgen.analysis.graphs import MoleculeGraph
 from pymatgen.core import Molecule, Structure
 from pymatgen.io.babel import BabelMolAdaptor
 from rdkit import Chem
+from rdkit.Chem.Descriptors import NumRadicalElectrons
 from scipy.spatial.distance import pdist
 
 from moffragmentor.utils import pickle_dump
@@ -209,6 +210,10 @@ class SBU:
     @property
     def is_edge(self):
         return len(self.branching_coords) == 2
+
+    @property
+    def num_radical_electrons(self):
+        return NumRadicalElectrons(self.rdkit_mol)
 
     def __len__(self):
         """Return the number of atoms in the molecule."""
