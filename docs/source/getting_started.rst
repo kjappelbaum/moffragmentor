@@ -110,6 +110,35 @@ Clearly, we do not consider floating solvent for the computation of the net.
 .. admonition:: Customizing the log level 
     :class: tip 
 
-    By default, you might find the output of the fragmentor a bit verbose.
-    You can change the log level by setting the environment variable :code:`LOGURU_LEVEL` to one of the
-    `loguru levels <https://loguru.readthedocs.io/en/stable/api/logger.html#loguru._logger.Logger.level>`_.
+    moffragmentor uses the `loguru <https://loguru.readthedocs.io/en/stable/index.html>`_  for logging. 
+    By default, logging from moffragmentor is disabled to not interfere with your logs.
+
+    However, you can easily customize the logging:
+
+    .. code-block:: python
+
+        import sys
+        from loguru import logger
+
+        # enable moffragmentor logging 
+        logger.enable("moffragmentor")
+        
+        # define the logging level
+        LEVEL = "INFO || DEBUG || WARNING || etc."
+
+        # set the handler
+        # for logging to stdout
+        logger.add(sys.stdout, level=LEVEL) 
+        # or for logging to a file
+        logger.add("my_log_file.log", level=LEVEL, enqueue=True) 
+
+
+    In many cases, however, you might find it convenient to simply call :py:meth:`~moffragmentor.utils.enable_logging`
+
+    .. code-block:: python
+
+        from moffragmentor.utils import enable_logging
+
+        enable_logging()
+
+    which will enable logging with sane defaults (i.e. logging to ``stderr`` for ``INFO`` and ``WARNING`` levels).

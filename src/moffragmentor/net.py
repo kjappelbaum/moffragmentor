@@ -67,7 +67,8 @@ def get_image_if_on_edge(frac_coords):
 
 
 def sanitize_graph(structure_graph):
-    # if there is a node with only one edge, it is probably because the binding partner is at an edge or corner of the structure
+    # if there is a node with only one edge,
+    # it is probably because the binding partner is at an edge or corner of the structure
     # that is, at least one fractional coordinate is 0 or 1
     # in this case, we add a bond to the image of this site
     new_edges = []
