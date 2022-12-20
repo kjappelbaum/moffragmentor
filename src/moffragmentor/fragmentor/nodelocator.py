@@ -215,10 +215,12 @@ def create_single_metal_nodes(mof, node_result):
 def break_rod_nodes(mof, node_result):
     """Break rod nodes into smaller pieces."""
     new_nodes = []
+    broke_nodes = False
     for node in node_result.nodes:
         if get_sbu_dimensionality(mof, node) >= 1:
             logger.debug("Found 1- or 2-dimensional node. Will break into isolated metals.")
             new_nodes.extend(break_rod_node(mof, node))
+            broke_nodes = True
         else:
             new_nodes.append(node)
     new_node_result = NodelocationResult(
@@ -228,7 +230,7 @@ def break_rod_nodes(mof, node_result):
         node_result.binding_indices,
         node_result.to_terminal_from_branching,
     )
-    return new_node_result
+    return new_node_result, broke_nodes
 
 
 def check_node(node_indices, branching_indices, mof) -> bool:
@@ -300,6 +302,7 @@ def find_nodes(
     Returns:
         NodeCollection: collection of nodes
     """
+    broke_rod_nodes = None
     if forbidden_indices is None:
         forbidden_indices = []
 
@@ -311,14 +314,14 @@ def find_nodes(
         node_result = create_single_metal_nodes(mof, node_result)
     if check_dimensionality:
         # If we have nodes with dimensionality >0, we change these nodes to only contain the metal
-        node_result = break_rod_nodes(mof, node_result)
+        node_result, broke_rod_nodes = break_rod_nodes(mof, node_result)
     if break_organic_nodes_:
         # ToDo: This, of course, would also break prophyrin ...
         node_result = break_organic_nodes(node_result, mof)
 
     node_collection = create_node_collection(mof, node_result)
 
-    return node_result, node_collection
+    return node_result, node_collection, broke_rod_nodes
 
 
 def metal_and_branching_coplanar(node_idx, all_branching_idx, mof, tol=0.1):
