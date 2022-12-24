@@ -49,7 +49,7 @@ def run_fragmentation(
         try:
             not_node = []
             logger.debug(f"Fragmenting MOF for the {counter} time")
-            node_result, node_collection = find_nodes(
+            node_result, node_collection, has_1d_sbu = find_nodes(
                 mof,
                 unbound_solvent,
                 forbidden_indices,

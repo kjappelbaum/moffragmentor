@@ -621,8 +621,9 @@ def build_net(
             edge_selection.append(edges[0][0])
         else:
             # sort ascending by second element in tuple in the list
-            edge_selection.append(sorted(edges, key=lambda x: x[1])[0][0])
-
+            selected_edges = [e[0] for e in sorted(edges, key=lambda x: x[1])]
+            edge_selection.extend(selected_edges)  # sorted(edges, key=lambda x: x[1])[0][0])
+            # edge_selection.extend(sorted(edges, key=lambda x: x[1])[0][0])
     for edge in edge_selection:
         if not contains_edge(edge, found_edges):
             found_edges.append(edge)
