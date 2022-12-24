@@ -10,7 +10,7 @@ import pubchempy as pcp
 from backports.cached_property import cached_property
 from loguru import logger
 from pymatgen.analysis.graphs import MoleculeGraph
-from pymatgen.core import Molecule, Structure
+from pymatgen.core import Molecule, PeriodicSite, Structure
 from pymatgen.io.babel import BabelMolAdaptor
 from rdkit import Chem
 from scipy.spatial.distance import pdist
@@ -378,9 +378,11 @@ class SBU:
         except Exception:
             return smiles
 
-    def _get_boxed_structure(self):
-        max_size = _get_max_sep(self.molecule.cart_coords)
-        structure = self.molecule.get_boxed_structure(
+    def _get_boxed_structure(self, mol=None) -> Structure:
+        if mol is None:
+            mol = self.molecule
+        max_size = _get_max_sep(mol.cart_coords)
+        structure = mol.get_boxed_structure(
             max_size + 0.1 * max_size,
             max_size + 0.1 * max_size,
             max_size + 0.1 * max_size,
@@ -388,12 +390,27 @@ class SBU:
         )
         return structure
 
-    def _get_binding_sites_structure(self):
+    def _get_binding_sites_structure(self) -> Structure:
         sites = []
         s = self._get_boxed_structure()
         for i in self.binding_indices:
             sites.append(s[i])
         return Structure.from_sites(sites)
+
+    def _get_branching_sites_structure(self) -> Structure:
+        new_sites = []
+        s = self._get_boxed_structure(self._dummy_molecule)
+        for i, site in enumerate(s):
+            if set(self._dummy_molecule_indices_mapping[i]) & self._dummy_branching_indices:
+                if "original_species" in site.properties and site.properties["original_species"]:
+                    species = site.properties["original_species"]
+                else:
+                    species = site.species
+
+                new_site = PeriodicSite(species, site.coords, site.lattice)
+                new_sites.append(new_site)
+
+        return Structure.from_sites(new_sites)
 
     @cached_property
     def descriptors(self):
